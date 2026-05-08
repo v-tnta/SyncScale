@@ -1,0 +1,47 @@
+import { defineManifest } from '@crxjs/vite-plugin';
+
+export default defineManifest({
+  manifest_version: 3,
+  name: "SyncScale - manaba課題取得",
+  version: "0.1.0",
+  description: "manabaから課題と〆切を自動取得し、SyncScaleに登録します",
+  permissions: [
+    "activeTab",
+    "storage",
+    "offscreen"
+  ],
+  host_permissions: [
+    "https://*.manaba.jp/*",
+    "https://manaba.ibaraki.ac.jp/*",
+    "https://*.firebaseapp.com/*",
+    "https://*.firebaseio.com/*",
+    "https://www.googleapis.com/*"
+  ],
+  background: {
+    service_worker: "src/background/background.js",
+    type: "module"
+  },
+  content_scripts: [
+    {
+      matches: [
+        "https://*.manaba.jp/*",
+        "https://manaba.ibaraki.ac.jp/*"
+      ],
+      js: ["src/content/content.js"],
+      run_at: "document_idle"
+    }
+  ],
+  action: {
+    default_popup: "src/popup/popup.html",
+    default_icon: {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  icons: {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+});

@@ -1,0 +1,19 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // タスクへのアクセスルール
+    match /tasks/{taskId} {
+      // 読み取り・更新・削除は自分のデータのみ許可
+      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      // 作成時、userIdが自分のuidと一致していることを要求
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+    }
+    
+    // タイムログへのアクセスルール
+    match /timeLogs/{logId} {
+      allow read, update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+    }
+  }
+}

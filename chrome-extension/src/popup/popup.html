@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <h1 class="title">🔄 SyncScale</h1>
+    
+    <!-- 認証エリア -->
+    <section id="auth-section">
+      <div id="logged-in" style="display:none;">
+        <p>✅ <span id="user-email"></span></p>
+        <button id="logout-btn">ログアウト</button>
+      </div>
+      <div id="logged-out">
+        <button id="login-btn">Google ログイン</button>
+      </div>
+    </section>
+    
+    <!-- 課題取得エリア -->
+    <section id="fetch-section">
+      <p class="hint">manabaの課題ページを開いた状態で押してください</p>
+      <button id="fetch-btn">📥 課題を取得する</button>
+      <div id="result-area"></div>
+    </section>
+  </div>
+  
+  <script src="popup.js" type="module"></script>
+</body>
+</html>

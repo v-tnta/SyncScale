@@ -1,0 +1,15 @@
+{
+  "projects": {
+    "default": "kadahira-gantt"
+  },
+  "targets": {
+    "kadahira-firebase": {
+      "hosting": {
+        "main": [
+          "kadahira-gantt"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}
