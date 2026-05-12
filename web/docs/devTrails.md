@@ -914,3 +914,7 @@ for (const item of tempTasks) {
   - 同一ユーザー・同一タイトルの課題は重複登録しない（スキップ）処理を追加。
   - 〆切日時は `Timestamp` 型に変換して保存。
 - 機密情報を管理するため `.env` ファイルを導入。
+#### **5. 新Firebaseプロジェクト (SyncScale) への移行**
+- Firebaseコンソールで新しく作成された `sync-scale` プロジェクトの設定値を `.env` ファイルに反映。
+- WebアプリおよびChrome拡張機能の両方の環境変数を更新。
+- Firebase CLI設定 (`.firebaserc`) を新プロジェクトID (`sync-scale`) に更新。

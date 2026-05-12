@@ -4,11 +4,5 @@ import manifest from './manifest.js';
 
 export default defineConfig({
   plugins: [crx({ manifest })],
-  build: {
-    rollupOptions: {
-      input: {
-        offscreen: 'src/offscreen/offscreen.html'
-      }
-    }
-  }
+  // rollupOptionsはcrxjsが自動でマニフェストから読み取るため、通常は不要です
 });
