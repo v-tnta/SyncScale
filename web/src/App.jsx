@@ -4,8 +4,11 @@ import TaskForm from './components/TaskForm'
 import TaskList from './components/TaskList'
 import Timer from './components/Timer' // Timerコンポーネントを追加
 import TaskOverlay from './components/TaskOverlay'
+import CompletedTasksModal from './components/CompletedTasksModal'
+import ConditionInputModal from './components/ConditionInputModal'
 import { useTasks } from './hooks/useTasks'
 import { useTimeLogs } from './hooks/useTimeLogs' // ログ取得用に追加
+import { useConditionLogs } from './hooks/useConditionLogs' // コンディションログ用に追加
 import { useAuth } from './hooks/useAuth'
 import './App.css'
 
@@ -13,13 +16,18 @@ function App() {
   const { currentUser } = useAuth();
   const { tasks, addTask, updateTask, deleteTask, completelyDeleteTask, loading, error } = useTasks();
   const { timeLogs } = useTimeLogs(); // 全体のログを取得
+  const { addLog: addConditionLog } = useConditionLogs(); // フックを使用
 
-  // 非表示タスクの表示切り替え
-  const [showHidden, setShowHidden] = React.useState(false);
+  // 完了タスク一覧モーダルの状態
+  const [isCompletedModalOpen, setIsCompletedModalOpen] = React.useState(false);
 
-  // 表示用タスクと、タイマー用（アクティブのみ）タスクの切り分け
-  const visibleTasks = React.useMemo(() => tasks.filter(t => t.isVisible !== false), [tasks]);
-  const tasksForList = showHidden ? tasks : visibleTasks;
+  // コンディション入力モーダルの状態（対象タスクを保持）
+  const [taskToComplete, setTaskToComplete] = React.useState(null);
+
+  // 表示用タスクと完了タスクの切り分け
+  // 未完了のみメインに表示。完了済みはモーダルへ。
+  const incompleteTasks = React.useMemo(() => tasks.filter(t => t.status !== 'DONE'), [tasks]);
+  const completedTasks = React.useMemo(() => tasks.filter(t => t.status === 'DONE'), [tasks]);
 
   // モーダル用のステート (TaskOverlay: 詳細/編集)
   const [selectedTask, setSelectedTask] = React.useState(null);
@@ -42,6 +50,36 @@ function App() {
     ? timeLogs.filter(log => log.taskId === selectedTask.id)
     : [];
 
+  // タスク完了のリクエスト（即座にDONEにせず、コンディション入力を開く）
+  const handleCompleteRequest = (task) => {
+    setTaskToComplete(task);
+  };
+
+  // コンディション入力完了時の処理
+  const handleConditionSubmit = async ({ condition, memo }) => {
+    if (!taskToComplete) return;
+
+    // 先にモーダルを閉じる
+    const targetTaskId = taskToComplete.id;
+    setTaskToComplete(null);
+    
+    // TaskOverlayが開いていた場合は閉じる
+    if (selectedTask && selectedTask.id === targetTaskId) {
+        setIsModalOpen(false);
+        setSelectedTask(null);
+    }
+
+    // Firestoreの conditionLogs に保存
+    try {
+        await addConditionLog(targetTaskId, { condition, memo });
+    } catch (err) {
+        console.error("コンディションの保存に失敗しました", err);
+    }
+    
+    // タスクのステータスをDONEに更新する
+    await updateTask(targetTaskId, { status: 'DONE', updatedAt: new Date() });
+  };
+
   return (
     <Layout tasks={currentUser ? tasks : null} onTaskClick={handleTaskClick}>
       {!currentUser ? (
@@ -62,15 +100,15 @@ function App() {
           {/* 下部: タスク一覧 */}
           <div>
             <TaskList
-              tasks={tasksForList}
+              tasks={incompleteTasks}
               timeLogs={timeLogs}
               loading={loading}
               error={error}
               onTaskClick={handleTaskClick}
               onUpdateTask={updateTask}
               onDeleteTask={deleteTask}
-              showHidden={showHidden}
-              onToggleHidden={() => setShowHidden(!showHidden)}
+              onCompleteRequest={handleCompleteRequest}
+              onOpenCompletedModal={() => setIsCompletedModalOpen(true)}
             />
           </div>
 
@@ -83,6 +121,23 @@ function App() {
             onUpdate={updateTask}
             onDelete={deleteTask}
             onPhysicalDelete={completelyDeleteTask}
+            onCompleteRequest={handleCompleteRequest}
+          />
+
+          {/* 完了タスク一覧モーダル */}
+          <CompletedTasksModal
+            isOpen={isCompletedModalOpen}
+            onClose={() => setIsCompletedModalOpen(false)}
+            tasks={completedTasks}
+            onTaskClick={handleTaskClick}
+          />
+
+          {/* コンディション入力モーダル */}
+          <ConditionInputModal
+            isOpen={!!taskToComplete}
+            onClose={() => setTaskToComplete(null)}
+            task={taskToComplete}
+            onSubmit={handleConditionSubmit}
           />
         </div>
       )}

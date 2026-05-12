@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useTimeLogs } from '../hooks/useTimeLogs'
-import { useAiPredictions } from '../hooks/useAiPredictions'
 
 /**
  * Timerコンポーネント (Inline版)
@@ -9,9 +8,6 @@ import { useAiPredictions } from '../hooks/useAiPredictions'
  */
 const Timer = ({ activeTask, logs, onUpdateTask }) => {
     const { addTimeLog } = useTimeLogs();
-    
-    // AIサジェスト機能
-    const { suggestions, isAiLoading } = useAiPredictions(activeTask, logs);
 
     // タイマー用ステート
     const [subTaskName, setSubTaskName] = useState('');
@@ -178,70 +174,26 @@ const Timer = ({ activeTask, logs, onUpdateTask }) => {
 
             {/* 中央〜右：メイン操作エリア (作業内容・タイマー・操作ボタン) */}
             <div className="flex-1 flex flex-wrap items-center justify-start md:justify-center xl:justify-center gap-4 md:gap-8 min-w-0">
-                {/* 2. サブタスク入力 (AIサジェストボタン + その他) */}
+                {/* 2. サブタスク入力 */}
                 <div className="flex flex-wrap items-center gap-2">
-                    {isAiLoading ? (
-                        <div className="text-sm px-3 py-1.5 text-gray-400 bg-gray-50 border border-transparent rounded animate-pulse">
-                            候補を生成中...
-                        </div>
-                    ) : (
-                        suggestions.map(preset => (
-                            <button
-                                key={preset}
-                                onClick={() => {
-                                    setSubTaskName(preset);
-                                }}
-                                disabled={isActive || isConfirmModalOpen}
-                                className={`text-sm px-3 py-1.5 rounded border transition-colors ${
-                                    subTaskName === preset && subTaskName !== '' 
-                                        ? 'bg-blue-100 border-blue-400 text-blue-700 font-semibold' 
-                                        : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'
-                                } disabled:opacity-50`}
-                            >
-                                {preset}
-                            </button>
-                        ))
+                    <input
+                        type="text"
+                        placeholder="作業内容 (例: 資料作成)"
+                        className="w-48 p-1.5 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        value={subTaskName}
+                        onChange={(e) => setSubTaskName(e.target.value)}
+                        disabled={isActive || isConfirmModalOpen}
+                        autoFocus
+                    />
+                    {!isActive && subTaskName !== '' && (
+                        <button
+                            onClick={() => setSubTaskName('')}
+                            className="text-gray-400 hover:text-red-500 p-1"
+                            title="クリア"
+                        >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
                     )}
-                    
-                    {/* 「その他」用入力欄 or セレクトボタン */}
-                    <div className="relative flex items-center">
-                        {!suggestions.includes(subTaskName) && subTaskName !== '' || subTaskName === 'その他...' ? (
-                            // 自由記述モード
-                            <div className="flex items-center gap-1">
-                                <input
-                                    type="text"
-                                    placeholder="自由記述..."
-                                    className="w-32 p-1.5 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                                    value={subTaskName === 'その他...' ? '' : subTaskName}
-                                    onChange={(e) => setSubTaskName(e.target.value)}
-                                    disabled={isActive || isConfirmModalOpen}
-                                    autoFocus
-                                />
-                                {!isActive && (
-                                    <button
-                                        onClick={() => setSubTaskName('')}
-                                        className="text-gray-400 hover:text-red-500 p-1"
-                                        title="クリア"
-                                    >
-                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                                    </button>
-                                )}
-                            </div>
-                        ) : (
-                            // その他選択ボタン
-                            <button
-                                onClick={() => setSubTaskName('その他...')}
-                                disabled={isActive || isConfirmModalOpen}
-                                className={`text-sm px-3 py-1.5 rounded border transition-colors ${
-                                    subTaskName === 'その他...' 
-                                        ? 'bg-blue-100 border-blue-400 text-blue-700 font-semibold' 
-                                        : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'
-                                } disabled:opacity-50`}
-                            >
-                                その他
-                            </button>
-                        )}
-                    </div>
                 </div>
 
                 {/* 3. タイマー表示 */}

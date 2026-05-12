@@ -5,6 +5,7 @@ import React from 'react'
  * ヘッダーとメインコンテンツエリアを定義します。
  */
 import Calendar from './Calendar'
+import Dashboard from './Dashboard'
 import { useAuth } from '../hooks/useAuth'
 import { ConfirmModal } from './ConfirmModal';
 
@@ -17,7 +18,7 @@ const Layout = ({ children, tasks, onTaskClick }) => {
             <header className="bg-white shadow-sm p-4 sticky top-0 z-10 flex-shrink-0">
                 <div className="container mx-auto flex justify-between items-center">
                     <div>
-                        <h1 className="text-xl font-bold text-blue-600">SyncScale (β)</h1>
+                        <h1 className="text-xl font-bold text-blue-600">Reflatto (β)</h1>
                         <h4 className="text-sm text-gray-500">Time Management App v0.1.1</h4>
                     </div>
                     {currentUser && currentUser.isAnonymous === false ? (
@@ -54,10 +55,11 @@ const Layout = ({ children, tasks, onTaskClick }) => {
                         {children}
                     </div>
 
-                    {/* 右側: カレンダーエリア */}
+                    {/* 右側: カレンダーエリア & Dashboard */}
                     {tasks && (
-                        <div className="w-full md:w-4/5">
-                            <div className="sticky top-4">
+                        <div className="w-full md:w-4/5 flex flex-col gap-6 h-full overflow-y-auto pr-2 custom-scrollbar">
+                            <Dashboard />
+                            <div className="bg-white p-6 rounded-lg shadow-md min-h-[400px]">
                                 <Calendar tasks={tasks} onEventClick={onTaskClick} />
                             </div>
                         </div>

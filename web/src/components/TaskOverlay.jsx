@@ -1,39 +1,40 @@
 import React, { useState, useEffect } from 'react'
 import GanttChart from './GanttChart'
-import TaskAnalytics from './TaskAnalytics'
 import Timer from './Timer'
+import SizeLabelSelector from './SizeLabelSelector'
+import DateTimePicker from './DateTimePicker'
 
 /**
  * TaskOverlay コンポーネント
  * タスクの詳細（分析とガントチャート）を表示するオーバーレイです。
  * タスクの編集・完了・物理削除機能も含みます。
  */
-const TaskOverlay = ({ isOpen, onClose, task, logs, onUpdate, onDelete, onPhysicalDelete }) => {
+const TaskOverlay = ({ isOpen, onClose, task, logs, onUpdate, onDelete, onPhysicalDelete, onCompleteRequest }) => {
     const [isEditing, setIsEditing] = useState(false);
-    const [editForm, setEditForm] = useState({ title: '', deadline: '', estimatedMinutes: 0 });
+    const [editForm, setEditForm] = useState({ title: '', deadline: null, sizeLabel: 'M' });
 
     // モーダルが開くたび、またはタスクが変わるたびにフォームを初期化
     useEffect(() => {
         if (task) {
-            // 締切日の形式変換
-            let formattedDeadline = '';
+            // 締切日の形式変換 (Dateオブジェクトへ)
+            let formattedDeadline = null;
             if (task.deadline) {
                 if (task.deadline.seconds) {
                     // Timestamp
-                    formattedDeadline = new Date(task.deadline.seconds * 1000).toISOString().split('T')[0];
+                    formattedDeadline = new Date(task.deadline.seconds * 1000);
                 } else if (task.deadline instanceof Date) {
                     // Date Object
-                    formattedDeadline = task.deadline.toISOString().split('T')[0];
-                } else {
-                    // String ("YYYY-MM-DD") or other
                     formattedDeadline = task.deadline;
+                } else {
+                    // String ("YYYY-MM-DD" etc) or other
+                    formattedDeadline = new Date(task.deadline);
                 }
             }
 
             setEditForm({
                 title: task.title,
                 deadline: formattedDeadline,
-                estimatedMinutes: task.estimatedMinutes
+                sizeLabel: task.sizeLabel || 'M'
             });
             setIsEditing(false); // モーダルを開いたときは閲覧モード
         }
@@ -47,24 +48,16 @@ const TaskOverlay = ({ isOpen, onClose, task, logs, onUpdate, onDelete, onPhysic
         // 更新処理
         await onUpdate(task.id, {
             title: editForm.title,
-            estimatedMinutes: Number(editForm.estimatedMinutes),
+            sizeLabel: editForm.sizeLabel,
             // Dateオブジェクトとして保存（FirestoreでTimestampになる）
-            deadline: editForm.deadline ? new Date(editForm.deadline) : null
+            deadline: editForm.deadline
         });
         setIsEditing(false);
     };
 
     // タスク完了 (ステータス更新)
     const handleComplete = async () => {
-        if (window.confirm(`タスク「${task.title}」を完了しますか？`)) {
-            await onUpdate(task.id, { status: 'DONE' });
-        }
-    };
-
-    // リストから非表示 (Soft Delete)
-    const handleDelete = async () => {
-        await onDelete(task.id);
-        onClose();
+        onCompleteRequest(task);
     };
 
     // 物理削除
@@ -79,17 +72,26 @@ const TaskOverlay = ({ isOpen, onClose, task, logs, onUpdate, onDelete, onPhysic
     // 表示用の日付フォーマット関数
     const formatDate = (dateVal) => {
         if (!dateVal) return '未設定';
+        let d = dateVal;
         if (dateVal.seconds) {
-            return new Date(dateVal.seconds * 1000).toLocaleDateString();
+            d = new Date(dateVal.seconds * 1000);
+        } else if (!(dateVal instanceof Date)) {
+            d = new Date(dateVal);
         }
-        const d = new Date(dateVal);
-        return isNaN(d.getTime()) ? dateVal : d.toLocaleDateString();
+        if (isNaN(d.getTime())) return '未設定';
+        
+        const year = d.getFullYear();
+        const month = d.getMonth() + 1;
+        const day = d.getDate();
+        const hour = d.getHours().toString().padStart(2, '0');
+        const min = d.getMinutes().toString().padStart(2, '0');
+        return `${year}年${month}月${day}日 ${hour}:${min}`;
     };
 
     return (
         // 背景 (Backdrop)
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm transition-opacity"
+            className="fixed inset-0 z-[80] flex items-center justify-center bg-black/30 backdrop-blur-sm transition-opacity"
             onClick={onClose}
         >
             {/* モーダル本体 */}
@@ -111,24 +113,20 @@ const TaskOverlay = ({ isOpen, onClose, task, logs, onUpdate, onDelete, onPhysic
                                     placeholder="タスク名"
                                 />
                                 <div className="flex gap-4">
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-sm text-gray-500">締切:</span>
-                                        <input
-                                            type="date"
-                                            className="border rounded px-2 py-1 text-sm"
+                                    <div className="flex-1 min-w-[150px]">
+                                        <span className="text-sm text-gray-500 mb-1 block">締切日時:</span>
+                                        <DateTimePicker
                                             value={editForm.deadline}
-                                            onChange={(e) => setEditForm({ ...editForm, deadline: e.target.value })}
+                                            onChange={(date) => setEditForm({ ...editForm, deadline: date })}
                                         />
                                     </div>
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-sm text-gray-500">見積(分):</span>
-                                        <input
-                                            type="number"
-                                            className="border rounded px-2 py-1 text-sm w-20"
-                                            value={editForm.estimatedMinutes}
-                                            onChange={(e) => setEditForm({ ...editForm, estimatedMinutes: e.target.value })}
-                                        />
-                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm text-gray-500">規模感:</span>
+                                    <SizeLabelSelector
+                                        selectedLabel={editForm.sizeLabel}
+                                        onSelect={(label) => setEditForm({ ...editForm, sizeLabel: label })}
+                                    />
                                 </div>
                                 <div className="flex gap-2 mt-2">
                                     <button
@@ -165,35 +163,6 @@ const TaskOverlay = ({ isOpen, onClose, task, logs, onUpdate, onDelete, onPhysic
                                         </svg>
                                     </button>
 
-                                    {/* ステータスがDONEの場合: 非表示/再表示 ボタン */}
-                                    {task.status === 'DONE' && (
-                                        task.isVisible !== false ? (
-                                            <button
-                                                onClick={handleDelete}
-                                                className="text-gray-400 hover:text-gray-600 p-1"
-                                                title="リストから非表示"
-                                            >
-                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                                                </svg>
-                                            </button>
-                                        ) : (
-                                            <button
-                                                onClick={() => {
-                                                    onUpdate(task.id, { isVisible: true });
-                                                    onClose();
-                                                }}
-                                                className="text-gray-400 hover:text-blue-600 p-1"
-                                                title="リストに再表示"
-                                            >
-                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                                </svg>
-                                            </button>
-                                        )
-                                    )}
-
                                     {/* ステータスがDoneでない場合: 完了ボタン (Check) */}
                                     {task.status !== 'DONE' && (
                                         <button
@@ -218,7 +187,14 @@ const TaskOverlay = ({ isOpen, onClose, task, logs, onUpdate, onDelete, onPhysic
                                         </svg>
                                     </button>
                                 </div>
-                                <h2 className="text-2xl font-bold text-gray-800">{task.title}</h2>
+                                <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
+                                    {task.title}
+                                    {task.sizeLabel && (
+                                        <span className="px-2 py-1 text-sm font-semibold rounded bg-blue-100 text-blue-700">
+                                            {task.sizeLabel}
+                                        </span>
+                                    )}
+                                </h2>
                                 <p className="text-sm text-gray-500 mt-1">
                                     締切: {formatDate(task.deadline)}
                                 </p>
@@ -242,21 +218,13 @@ const TaskOverlay = ({ isOpen, onClose, task, logs, onUpdate, onDelete, onPhysic
 
                 {/* コンテンツエリア */}
                 <div className="space-y-8">
-                    {/* 時間負債分析 */}
-                    <section>
-                        <h3 className="text-lg font-bold text-gray-700 mb-3 flex items-center gap-2">
-                            <span>📊</span> 時間負債
-                        </h3>
-                        <TaskAnalytics task={task} logs={logs} />
-                    </section>
-
                     {/* 実績ガントチャート */}
                     <section>
                         <h3 className="text-lg font-bold text-gray-700 mb-3 flex items-center gap-2">
                             <span>📈</span> 実績チャート
                         </h3>
                         <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                            <GanttChart logs={logs} />
+                            <GanttChart logs={logs} taskSize={task.sizeLabel} />
                         </div>
                     </section>
                 </div>

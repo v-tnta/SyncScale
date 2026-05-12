@@ -5,7 +5,7 @@ import React, { useMemo } from 'react'
  * 作業ログを「積み上げ式」で表示します。
  * 現実の時間軸ではなく、作業時間の合計経過時間を横軸にとります。
  */
-const GanttChart = ({ logs = [] }) => {
+const GanttChart = ({ logs = [], taskSize = 'M' }) => {
     if (logs.length === 0) {
         return <p className="text-gray-400 text-sm p-4 text-center">作業ログがありません。</p>;
     }
@@ -76,11 +76,16 @@ const GanttChart = ({ logs = [] }) => {
         return Math.min(STANDARD_PIXELS_PER_MIN, fitScale);
     }, [containerWidth, ticks]);
 
-    // バーの色パレット
-    const colors = [
-        'bg-blue-500', 'bg-red-500', 'bg-green-500', 'bg-yellow-500',
-        'bg-purple-500', 'bg-pink-500', 'bg-indigo-500'
-    ];
+    // サイズに応じた基本色を取得
+    const getSizeColor = (label) => {
+        switch (label) {
+            case 'S': return 'bg-cyan-500';
+            case 'M': return 'bg-orange-500';
+            case 'L': return 'bg-red-600';
+            default: return 'bg-blue-500';
+        }
+    };
+    const baseColorClass = getSizeColor(taskSize);
 
     return (
         <div ref={containerRef} className="mt-6 w-full pb-4">
@@ -114,7 +119,7 @@ const GanttChart = ({ logs = [] }) => {
                         const durationMin = Math.max(1, Math.round((log.durationSeconds || 0) / 60));
 
                         const widthPx = durationMin * pixelsPerMin;
-                        const colorClass = colors[index % colors.length];
+                        const colorClass = baseColorClass;
 
                         return (
                             <div

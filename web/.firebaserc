@@ -1,15 +1,14 @@
 {
   "projects": {
-    "default": "kadahira-gantt"
+    "default": "sync-scale"
   },
   "targets": {
-    "kadahira-firebase": {
+    "sync-scale": {
       "hosting": {
-        "main": [
-          "kadahira-gantt"
+        "sync-scale": [
+          "sync-scale"
         ]
       }
     }
-  },
-  "etags": {}
+  }
 }
