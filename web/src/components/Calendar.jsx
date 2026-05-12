@@ -14,8 +14,10 @@ const Calendar = ({ tasks, onEventClick }) => {
     const [view, setView] = useState('month');
     const [date, setDate] = useState(new Date());
 
-    // タスクをカレンダーイベント形式に変換
-    const events = tasks.map(task => {
+    // 完了したタスクを除外し、カレンダーイベント形式に変換
+    const activeTasks = tasks.filter(t => t.status !== 'DONE');
+    
+    const events = activeTasks.map(task => {
         let start = new Date();
         let end = new Date();
         let allDay = true;
@@ -47,27 +49,30 @@ const Calendar = ({ tasks, onEventClick }) => {
             allDay: true, // 締切ベースなので終日扱い
             resource: task,
             // 完了したタスクの色を変えるなどのためのプロパティ
-            status: task.status
+            status: task.status,
+            sizeLabel: task.sizeLabel
         };
     }).filter(event => event !== null); // null (締切なし) を除外
 
     // イベントスタイル (色分け)
     const eventPropGetter = (event) => {
         let backgroundColor = '#3174ad'; // Default Blue
-        if (event.status === 'DONE') {
-            backgroundColor = '#10B981'; // Green
-        } else if (event.status === 'DOING') {
-            backgroundColor = '#F59E0B'; // Yellow/Orange
+        
+        switch (event.sizeLabel) {
+            case 'S': backgroundColor = '#06b6d4'; break; // Cyan-500
+            case 'M': backgroundColor = '#f97316'; break; // Orange-500
+            case 'L': backgroundColor = '#ef4444'; break; // Red-500
         }
 
         return {
             style: {
                 backgroundColor,
                 borderRadius: '4px',
-                opacity: 0.8,
+                opacity: event.status === 'DONE' ? 0.4 : 0.85,
                 color: 'white',
                 border: '0px',
-                display: 'block'
+                display: 'block',
+                textDecoration: event.status === 'DONE' ? 'line-through' : 'none'
             }
         };
     };

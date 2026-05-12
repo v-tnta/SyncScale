@@ -1,14 +1,23 @@
 import React, { useState } from 'react'
+import SizeLabelSelector from './SizeLabelSelector'
+import DateTimePicker from './DateTimePicker'
 
 /**
  * タスク登録フォーム
  * 親コンポーネント(App)から addTask 関数を受け取り、実行します。
  */
 const TaskForm = ({ addTask }) => {
+    // 初期値: 今日の 23:59
+    const getTodayEndOfDay = () => {
+        const d = new Date();
+        d.setHours(23, 59, 0, 0);
+        return d;
+    };
+
     // 入力フォームの状態管理
     const [title, setTitle] = useState('');
-    const [estimatedMinutes, setEstimatedMinutes] = useState('');
-    const [deadline, setDeadline] = useState('');
+    const [deadline, setDeadline] = useState(getTodayEndOfDay());
+    const [sizeLabel, setSizeLabel] = useState('M'); // 🆕 デフォルトは'M'とする
 
     // フォーム送信時の処理
     const handleSubmit = (e) => {
@@ -17,14 +26,14 @@ const TaskForm = ({ addTask }) => {
         // 親から受け取った「追加機能」を実行してデータを渡す
         addTask({
             title,
-            estimatedMinutes: Number(estimatedMinutes), // 数値に変換
-            deadline
+            deadline,
+            sizeLabel // 🆕 相対見積もりラベルを追加
         });
 
         // フォームをクリアする
         setTitle('');
-        setEstimatedMinutes('');
-        setDeadline('');
+        setDeadline(getTodayEndOfDay());
+        setSizeLabel('M');
     };
 
     return (
@@ -44,32 +53,24 @@ const TaskForm = ({ addTask }) => {
                     />
                 </div>
 
-                <div className="flex gap-4">
-                    {/* 見積もり時間入力 */}
-                    <div className="flex-1">
-                        <label className="block text-sm font-medium text-gray-600 mb-1">見積もり時間 (分)</label>
-                        <input
-                            type="number"
-                            className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                            placeholder="30"
-                            value={estimatedMinutes}
-                            onChange={(e) => setEstimatedMinutes(e.target.value)}
-                            min="1"
-                            required
-                        />
-                    </div>
-
-                    {/* 締切日入力 */}
-                    <div className="flex-1">
-                        <label className="block text-sm font-medium text-gray-600 mb-1">締切日</label>
-                        <input
-                            type="date"
-                            className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                <div className="flex gap-4 flex-wrap">
+                    {/* 締切日時入力 */}
+                    <div className="flex-1 min-w-[150px]">
+                        <label className="block text-sm font-medium text-gray-600 mb-1">締切日時</label>
+                        <DateTimePicker
                             value={deadline}
-                            onChange={(e) => setDeadline(e.target.value)}
-                            required
+                            onChange={setDeadline}
                         />
                     </div>
+                </div>
+
+                {/* 🆕 相対見積もり選択 */}
+                <div>
+                    <label className="block text-sm font-medium text-gray-600 mb-1">規模感 (相対見積もり)</label>
+                    <SizeLabelSelector 
+                        selectedLabel={sizeLabel} 
+                        onSelect={setSizeLabel} 
+                    />
                 </div>
 
                 {/* 登録ボタン */}
