@@ -23,7 +23,7 @@ export function renderSyncScaleLogo2(containerId, color1 = '#3399ff', color2 = '
 
   // 重なり部分に現れる目盛り（Scale）の線
   const scaleLine = document.createElementNS(svgNS, "path");
-  scaleLine.setAttribute("d", "M 50 35 V 65 M 45 42 H 55 M 45 50 H 55 M 45 58 H 55");
+  scaleLine.setAttribute("d", "M 45 42 H 55 M 45 50 H 55 M 45 58 H 55");
   scaleLine.setAttribute("stroke", "white");
   scaleLine.setAttribute("stroke-width", "3");
   scaleLine.setAttribute("stroke-linecap", "round");

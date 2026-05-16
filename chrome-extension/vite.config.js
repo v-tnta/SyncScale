@@ -1,8 +1,6 @@
 import { defineConfig } from 'vite';
 import { crx } from '@crxjs/vite-plugin';
-import fs from 'fs';
-
-const manifest = JSON.parse(fs.readFileSync('./manifest.json', 'utf-8'));
+import manifest from './manifest.js';
 
 export default defineConfig({
   plugins: [crx({ manifest })],

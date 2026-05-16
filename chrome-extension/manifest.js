@@ -1,10 +1,11 @@
 import { defineManifest } from '@crxjs/vite-plugin';
+import 'dotenv/config';
 
 export default defineManifest({
   manifest_version: 3,
   name: "SyncScale - manaba課題取得",
   version: "0.1.0",
-  key: "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnRubZ256ryszRScIfGEOeKmFyRI9SO69b8MTA+IBML8DtQBuwELXLa1nmnFIcnkCpyNxncsWxgpUXhIYd1lJMn6xtU4NIT9eBczkjrYx7dLPV05ucLPGurttiUiAn4wJlL6Iji9VgNioxGxBGYJmWx8BX4Gw3g7Q/+lHv5CJ+s4EbsJSQyCnCB1sWR34+BGpaDnf01AWRofvG/uNbRHsNxDSA7FkWRLa34HshsBckokQw1o4mANXILnjTwJW2TDZIGhBPG1iOHbfGlEaa2j77U0+q/xcocgcVsDUS05ObCXbx+gVRlx0RN+udolFaEeu0A0Q/ecmzBncMHOw4cVlWwIDAQAB",
+  key: process.env.VITE_EXTENSION_KEY,
   description: "manabaから課題と〆切を自動取得し、SyncScaleに登録します",
   permissions: [
     "activeTab",
@@ -12,7 +13,7 @@ export default defineManifest({
     "identity"
   ],
   oauth2: {
-    client_id: "119338239476-bh5f72ove4hbgk3316fraa7f47i3qqt3.apps.googleusercontent.com",
+    client_id: process.env.VITE_OAUTH_CLIENT_ID,
     scopes: ["profile", "email", "openid"]
   },
   host_permissions: [

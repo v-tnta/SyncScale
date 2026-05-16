@@ -1,28 +1,32 @@
 import { app, auth, db } from '../lib/firebase-config.js';
 import { collection, addDoc, query, where, getDocs, Timestamp } from 'firebase/firestore';
-import { signInAnonymously } from 'firebase/auth';
+import { GoogleAuthProvider, signInWithCredential } from 'firebase/auth';
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "CHECK_AUTH") {
     const user = auth.currentUser;
-    sendResponse({ user: user ? { email: user.isAnonymous ? 'Anonymous' : user.email } : null });
+    sendResponse({ user: user ? { email: user.email || 'Google User' } : null });
     return true;
   }
 
   if (message.action === "LOGIN") {
-    // デモ用として匿名ログインを実装
-    signInAnonymously(auth)
-      .then((cred) => {
-        sendResponse({ success: true, user: { email: 'Anonymous User' } });
-      })
-      .catch((error) => {
-        sendResponse({ success: false, error: error.message });
-      });
+    handleLogin(sendResponse);
     return true;
   }
 
   if (message.action === "LOGOUT") {
-    auth.signOut().then(() => sendResponse({ success: true }));
+    auth.signOut().then(() => {
+      // Chromeのキャッシュトークンもクリアする
+      chrome.identity.getAuthToken({ interactive: false }, (token) => {
+        if (token) {
+          chrome.identity.removeCachedAuthToken({ token: token }, () => {
+            sendResponse({ success: true });
+          });
+        } else {
+          sendResponse({ success: true });
+        }
+      });
+    });
     return true;
   }
 
@@ -32,6 +36,38 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
 });
+
+async function handleLogin(sendResponse) {
+  try {
+    chrome.identity.getAuthToken({ interactive: true }, async (token) => {
+      if (chrome.runtime.lastError) {
+        console.error("Auth Error:", chrome.runtime.lastError.message);
+        sendResponse({ success: false, error: chrome.runtime.lastError.message });
+        return;
+      }
+
+      if (!token) {
+        sendResponse({ success: false, error: "トークンが取得できませんでした" });
+        return;
+      }
+
+      try {
+        const credential = GoogleAuthProvider.credential(null, token);
+        const userCredential = await signInWithCredential(auth, credential);
+        sendResponse({ 
+          success: true, 
+          user: { email: userCredential.user.email } 
+        });
+      } catch (error) {
+        console.error("Firebase Login Error:", error);
+        sendResponse({ success: false, error: error.message });
+      }
+    });
+  } catch (error) {
+    console.error("Login Handler Error:", error);
+    sendResponse({ success: false, error: error.message });
+  }
+}
 
 async function handleFetchTasks() {
   try {
