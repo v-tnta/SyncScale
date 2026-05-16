@@ -1,0 +1,17 @@
+{
+  "name": "syncscale-monorepo",
+  "private": true,
+  "workspaces": [
+    "web",
+    "chrome-extension",
+    "shared"
+  ],
+  "scripts": {
+    "dev:web": "npm run dev -w web",
+    "dev:ext": "npm run dev -w chrome-extension",
+    "dev": "npm run dev:web & npm run dev:ext",
+    "build:web": "npm run build -w web",
+    "build:ext": "npm run build -w chrome-extension",
+    "build": "npm run build:web && npm run build:ext"
+  }
+}
