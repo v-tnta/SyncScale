@@ -10,8 +10,20 @@ const GanttChart = ({ logs = [], taskSize = 'M' }) => {
         return <p className="text-gray-400 text-sm p-4 text-center">作業ログがありません。</p>;
     }
 
+    // 色のパレット
+    const PALETTE = [
+        'bg-blue-500',
+        'bg-emerald-500',
+        'bg-purple-500',
+        'bg-amber-500',
+        'bg-pink-500',
+        'bg-indigo-500',
+        'bg-teal-500',
+        'bg-rose-500'
+    ];
+
     // 計算ロジック
-    const { totalDurationMin, sortedLogs, ticks } = useMemo(() => {
+    const { totalDurationMin, sortedLogs, ticks, subTaskColors } = useMemo(() => {
         // 登録順（作成日時順）にソート。無い場合はstartTimeを使う。
         const sorted = [...logs].sort((a, b) => {
             const timeA = a.createdAt ? a.createdAt.getTime() : (a.startTime ? a.startTime.getTime() : 0);
@@ -24,18 +36,29 @@ const GanttChart = ({ logs = [], taskSize = 'M' }) => {
         const totalMin = Math.ceil(totalSec / 60);
 
         // 目盛り生成 (0, 30, 60, ... 合計時間を超える直前の30分刻みまで + 余白分)
-        // 最低でも少し余白を持たせるために +30分 くらいまで描画
         const maxTick = Math.ceil(totalMin / 30) * 30 + 30;
         const tickList = [];
         for (let t = 0; t <= maxTick; t += 30) {
             tickList.push(t);
         }
 
+        // サブタスク名ごとに色を割り当て
+        const colorsMap = {};
+        let colorIndex = 0;
+        sorted.forEach(log => {
+            const name = log.subTaskName || '作業';
+            if (!colorsMap[name]) {
+                colorsMap[name] = PALETTE[colorIndex % PALETTE.length];
+                colorIndex++;
+            }
+        });
+
         return {
             totalDurationMin: totalMin,
             sortedLogs: sorted,
             ticks: tickList,
-            scaleMaxMin: maxTick // チャートの最大描画幅（分）
+            scaleMaxMin: maxTick, // チャートの最大描画幅（分）
+            subTaskColors: colorsMap
         };
     }, [logs]);
 
@@ -62,30 +85,12 @@ const GanttChart = ({ logs = [], taskSize = 'M' }) => {
     }, []);
 
     // 実際のスケール計算: コンテナ幅に収まる最小スケール vs 標準スケール で小さい方を採用
-    // 0除算や初期値などへの対策も含む
     const pixelsPerMin = useMemo(() => {
         if (!containerWidth || !ticks.length) return STANDARD_PIXELS_PER_MIN;
-
-        // 全体を表示するのに必要な分の最大値（分）
         const maxMin = ticks[ticks.length - 1];
-
-        // コンテナに収める場合のスケール (少し余白を見るため width - 20 くらいで計算)
         const fitScale = (containerWidth - 20) / maxMin;
-
-        // 標準より小さくなる（＝縮小が必要）なら fitScale を使う
         return Math.min(STANDARD_PIXELS_PER_MIN, fitScale);
     }, [containerWidth, ticks]);
-
-    // サイズに応じた基本色を取得
-    const getSizeColor = (label) => {
-        switch (label) {
-            case 'S': return 'bg-cyan-500';
-            case 'M': return 'bg-orange-500';
-            case 'L': return 'bg-red-600';
-            default: return 'bg-blue-500';
-        }
-    };
-    const baseColorClass = getSizeColor(taskSize);
 
     return (
         <div ref={containerRef} className="mt-6 w-full pb-4">
@@ -119,7 +124,8 @@ const GanttChart = ({ logs = [], taskSize = 'M' }) => {
                         const durationMin = Math.max(1, Math.round((log.durationSeconds || 0) / 60));
 
                         const widthPx = durationMin * pixelsPerMin;
-                        const colorClass = baseColorClass;
+                        const name = log.subTaskName || '作業';
+                        const colorClass = subTaskColors[name] || 'bg-blue-500';
 
                         return (
                             <div
@@ -130,10 +136,10 @@ const GanttChart = ({ logs = [], taskSize = 'M' }) => {
                                     height: '100%',
                                     flexShrink: 0
                                 }}
-                                title={`${log.subTaskName}: ${durationMin}分`}
+                                title={`${name}: ${durationMin}分`}
                             >
                                 <span className="font-bold px-1 drop-shadow-md">
-                                    {log.subTaskName || '作業'}
+                                    {name}
                                 </span>
                             </div>
                         );

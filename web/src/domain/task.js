@@ -11,7 +11,11 @@ export class Task {
         estimatedMinutes = 0,
         deadline = null, // Date object or null
         isVisible = true,
-        sizeLabel = 'M',
+        sizeLabel = null,
+        isNew = false,
+        source = 'manual',
+        startedAt = null,
+        completedAt = null,
         createdAt = new Date(),
         updatedAt = new Date(),
     }) {
@@ -23,6 +27,10 @@ export class Task {
         this.deadline = deadline;
         this.isVisible = isVisible;
         this.sizeLabel = sizeLabel;
+        this.isNew = isNew;
+        this.source = source;
+        this.startedAt = startedAt;
+        this.completedAt = completedAt;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -74,8 +82,10 @@ export class Task {
             deadline: this.deadline,
             isVisible: this.isVisible,
             sizeLabel: this.sizeLabel,
-            // createdAtは作成時のみサーバータイムスタンプを使うため、更新時は含めないのが一般的だが、
-            // ここではEntityとしての全ての値を返す
+            isNew: this.isNew,
+            source: this.source,
+            startedAt: this.startedAt,
+            completedAt: this.completedAt,
         };
     }
 }

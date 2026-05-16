@@ -14,6 +14,15 @@ const TaskList = ({ tasks, timeLogs, loading, error, onTaskClick, onUpdateTask, 
         }
     };
 
+    const getBadgeColor = (label) => {
+        switch (label) {
+            case 'S': return 'bg-cyan-50 text-cyan-700 border border-cyan-100';
+            case 'M': return 'bg-orange-50 text-orange-700 border border-orange-100';
+            case 'L': return 'bg-red-50 text-red-700 border border-red-100';
+            default: return 'bg-gray-100 text-gray-500';
+        }
+    };
+
     if (loading) {
         return <div className="text-center p-8 text-gray-500">読み込み中...</div>;
     }
@@ -80,12 +89,6 @@ const TaskList = ({ tasks, timeLogs, loading, error, onTaskClick, onUpdateTask, 
                                 <div>
                                     <h3 className="font-medium flex items-center gap-2 text-gray-800">
                                         {task.title}
-                                        {/* 🆕 S/M/Lバッジの追加 */}
-                                        {task.sizeLabel && (
-                                            <span className="px-2 py-0.5 text-xs font-semibold rounded bg-blue-100 text-blue-700">
-                                                {task.sizeLabel}
-                                            </span>
-                                        )}
                                     </h3>
                                     <div className="text-sm text-gray-500 mt-1 flex gap-4">
                                         <span>📅 締切: {formatDate(task.deadline)}</span>
@@ -94,6 +97,12 @@ const TaskList = ({ tasks, timeLogs, loading, error, onTaskClick, onUpdateTask, 
 
                                 {/* ステータス・操作エリア */}
                                 <div className="flex items-center gap-4">
+                                    {task.sizeLabel && (
+                                        <span className={`px-2 py-0.5 text-xs font-bold rounded ${getBadgeColor(task.sizeLabel)}`}>
+                                            {task.sizeLabel}
+                                        </span>
+                                    )}
+
                                     {/* 操作ボタン */}
                                     <div className="flex items-center gap-1">
                                         {task.status !== 'DONE' && (

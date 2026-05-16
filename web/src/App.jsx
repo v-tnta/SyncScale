@@ -7,6 +7,7 @@ import TaskOverlay from './components/TaskOverlay'
 import CompletedTasksModal from './components/CompletedTasksModal'
 import ConditionInputModal from './components/ConditionInputModal'
 import TaskSizeEstimateModal from './components/TaskSizeEstimateModal'
+import { DebugLogger } from './components/DebugLogger'
 import { useTasks } from './hooks/useTasks'
 import { useTimeLogs } from './hooks/useTimeLogs' // ログ取得用に追加
 import { useConditionLogs } from './hooks/useConditionLogs' // コンディションログ用に追加
@@ -32,7 +33,7 @@ function App() {
 
   // 新規取得された見積もり待ちのタスクを抽出（1件ずつ表示するため先頭を取得）
   const taskToEstimate = React.useMemo(() => {
-    return tasks.find(t => t.isNew === true && t.sizeLabel === null) || null;
+    return tasks.find(t => t.isNew === true && !t.sizeLabel) || null;
   }, [tasks]);
 
   // モーダル用のステート (TaskOverlay: 詳細/編集)
@@ -161,6 +162,8 @@ function App() {
             task={taskToEstimate}
             onSubmit={handleEstimateSubmit}
           />
+
+          <DebugLogger tasks={tasks} taskToEstimate={taskToEstimate} />
         </div>
       )}
     </Layout>

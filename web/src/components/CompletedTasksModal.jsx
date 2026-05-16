@@ -126,10 +126,10 @@ const CompletedTasksModal = ({ isOpen, onClose, tasks, onTaskClick }) => {
                                                 <div
                                                     key={task.id}
                                                     onClick={() => onTaskClick(task)}
-                                                    className={`cursor-pointer hover:shadow-md transition p-4 border border-l-8 rounded-lg flex justify-between items-center bg-white opacity-80 ${getSizeColor(task.sizeLabel)}`}
+                                                    className={`cursor-pointer hover:shadow-md transition p-4 border border-l-8 rounded-lg flex justify-between items-center bg-white ${getSizeColor(task.sizeLabel)}`}
                                                 >
                                                     <div>
-                                                        <h4 className="font-medium flex items-center gap-2 text-gray-600">
+                                                        <h4 className="font-medium flex items-center gap-2 text-gray-800">
                                                             {task.title}
                                                             {task.sizeLabel && (
                                                                 <span className="px-2 py-0.5 text-xs font-semibold rounded bg-blue-50 text-blue-500 no-underline">

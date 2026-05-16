@@ -47,19 +47,17 @@ const Layout = ({ children, tasks, onTaskClick }) => {
             </header>
 
             {/* メインコンテンツエリア: Desktopでは横並び (Flex Row) */}
-            <main className="flex-1 container mx-auto p-4 md:p-8 md:overflow-y-auto">
-                <div className="flex flex-col-reverse md:flex-row gap-6 h-full">
+            <main className="flex-1 container mx-auto p-4 md:p-8 flex flex-col min-h-0">
+                <div className="flex flex-col-reverse md:flex-row gap-6 h-full min-h-0">
                     {/* 左側: メインコンテンツ (TaskForm & TaskList) */}
-                    <div className="w-full md:w-9/20 flex flex-col gap-6">
+                    <div className="w-full md:w-9/20 flex flex-col gap-6 min-h-0">
                         {children}
                     </div>
 
                     {/* 右側: カレンダーエリア */}
                     {tasks && (
-                        <div className="w-full md:w-4/5">
-                            <div className="sticky top-4">
-                                <Calendar tasks={tasks} onEventClick={onTaskClick} />
-                            </div>
+                        <div className="w-full md:w-4/5 flex flex-col min-h-0 overflow-y-auto">
+                            <Calendar tasks={tasks} onEventClick={onTaskClick} />
                         </div>
                     )}
                 </div>

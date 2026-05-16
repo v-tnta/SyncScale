@@ -24,6 +24,9 @@ const Timer = ({ activeTask, logs, onUpdateTask }) => {
     const [pendingLogData, setPendingLogData] = useState(null);
     const [manualData, setManualData] = useState({ durationMinutes: '', subTaskName: '' });
 
+    // タブ切り替えステート (timer / manual)
+    const [activeTab, setActiveTab] = useState('timer');
+
     const intervalRef = useRef(null);
 
     // activeTaskが変わったらリセット (TaskOverlayが開くたびにリセットされる想定だが念のため)
@@ -143,7 +146,6 @@ const Timer = ({ activeTask, logs, onUpdateTask }) => {
             await onUpdateTask(activeTask.id, { status: 'DOING' });
         }
 
-        setIsManualModalOpen(false);
         setManualData({ durationMinutes: '', subTaskName: '' });
     };
 
@@ -160,75 +162,133 @@ const Timer = ({ activeTask, logs, onUpdateTask }) => {
     if (activeTask.status === 'DONE') return null;
 
     return (
-        <div className="flex flex-wrap items-center w-full gap-4 md:gap-6">
-            {/* 1. 左端：＋手動できろく（事後報告）ボタン */}
-            <div className="flex-none">
-                <button
-                    onClick={() => setIsManualModalOpen(true)}
-                    className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-600 px-3 py-1.5 rounded border border-gray-300 whitespace-nowrap transition-all shadow-sm active:scale-95"
-                    disabled={isActive}
-                >
-                    ＋手動できろく
-                </button>
+        <div className="flex flex-col md:flex-row items-center gap-4 md:gap-8 w-full mt-2">
+            {/* 左端：タブ切り替え */}
+            <div className="flex flex-col gap-2 shrink-0 w-full md:w-32">
+                <span className="text-sm font-bold text-gray-600 mb-1 text-center">とりかかる？</span>
+                <div className="flex md:flex-col gap-2">
+                    <button
+                        onClick={() => setActiveTab('timer')}
+                        disabled={isActive && activeTab !== 'timer'}
+                        className={`flex-1 md:flex-none py-2 px-3 text-sm font-bold text-center rounded-lg border-2 transition-all ${
+                            activeTab === 'timer'
+                                ? 'bg-white border-blue-500 text-blue-600 shadow-sm'
+                                : 'bg-gray-100 border-transparent text-gray-500 hover:bg-gray-200'
+                        }`}
+                    >
+                        タイマー
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('manual')}
+                        disabled={isActive && activeTab !== 'manual'}
+                        className={`flex-1 md:flex-none py-2 px-3 text-sm font-bold text-center rounded-lg border-2 transition-all ${
+                            activeTab === 'manual'
+                                ? 'bg-white border-blue-500 text-blue-600 shadow-sm'
+                                : 'bg-gray-100 border-transparent text-gray-500 hover:bg-gray-200'
+                        }`}
+                    >
+                        手動できろく
+                    </button>
+                </div>
             </div>
 
-            {/* 中央〜右：メイン操作エリア (作業内容・タイマー・操作ボタン) */}
-            <div className="flex-1 flex flex-wrap items-center justify-start md:justify-center xl:justify-center gap-4 md:gap-8 min-w-0">
-                {/* 2. サブタスク入力 */}
-                <div className="flex flex-wrap items-center gap-2">
-                    <input
-                        type="text"
-                        placeholder="作業内容 (例: 資料作成)"
-                        className="w-48 p-1.5 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                        value={subTaskName}
-                        onChange={(e) => setSubTaskName(e.target.value)}
-                        disabled={isActive || isConfirmModalOpen}
-                        autoFocus
-                    />
-                    {!isActive && subTaskName !== '' && (
-                        <button
-                            onClick={() => setSubTaskName('')}
-                            className="text-gray-400 hover:text-red-500 p-1"
-                            title="クリア"
-                        >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                        </button>
-                    )}
-                </div>
+            {/* 右側：コンテンツエリア */}
+            <div className="border border-gray-200 shadow-sm rounded-lg p-6 bg-white w-full max-w-xl min-h-[160px] flex flex-col justify-center">
+                {activeTab === 'timer' ? (
+                    <div className="flex flex-col gap-6">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div className="flex items-center gap-4 flex-1">
+                                <span className="font-bold text-gray-700 whitespace-nowrap">やること</span>
+                                <div className="flex-1 max-w-[200px]">
+                                    <input
+                                        type="text"
+                                        placeholder="例: 資料作成"
+                                        className="w-full p-2 border-2 border-gray-300 rounded font-bold text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                        value={subTaskName}
+                                        onChange={(e) => setSubTaskName(e.target.value)}
+                                        disabled={isActive || isConfirmModalOpen}
+                                    />
+                                </div>
+                            </div>
+                            <div className={`text-4xl font-mono font-bold tracking-wider ${isActive ? 'text-blue-600' : 'text-gray-800'}`}>
+                                {formatTime(elapsedSeconds)}
+                            </div>
+                        </div>
 
-                {/* 3. タイマー表示 */}
-                <div className={`text-2xl font-mono font-bold w-[120px] text-right ${isActive ? 'text-blue-600' : 'text-gray-700'}`}>
-                    {formatTime(elapsedSeconds)}
-                </div>
-
-                {/* 4. 操作ボタン */}
-                <div className="flex gap-2 shrink-0">
-                    {!isActive ? (
-                        <>
-                            <button
-                                onClick={handleStart}
-                                className="bg-green-500 hover:bg-green-600 text-white font-bold py-1.5 px-6 rounded-full shadow text-sm transition transform hover:scale-105"
-                            >
-                                {elapsedSeconds > 0 ? '再開' : 'START'}
-                            </button>
-                            {elapsedSeconds > 0 && (
-                                <button
-                                    onClick={handleRecordClick}
-                                    className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 px-6 rounded-full shadow text-sm transition transform hover:scale-105"
-                                >
-                                    きろく
-                                </button>
+                        <div className="flex justify-end gap-3 mt-4">
+                            {!isActive ? (
+                                <>
+                                    {elapsedSeconds > 0 && (
+                                        <button
+                                            onClick={handleRecordClick}
+                                            className="bg-blue-600 text-white font-bold py-2 px-6 rounded-full hover:bg-blue-700 transition shadow-sm"
+                                        >
+                                            きろく
+                                        </button>
+                                    )}
+                                    <button
+                                        onClick={handleStart}
+                                        className="bg-green-500 text-white font-bold py-2 px-8 rounded-full hover:bg-green-600 transition shadow-sm"
+                                    >
+                                        {elapsedSeconds > 0 ? 'リスタート' : 'スタート'}
+                                    </button>
+                                </>
+                            ) : (
+                                <>
+                                    <button
+                                        onClick={handleRecordClick}
+                                        className="bg-blue-600 text-white font-bold py-2 px-6 rounded-full hover:bg-blue-700 transition shadow-sm"
+                                    >
+                                        きろく
+                                    </button>
+                                    <button
+                                        onClick={handlePause}
+                                        className="bg-yellow-500 text-white font-bold py-2 px-8 rounded-full hover:bg-yellow-600 transition shadow-sm"
+                                    >
+                                        ストップ
+                                    </button>
+                                </>
                             )}
-                        </>
-                    ) : (
-                        <button
-                            onClick={handlePause}
-                            className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-1.5 px-6 rounded-full shadow text-sm transition transform hover:scale-105"
-                        >
-                            STOP
-                        </button>
-                    )}
-                </div>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="flex flex-col gap-4">
+                        <div className="flex items-center gap-4">
+                            <span className="font-bold text-gray-700 whitespace-nowrap">やること</span>
+                            <div className="flex-1 max-w-[200px]">
+                                <input
+                                    type="text"
+                                    placeholder="例: 事後報告"
+                                    className="w-full p-2 border-2 border-gray-300 rounded font-bold text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                    value={manualData.subTaskName}
+                                    onChange={(e) => setManualData({ ...manualData, subTaskName: e.target.value })}
+                                />
+                            </div>
+                        </div>
+                        {/* 作業時間 + きろくボタンを同じ行に */}
+                        <div className="flex items-center justify-between gap-4">
+                            <div className="flex items-center gap-4">
+                                <span className="font-bold text-gray-700 whitespace-nowrap">作業時間</span>
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        type="number"
+                                        placeholder="60"
+                                        className="w-24 p-2 border-2 border-gray-300 rounded font-bold text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none text-right"
+                                        value={manualData.durationMinutes}
+                                        onChange={(e) => setManualData({ ...manualData, durationMinutes: e.target.value })}
+                                    />
+                                    <span className="font-bold text-gray-600">分</span>
+                                </div>
+                            </div>
+                            <button
+                                onClick={handleManualSave}
+                                className="bg-blue-600 text-white font-bold py-2 px-8 rounded-full hover:bg-blue-700 transition shadow-sm"
+                            >
+                                きろく
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* --- 内部モーダル: サブタスク入力確認 --- */}
@@ -246,44 +306,6 @@ const Timer = ({ activeTask, logs, onUpdateTask }) => {
                         <div className="flex justify-end gap-2">
                             <button onClick={() => setIsConfirmModalOpen(false)} className="text-gray-500 px-4">キャンセル</button>
                             <button onClick={handleConfirmSave} className="bg-blue-600 text-white px-4 py-2 rounded">保存</button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* --- 内部モーダル: 事後報告 --- */}
-            {isManualModalOpen && (
-                <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 backdrop-blur-md" onClick={() => setIsManualModalOpen(false)}>
-                    <div className="bg-white p-6 rounded-lg shadow-xl w-96 relative" onClick={e => e.stopPropagation()}>
-                        <h3 className="text-lg font-bold mb-4">作業のきろく (事後報告)</h3>
-                        <div className="space-y-4">
-                            <div>
-                                <p className="text-sm font-bold text-gray-700 mb-1">タスク: {activeTask.title}</p>
-                            </div>
-                            <div>
-                                <label className="block text-sm text-gray-600 mb-1">作業内容</label>
-                                <input
-                                    type="text"
-                                    className="w-full p-2 border rounded"
-                                    placeholder="例: 昨日やった分"
-                                    value={manualData.subTaskName}
-                                    onChange={e => setManualData({ ...manualData, subTaskName: e.target.value })}
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm text-gray-600 mb-1">作業時間 (分)</label>
-                                <input
-                                    type="number"
-                                    className="w-full p-2 border rounded"
-                                    placeholder="60"
-                                    value={manualData.durationMinutes}
-                                    onChange={e => setManualData({ ...manualData, durationMinutes: e.target.value })}
-                                />
-                            </div>
-                        </div>
-                        <div className="mt-6 flex justify-end gap-2">
-                            <button onClick={() => setIsManualModalOpen(false)} className="px-4 py-2 text-gray-500 hover:bg-gray-100 rounded">キャンセル</button>
-                            <button onClick={handleManualSave} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">報告する</button>
                         </div>
                     </div>
                 </div>

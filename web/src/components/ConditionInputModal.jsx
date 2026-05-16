@@ -19,7 +19,7 @@ const ConditionInputModal = ({ isOpen, onClose, task, onSubmit }) => {
     };
 
     return (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity">
+        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity">
             <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6 relative animate-fade-in-up">
                 <div className="text-center mb-6">
                     <div className="mx-auto w-16 h-16 bg-green-100 text-green-500 rounded-full flex items-center justify-center mb-4">
