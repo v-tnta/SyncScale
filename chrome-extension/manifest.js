@@ -11,7 +11,7 @@ dotenv.config({ path: path.resolve(__dirname, '../.env') });
 export default defineManifest({
   manifest_version: 3,
   name: "SyncScale - manaba課題取得",
-  version: "0.1.0",
+  version: "0.1.1",
   key: process.env.VITE_EXTENSION_KEY,
   description: "manabaから課題と〆切を自動取得し、SyncScaleに登録します",
   permissions: [
@@ -47,14 +47,14 @@ export default defineManifest({
   action: {
     default_popup: "src/popup/popup.html",
     default_icon: {
-      "16": "icons/icon16.png",
-      "48": "icons/icon48.png",
-      "128": "icons/icon128.png"
+      "16": "icons/logo.svg",
+      "48": "icons/logo.svg",
+      "128": "icons/logo.svg"
     }
   },
   icons: {
-    "16": "icons/icon16.png",
-    "48": "icons/icon48.png",
-    "128": "icons/icon128.png"
+    "16": "icons/logo.svg",
+    "48": "icons/logo.svg",
+    "128": "icons/logo.svg"
   }
 });

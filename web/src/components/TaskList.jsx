@@ -10,7 +10,7 @@ const TaskList = ({ tasks, timeLogs, loading, error, onTaskClick, onUpdateTask, 
             case 'S': return 'border-l-cyan-400';
             case 'M': return 'border-l-orange-400';
             case 'L': return 'border-l-red-500';
-            default: return 'border-l-transparent';
+            default: return 'border-l-gray-300 bg-gray-50'; // 未定時はグレー
         }
     };
 

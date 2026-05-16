@@ -97,6 +97,12 @@ async function handleFetchTasks() {
               const response = await chrome.tabs.sendMessage(tab.id, { action: "SCRAPE_TASKS" });
               if (response && response.success) {
                 const newCount = await registerTasks(user.uid, response.tasks);
+                // 既存の通知に加えて、manabaのタブ内でアラート表示するためのメッセージを送信
+                chrome.tabs.sendMessage(tab.id, {
+                  action: "SHOW_RESULT",
+                  newCount: newCount,
+                  totalCount: response.tasks.length
+                });
                 showNotification("取得完了", `${newCount}件の課題を新規登録しました（既に登録済みのものはスキップしました）`);
               } else {
                 showNotification("エラー", "課題の取得に失敗しました。ページが完全に読み込まれているか確認してください。");
@@ -154,6 +160,7 @@ async function registerTasks(userId, scrapedTasks) {
       status: 'TODO',
       isVisible: true,
       sizeLabel: null,
+      isNew: true, // 初回SML見積もりのためのフラグ
       source: 'chrome_ext',
       startedAt: null,
       completedAt: null,

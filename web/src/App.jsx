@@ -6,6 +6,7 @@ import Timer from './components/Timer' // Timerコンポーネントを追加
 import TaskOverlay from './components/TaskOverlay'
 import CompletedTasksModal from './components/CompletedTasksModal'
 import ConditionInputModal from './components/ConditionInputModal'
+import TaskSizeEstimateModal from './components/TaskSizeEstimateModal'
 import { useTasks } from './hooks/useTasks'
 import { useTimeLogs } from './hooks/useTimeLogs' // ログ取得用に追加
 import { useConditionLogs } from './hooks/useConditionLogs' // コンディションログ用に追加
@@ -28,6 +29,11 @@ function App() {
   // 未完了のみメインに表示。完了済みはモーダルへ。
   const incompleteTasks = React.useMemo(() => tasks.filter(t => t.status !== 'DONE'), [tasks]);
   const completedTasks = React.useMemo(() => tasks.filter(t => t.status === 'DONE'), [tasks]);
+
+  // 新規取得された見積もり待ちのタスクを抽出（1件ずつ表示するため先頭を取得）
+  const taskToEstimate = React.useMemo(() => {
+    return tasks.find(t => t.isNew === true && t.sizeLabel === null) || null;
+  }, [tasks]);
 
   // モーダル用のステート (TaskOverlay: 詳細/編集)
   const [selectedTask, setSelectedTask] = React.useState(null);
@@ -78,6 +84,15 @@ function App() {
     
     // タスクのステータスをDONEに更新する
     await updateTask(targetTaskId, { status: 'DONE', updatedAt: new Date() });
+  };
+
+  // SML見積もり入力完了時の処理
+  const handleEstimateSubmit = async (task, sizeLabel) => {
+    await updateTask(task.id, { 
+      sizeLabel: sizeLabel, 
+      isNew: false, 
+      updatedAt: new Date() 
+    });
   };
 
   return (
@@ -138,6 +153,13 @@ function App() {
             onClose={() => setTaskToComplete(null)}
             task={taskToComplete}
             onSubmit={handleConditionSubmit}
+          />
+
+          {/* 新規タスクのSML見積もりモーダル */}
+          <TaskSizeEstimateModal
+            isOpen={!!taskToEstimate}
+            task={taskToEstimate}
+            onSubmit={handleEstimateSubmit}
           />
         </div>
       )}

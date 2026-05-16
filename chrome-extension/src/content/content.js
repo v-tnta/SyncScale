@@ -9,6 +9,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       console.error("[Content Script] エラー:", error);
       sendResponse({ success: false, error: error.message });
     }
+  } else if (message.action === "SHOW_RESULT") {
+    alert(`SyncScale: 課題の取得が完了しました。\n\n見つかった課題: ${message.totalCount}件\n新しく登録した課題: ${message.newCount}件`);
   }
 });
 
