@@ -275,7 +275,6 @@ const Tutorial = () => {
         <div className="flex flex-col items-center justify-center min-h-[65vh] p-4 md:p-8 w-full">
             {/* プログレスバー */}
             <div className="w-full max-w-5xl mb-6">
-                
                 <div className="w-full bg-gray-200 rounded-full h-1.5">
                     <div
                         className="bg-gradient-to-r from-blue-500 to-blue-600 h-1.5 rounded-full transition-all duration-700 ease-out"

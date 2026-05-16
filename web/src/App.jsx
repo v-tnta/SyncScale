@@ -8,6 +8,7 @@ import CompletedTasksModal from './components/CompletedTasksModal'
 import ConditionInputModal from './components/ConditionInputModal'
 import TaskSizeEstimateModal from './components/TaskSizeEstimateModal'
 import Tutorial from './components/Tutorial'
+import PrivacyPolicy from './components/PrivacyPolicy'
 import { DebugLogger } from './components/DebugLogger'
 import { useTasks } from './hooks/useTasks'
 import { useTimeLogs } from './hooks/useTimeLogs' // ログ取得用に追加
@@ -16,6 +17,13 @@ import { useAuth } from './hooks/useAuth'
 import './App.css'
 
 function App() {
+  // パスの末尾のスラッシュを除去して判定（/privacy/ も /privacy もOKにする）
+  const normalizedPath = window.location.pathname.replace(/\/$/, '');
+  
+  if (normalizedPath === '/privacy') {
+    return <PrivacyPolicy />;
+  }
+
   const { currentUser } = useAuth();
   const { tasks, addTask, updateTask, deleteTask, completelyDeleteTask, loading, error } = useTasks();
   const { timeLogs } = useTimeLogs(); // 全体のログを取得
