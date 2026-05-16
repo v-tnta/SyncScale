@@ -70,6 +70,26 @@ const TaskOverlay = ({ isOpen, onClose, task, logs, onUpdate, onDelete, onPhysic
         }
     };
 
+    // 締切ステータス判定
+    const getDeadlineStatus = (val) => {
+        if (!val) return 'none';
+        let dateObj;
+        if (typeof val === 'string') dateObj = new Date(val);
+        else if (val instanceof Date) dateObj = val;
+        else if (val.seconds) dateObj = new Date(val.seconds * 1000);
+        else return 'none';
+
+        if (isNaN(dateObj.getTime())) return 'none';
+
+        const now = new Date();
+        const diffMs = dateObj - now;
+        const diffHours = diffMs / (1000 * 60 * 60);
+
+        if (diffMs < 0) return 'expired'; // 期限切れ
+        if (diffHours <= 24) return 'urgent'; // 24時間以内
+        return 'normal';
+    };
+
     // 表示用の日付フォーマット関数
     const formatDate = (dateVal) => {
         if (!dateVal) return '未設定';
@@ -110,13 +130,13 @@ const TaskOverlay = ({ isOpen, onClose, task, logs, onUpdate, onDelete, onPhysic
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* ヘッダーエリア */}
-                <div className="flex justify-between items-start mb-6 border-b border-gray-100 pb-4">
+                <div className="flex justify-between items-start">
                     <div className="flex-1 mr-4 w-full">
-                        <div className="flex flex-col gap-4 w-full">
-                            {/* Row 1: タイトル + アクションアイコン */}
-                            <div className="flex items-start justify-between w-full">
+                        <div className="flex flex-col gap-1 w-full">
+                            {/* Row 1: タイトル + バッジ + アクションアイコン */}
+                            <div className="flex items-center justify-around w-full">
                                 {/* タイトル部分 */}
-                                <div className="flex-1 pr-6">
+                                <div className="shrink-0 max-w-[500px]">
                                     {isEditing ? (
                                         <input
                                             type="text"
@@ -133,8 +153,29 @@ const TaskOverlay = ({ isOpen, onClose, task, logs, onUpdate, onDelete, onPhysic
                                     )}
                                 </div>
 
-                                {/* アクションアイコンエリア（右上） */}
-                                <div className="flex items-center gap-6 shrink-0">
+                                {/* 中央: SML・ステータスバッジ & 編集・削除・提出完了 */}
+                                <div className="flex-1 flex items-center justify-end gap-8 pt-2">
+                                    {isEditing ? (
+                                        <div className="w-96">
+                                            <SizeLabelSelector
+                                                selectedLabel={editForm.sizeLabel}
+                                                onSelect={(label) => setEditForm({ ...editForm, sizeLabel: label })}
+                                            />
+                                        </div>
+                                    ) : (
+                                        <>
+                                            {task.sizeLabel && (
+                                                <span className={`px-2 py-0.5 text-lg font-bold rounded ${getBadgeColor(task.sizeLabel)}`}>
+                                                    {task.sizeLabel}
+                                                </span>
+                                            )}
+                                            <span className={`inline-block px-3 py-1 text-sm font-bold rounded-md ${task.status === 'DONE' ? 'bg-green-100 text-green-700' :
+                                                task.status === 'DOING' ? 'bg-yellow-100 text-yellow-700 border border-yellow-300' : 'bg-gray-100 text-gray-500'
+                                                }`}>
+                                                {task.status || 'TODO'}
+                                            </span>
+                                        </>
+                                    )}
                                     {isEditing ? (
                                         <>
                                             {/* 編集モード: キャンセル + 保存 */}
@@ -168,18 +209,6 @@ const TaskOverlay = ({ isOpen, onClose, task, logs, onUpdate, onDelete, onPhysic
                                             {/* 閲覧モード: 編集 + 削除 + 提出完了 */}
                                             <div className="flex flex-col items-center gap-1">
                                                 <button
-                                                    onClick={() => setIsEditing(true)}
-                                                    className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition"
-                                                    title="編集"
-                                                >
-                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                                    </svg>
-                                                </button>
-                                                <span className="text-[10px] font-bold text-gray-500">編集</span>
-                                            </div>
-                                            <div className="flex flex-col items-center gap-1">
-                                                <button
                                                     onClick={handlePhysicalDelete}
                                                     className="w-10 h-10 flex items-center justify-center rounded-full bg-red-50 text-red-600 hover:bg-red-100 transition"
                                                     title="削除"
@@ -189,6 +218,18 @@ const TaskOverlay = ({ isOpen, onClose, task, logs, onUpdate, onDelete, onPhysic
                                                     </svg>
                                                 </button>
                                                 <span className="text-[10px] font-bold text-gray-500">削除</span>
+                                            </div>
+                                            <div className="flex flex-col items-center gap-1">
+                                                <button
+                                                    onClick={() => setIsEditing(true)}
+                                                    className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition"
+                                                    title="編集"
+                                                >
+                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                                    </svg>
+                                                </button>
+                                                <span className="text-[10px] font-bold text-gray-500">編集</span>
                                             </div>
                                             {task.status !== 'DONE' && (
                                                 <div className="flex flex-col items-center gap-1 ml-2">
@@ -209,67 +250,38 @@ const TaskOverlay = ({ isOpen, onClose, task, logs, onUpdate, onDelete, onPhysic
                                 </div>
                             </div>
 
-                            {/* Row 2: 〆切 + SML・ステータスバッジ */}
-                            <div className="flex items-center justify-between w-full">
-                                {/* 左: 〆切 */}
-                                <div className="flex items-center gap-3">
-                                    <span className="text-lg font-bold text-gray-600">〆切:</span>
-                                    {isEditing ? (
-                                        <div className="w-[200px]">
-                                            <DateTimePicker
-                                                value={editForm.deadline}
-                                                onChange={(date) => setEditForm({ ...editForm, deadline: date })}
-                                            />
-                                        </div>
-                                    ) : (
-                                        <span className="text-lg font-bold text-gray-800">{formatDate(task.deadline)}</span>
-                                    )}
-                                </div>
-                                {/* 右: SML + ステータスバッジ（アイコンと同じ縦位置） */}
-                                <div className="flex items-center gap-3 shrink-0">
-                                    {isEditing ? (
-                                        <div className="w-48">
-                                            <SizeLabelSelector
-                                                selectedLabel={editForm.sizeLabel}
-                                                onSelect={(label) => setEditForm({ ...editForm, sizeLabel: label })}
-                                            />
-                                        </div>
-                                    ) : (
-                                        <>
-                                            {task.sizeLabel && (
-                                                <span className={`px-2 py-0.5 text-lg font-bold rounded ${getBadgeColor(task.sizeLabel)}`}>
-                                                    {task.sizeLabel}
-                                                </span>
-                                            )}
-                                            <span className={`inline-block px-3 py-1 text-sm font-bold rounded-md ${task.status === 'DONE' ? 'bg-green-100 text-green-700' :
-                                                task.status === 'DOING' ? 'bg-yellow-100 text-yellow-700 border border-yellow-300' : 'bg-gray-100 text-gray-500'
-                                                }`}>
-                                                {task.status || 'TODO'}
-                                            </span>
-                                        </>
-                                    )}
-                                </div>
+                            {/* Row 2: 〆切 */}
+                            <div className="flex items-center gap-3">
+                                <span className="text-lg font-bold text-gray-600">〆切:</span>
+                                {isEditing ? (
+                                    <div className="w-[300px]">
+                                        <DateTimePicker
+                                            value={editForm.deadline}
+                                            onChange={(date) => setEditForm({ ...editForm, deadline: date })}
+                                        />
+                                    </div>
+                                ) : (
+                                    <span className={`text-lg font-bold ${
+                                        getDeadlineStatus(task.deadline) === 'expired' ? 'text-gray-400 line-through' :
+                                        getDeadlineStatus(task.deadline) === 'urgent' ? 'text-red-600 animate-pulse' : 
+                                        'text-gray-800'
+                                    }`}>
+                                        {formatDate(task.deadline)}
+                                    </span>
+                                )}
                             </div>
                         </div>
-
+                        {/* Divider */}
+                        <div className="border-t border-gray-200 my-4"></div>
                         {/* Timer Component */}
-                        <div className="mt-6 border-t border-gray-200 pt-6">
+                        <div className="bg-gray-100 rounded-2xl p-4 flex justify-center items-center">
                             <Timer activeTask={task} onUpdateTask={onUpdate} logs={logs} />
                         </div>
                     </div>
-
-                    {/* 閉じるボタン */}
-                    <button
-                        onClick={onClose}
-                        className="text-gray-400 hover:text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-full p-2 transition"
-                    >
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
                 </div>
 
                 {/* コンテンツエリア */}
+                
                 <div className="space-y-8">
                     {/* 実績チャート */}
                     <section className="mt-8 border-t border-gray-200 pt-4">

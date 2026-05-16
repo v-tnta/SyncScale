@@ -8,17 +8,24 @@ import Calendar from './Calendar'
 import { useAuth } from '../hooks/useAuth'
 import { ConfirmModal } from './ConfirmModal';
 
+import { APP_INFO } from '../constants/appInfo'
+import logo from '../assets/logo.svg'
+
 const Layout = ({ children, tasks, onTaskClick }) => {
     const { currentUser, login, logout } = useAuth();
     const [isLogoutModalOpen, setIsLogoutModalOpen] = React.useState(false);
     return (
         <div className="flex flex-col min-h-screen md:h-screen bg-gray-50 text-gray-800 md:overflow-hidden">
             {/* ヘッダーエリア */}
-            <header className="bg-white shadow-sm p-4 sticky top-0 z-10 flex-shrink-0">
+            <header className="bg-white shadow-sm p-3 sticky top-0 z-10 flex-shrink-0">
                 <div className="container mx-auto flex justify-between items-center">
-                    <div>
-                        <h1 className="text-xl font-bold text-blue-600">SyncScale (β)</h1>
-                        <h4 className="text-sm text-gray-500">Time Management App v0.1.1</h4>
+                    <div className="flex items-center gap-3">
+                        {/* ロゴ画像 */}
+                        <img src={logo} alt="SyncScale Logo" className="w-10 h-10 object-contain" />
+                        <div>
+                            <h1 className="text-2xl font-black tracking-tight text-gray-900 leading-none">{APP_INFO.NAME}</h1>
+                        </div>
+                        <p className="text-[15px] font-medium text-gray-400 mt-1 tracking-wider">v{APP_INFO.VERSION}</p>
                     </div>
                     {currentUser && currentUser.isAnonymous === false ? (
                         <div className="flex items-center gap-4">

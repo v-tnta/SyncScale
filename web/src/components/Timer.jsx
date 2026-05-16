@@ -162,10 +162,9 @@ const Timer = ({ activeTask, logs, onUpdateTask }) => {
     if (activeTask.status === 'DONE') return null;
 
     return (
-        <div className="flex flex-col md:flex-row items-center gap-4 md:gap-8 w-full mt-2">
+        <div className="flex flex-col md:flex-row items-center gap-4 md:gap-8 w-full mt-2 justify-center">
             {/* 左端：タブ切り替え */}
             <div className="flex flex-col gap-2 shrink-0 w-full md:w-32">
-                <span className="text-sm font-bold text-gray-600 mb-1 text-center">とりかかる？</span>
                 <div className="flex md:flex-col gap-2">
                     <button
                         onClick={() => setActiveTab('timer')}
@@ -193,9 +192,9 @@ const Timer = ({ activeTask, logs, onUpdateTask }) => {
             </div>
 
             {/* 右側：コンテンツエリア */}
-            <div className="border border-gray-200 shadow-sm rounded-lg p-6 bg-white w-full max-w-xl min-h-[160px] flex flex-col justify-center">
+            <div className="border border-gray-200 shadow-sm rounded-lg p-6 bg-white w-full max-w-xl min-h-[160px] flex flex-col justify-center min-h-[180px]">
                 {activeTab === 'timer' ? (
-                    <div className="flex flex-col gap-6">
+                    <div className="flex flex-col gap-6 justify-center">
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                             <div className="flex items-center gap-4 flex-1">
                                 <span className="font-bold text-gray-700 whitespace-nowrap">やること</span>
@@ -210,25 +209,25 @@ const Timer = ({ activeTask, logs, onUpdateTask }) => {
                                     />
                                 </div>
                             </div>
-                            <div className={`text-4xl font-mono font-bold tracking-wider ${isActive ? 'text-blue-600' : 'text-gray-800'}`}>
+                            <div className={`text-4xl font-mono font-bold tracking-wider  ${isActive ? 'text-blue-600' : 'text-gray-800'}`}>
                                 {formatTime(elapsedSeconds)}
                             </div>
                         </div>
 
-                        <div className="flex justify-end gap-3 mt-4">
+                        <div className="flex justify-center gap-3">
                             {!isActive ? (
                                 <>
                                     {elapsedSeconds > 0 && (
                                         <button
                                             onClick={handleRecordClick}
-                                            className="bg-blue-600 text-white font-bold py-2 px-6 rounded-full hover:bg-blue-700 transition shadow-sm"
+                                            className="bg-blue-600 text-white font-bold py-1.5 px-6 rounded-full hover:bg-blue-700 transition shadow-sm"
                                         >
                                             きろく
                                         </button>
                                     )}
                                     <button
                                         onClick={handleStart}
-                                        className="bg-green-500 text-white font-bold py-2 px-8 rounded-full hover:bg-green-600 transition shadow-sm"
+                                        className="bg-green-500 text-white font-bold py-1.5 px-8 rounded-full hover:bg-green-600 transition shadow-sm"
                                     >
                                         {elapsedSeconds > 0 ? 'リスタート' : 'スタート'}
                                     </button>
@@ -237,13 +236,13 @@ const Timer = ({ activeTask, logs, onUpdateTask }) => {
                                 <>
                                     <button
                                         onClick={handleRecordClick}
-                                        className="bg-blue-600 text-white font-bold py-2 px-6 rounded-full hover:bg-blue-700 transition shadow-sm"
+                                        className="bg-blue-600 text-white font-bold py-1.5 px-6 rounded-full hover:bg-blue-700 transition shadow-sm"
                                     >
                                         きろく
                                     </button>
                                     <button
                                         onClick={handlePause}
-                                        className="bg-yellow-500 text-white font-bold py-2 px-8 rounded-full hover:bg-yellow-600 transition shadow-sm"
+                                        className="bg-yellow-500 text-white font-bold py-1.5 px-8 rounded-full hover:bg-yellow-600 transition shadow-sm"
                                     >
                                         ストップ
                                     </button>

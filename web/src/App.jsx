@@ -37,25 +37,32 @@ function App() {
   }, [tasks]);
 
   // モーダル用のステート (TaskOverlay: 詳細/編集)
-  const [selectedTask, setSelectedTask] = React.useState(null);
+  const [selectedTaskId, setSelectedTaskId] = React.useState(null);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
 
   // タスクがクリックされた時の処理
   const handleTaskClick = (task) => {
-    setSelectedTask(task);
+    setSelectedTaskId(task.id);
     setIsModalOpen(true);
   };
 
   // モーダルを閉じる処理
   const handleCloseModal = () => {
     setIsModalOpen(false);
-    setSelectedTask(null);
+    setSelectedTaskId(null);
   };
 
+  // 最新のtasks配列から選択中のタスクを取得
+  const selectedTask = React.useMemo(() => {
+    return tasks.find(t => t.id === selectedTaskId) || null;
+  }, [tasks, selectedTaskId]);
+
   // 選択されたタスクに関連するログだけをフィルタリング (TaskOverlay用)
-  const selectedTaskLogs = selectedTask
-    ? timeLogs.filter(log => log.taskId === selectedTask.id)
-    : [];
+  const selectedTaskLogs = React.useMemo(() => {
+    return selectedTask
+      ? timeLogs.filter(log => log.taskId === selectedTask.id)
+      : [];
+  }, [timeLogs, selectedTask]);
 
   // タスク完了のリクエスト（即座にDONEにせず、コンディション入力を開く）
   const handleCompleteRequest = (task) => {
@@ -71,9 +78,9 @@ function App() {
     setTaskToComplete(null);
     
     // TaskOverlayが開いていた場合は閉じる
-    if (selectedTask && selectedTask.id === targetTaskId) {
+    if (selectedTaskId === targetTaskId) {
         setIsModalOpen(false);
-        setSelectedTask(null);
+        setSelectedTaskId(null);
     }
 
     // Firestoreの conditionLogs に保存

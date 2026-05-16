@@ -31,6 +31,26 @@ const TaskList = ({ tasks, timeLogs, loading, error, onTaskClick, onUpdateTask, 
         return <div className="text-center p-8 text-red-500">エラーが発生しました。設定を確認してください。</div>;
     }
 
+    // 締切ステータス判定
+    const getDeadlineStatus = (val) => {
+        if (!val) return 'none';
+        let dateObj;
+        if (typeof val === 'string') dateObj = new Date(val);
+        else if (val instanceof Date) dateObj = val;
+        else if (val.seconds) dateObj = new Date(val.seconds * 1000);
+        else return 'none';
+
+        if (isNaN(dateObj.getTime())) return 'none';
+
+        const now = new Date();
+        const diffMs = dateObj - now;
+        const diffHours = diffMs / (1000 * 60 * 60);
+
+        if (diffMs < 0) return 'expired'; // 期限切れ
+        if (diffHours <= 24) return 'urgent'; // 24時間以内
+        return 'normal';
+    };
+
     // 日時フォーマット関数 (String, Date, Timestamp対応)
     const formatDate = (val) => {
         if (!val) return '未設定';
@@ -90,8 +110,14 @@ const TaskList = ({ tasks, timeLogs, loading, error, onTaskClick, onUpdateTask, 
                                     <h3 className="font-medium flex items-center gap-2 text-gray-800">
                                         {task.title}
                                     </h3>
-                                    <div className="text-sm text-gray-500 mt-1 flex gap-4">
-                                        <span>📅 締切: {formatDate(task.deadline)}</span>
+                                    <div className="text-sm mt-1 flex gap-4">
+                                        <span className={`font-medium ${
+                                            getDeadlineStatus(task.deadline) === 'expired' ? 'text-gray-400 line-through' :
+                                            getDeadlineStatus(task.deadline) === 'urgent' ? 'text-red-600 animate-pulse' : 
+                                            'text-gray-500'
+                                        }`}>
+                                            📅 締切: {formatDate(task.deadline)}
+                                        </span>
                                     </div>
                                 </div>
 

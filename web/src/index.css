@@ -1,10 +1,22 @@
 @import "tailwindcss";
 
+/* 入力欄以外でのテキストカーソル（キャレット）点滅を防止 */
+* {
+    caret-color: transparent;
+}
+
+/* 入力欄ではカーソルを表示 */
+input,
+textarea,
+[contenteditable="true"] {
+    caret-color: auto !important;
+}
+
 /* Webkit scrollbar customization for 'custom-scrollbar' class */
 .custom-scrollbar::-webkit-scrollbar {
     width: 8px;
 }
-
+    
 .custom-scrollbar::-webkit-scrollbar-track {
     background: #f1f1f1;
     border-radius: 4px;
