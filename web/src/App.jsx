@@ -7,6 +7,7 @@ import TaskOverlay from './components/TaskOverlay'
 import CompletedTasksModal from './components/CompletedTasksModal'
 import ConditionInputModal from './components/ConditionInputModal'
 import TaskSizeEstimateModal from './components/TaskSizeEstimateModal'
+import Tutorial from './components/Tutorial'
 import { DebugLogger } from './components/DebugLogger'
 import { useTasks } from './hooks/useTasks'
 import { useTimeLogs } from './hooks/useTimeLogs' // ログ取得用に追加
@@ -19,6 +20,9 @@ function App() {
   const { tasks, addTask, updateTask, deleteTask, completelyDeleteTask, loading, error } = useTasks();
   const { timeLogs } = useTimeLogs(); // 全体のログを取得
   const { addLog: addConditionLog } = useConditionLogs(); // フックを使用
+
+  // Googleログイン済みかどうかの判定
+  const isAuthenticated = currentUser && currentUser.isAnonymous === false;
 
   // 完了タスク一覧モーダルの状態
   const [isCompletedModalOpen, setIsCompletedModalOpen] = React.useState(false);
@@ -104,14 +108,9 @@ function App() {
   };
 
   return (
-    <Layout tasks={currentUser ? tasks : null} onTaskClick={handleTaskClick}>
-      {!currentUser ? (
-        <div className="flex flex-col items-center justify-center h-full min-h-[50vh] text-center bg-white rounded-lg p-8 shadow-sm">
-          <h2 className="text-2xl font-bold text-red-600 mb-4">認証エラー</h2>
-          <p className="text-gray-600 mb-8 max-w-md">
-            システムエラーによりユーザー認証に失敗しました。ページをリロードしてください。
-          </p>
-        </div>
+    <Layout tasks={isAuthenticated ? tasks : null} onTaskClick={handleTaskClick}>
+      {!isAuthenticated ? (
+        <Tutorial />
       ) : (
         <div className="flex flex-col gap-8">
           {/* 一時的なデータ移行用ボタン等は以前に案内しましたが、ここでは不要なため省略 */}
