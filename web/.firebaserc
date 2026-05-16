@@ -1,0 +1,14 @@
+{
+  "projects": {
+    "default": "sync-scale"
+  },
+  "targets": {
+    "sync-scale": {
+      "hosting": {
+        "sync-scale": [
+          "sync-scale"
+        ]
+      }
+    }
+  }
+}

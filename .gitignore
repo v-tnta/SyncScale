@@ -1,0 +1,45 @@
+# === 共通 ===
+.DS_Store
+*.local
+.env
+.env.*
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# === Web (React/Vite) ===
+web/node_modules/
+web/dist/
+web/dist-ssr/
+web/.firebase/
+web/firebase-debug.log
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# === Chrome Extension ===
+chrome-extension/dist/
+chrome-extension/node_modules/
+
+# === Mobile App (Flutter) ===
+mobile-app/.dart_tool/
+mobile-app/.packages
+mobile-app/build/
+mobile-app/.flutter-plugins
+mobile-app/.flutter-plugins-dependencies
+mobile-app/android/.gradle/
+mobile-app/ios/Pods/
+mobile-app/ios/.symlinks/
