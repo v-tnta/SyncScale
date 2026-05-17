@@ -37,10 +37,15 @@ export const getConditionLogsByTask = async (userId, taskId) => {
     const logsCollection = collection(db, COLLECTION_NAME);
     const q = query(
         logsCollection,
-        where('userId', '==', userId),
-        where('taskId', '==', taskId),
-        orderBy('createdAt', 'desc')
+        where('taskId', '==', taskId)
     );
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const logs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+    // 複合インデックスエラーを避けるため、orderByをクエリから外し、メモリ上で作成日時の降順にソートします
+    return logs.sort((a, b) => {
+        const timeA = a.createdAt ? (a.createdAt.toMillis ? a.createdAt.toMillis() : new Date(a.createdAt).getTime()) : 0;
+        const timeB = b.createdAt ? (b.createdAt.toMillis ? b.createdAt.toMillis() : new Date(b.createdAt).getTime()) : 0;
+        return timeB - timeA;
+    });
 };

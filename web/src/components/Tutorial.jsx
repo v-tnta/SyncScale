@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import logo from '../assets/logo.svg';
+import { TASK_STATUS_LABELS } from '../domain/task';
 
 /**
  * チュートリアルコンポーネント
@@ -95,7 +96,7 @@ const Tutorial = () => {
                                         <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
                                             task.status === 'DOING' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-200 text-gray-700'
                                         }`}>
-                                            {task.status}
+                                            {TASK_STATUS_LABELS[task.status] || task.status}
                                         </span>
                                     </div>
                                 </div>

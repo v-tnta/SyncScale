@@ -71,6 +71,15 @@ const CompletedTasksModal = ({ isOpen, onClose, tasks, onTaskClick }) => {
         }
     };
 
+    const getBadgeColor = (label) => {
+        switch (label) {
+            case 'S': return 'bg-cyan-50 text-cyan-700 border border-cyan-100';
+            case 'M': return 'bg-orange-50 text-orange-700 border border-orange-100';
+            case 'L': return 'bg-red-50 text-red-700 border border-red-100';
+            default: return 'bg-gray-100 text-gray-500';
+        }
+    };
+
     return (
         <div 
             className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-md transition-opacity"
@@ -82,7 +91,7 @@ const CompletedTasksModal = ({ isOpen, onClose, tasks, onTaskClick }) => {
             >
                 <div className="flex justify-between items-center p-6 border-b border-gray-100 shrink-0">
                     <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-                        <span>🏆</span> 完了したタスクの一覧
+                        <span>🏆</span> 提出完了したタスクの一覧
                     </h2>
                     <button onClick={onClose} className="text-gray-400 hover:text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-full p-2 transition">
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -132,15 +141,15 @@ const CompletedTasksModal = ({ isOpen, onClose, tasks, onTaskClick }) => {
                                                         <h4 className="font-medium flex items-center gap-2 text-gray-800">
                                                             {task.title}
                                                             {task.sizeLabel && (
-                                                                <span className="px-2 py-0.5 text-xs font-semibold rounded bg-blue-50 text-blue-500 no-underline">
+                                                                <span className={`px-2 py-0.5 text-xs font-semibold rounded no-underline ${getBadgeColor(task.sizeLabel)}`}>
                                                                     {task.sizeLabel}
                                                                 </span>
                                                             )}
                                                         </h4>
                                                     </div>
-                                                    <div className="text-gray-400 text-sm">
-                                                        完了
-                                                    </div>
+                                                    <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
+                                                        提出完了
+                                                    </span>
                                                 </div>
                                             ))}
                                         </div>

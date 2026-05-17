@@ -1,3 +1,5 @@
+import { TASK_STATUS_LABELS } from '../domain/task';
+
 /**
  * タスク一覧コンポーネント
  * 親コンポーネント(App)から受け取った tasks データをもとにリストを表示します。
@@ -148,7 +150,7 @@ const TaskList = ({ tasks, timeLogs, loading, error, onTaskClick, onUpdateTask, 
                                         task.status === 'DOING' ? 'bg-yellow-100 text-yellow-700' :
                                             'bg-green-100 text-green-700'
                                         }`}>
-                                        {task.status}
+                                        {TASK_STATUS_LABELS[task.status] || task.status}
                                     </span>
                                 </div>
                             </div>

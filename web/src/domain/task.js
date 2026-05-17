@@ -3,6 +3,14 @@
  * ビジネスロジックとしての「タスク」を定義します。
  * Firestoreなどのデータ構造に直接依存せず、アプリ内で扱う統一的な形を提供します。
  */
+
+// ステータスと日本語表示のマッピング定義
+export const TASK_STATUS_LABELS = {
+    'TODO': 'これからやる',
+    'DOING': 'とりかかり中',
+    'DONE': '提出完了'
+};
+
 export class Task {
     constructor({
         id,
@@ -40,6 +48,13 @@ export class Task {
      */
     isCompleted() {
         return this.status === 'DONE';
+    }
+
+    /**
+     * ステータスの日本語表示ラベルを取得
+     */
+    getStatusLabel() {
+        return TASK_STATUS_LABELS[this.status] || 'これからやる';
     }
 
     /**

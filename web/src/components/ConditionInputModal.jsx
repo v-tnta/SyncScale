@@ -88,7 +88,7 @@ const ConditionInputModal = ({ isOpen, onClose, task, onSubmit }) => {
                             disabled={!condition}
                             className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-blue-200 transition disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            記録して完了
+                            記録して提出完了
                         </button>
                     </div>
                 </div>

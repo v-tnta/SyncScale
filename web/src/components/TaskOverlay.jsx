@@ -3,6 +3,8 @@ import GanttChart from './GanttChart'
 import Timer from './Timer'
 import SizeLabelSelector from './SizeLabelSelector'
 import DateTimePicker from './DateTimePicker'
+import { TASK_STATUS_LABELS } from '../domain/task'
+import { useConditionLogs } from '../hooks/useConditionLogs'
 
 /**
  * TaskOverlay コンポーネント
@@ -10,6 +12,9 @@ import DateTimePicker from './DateTimePicker'
  * タスクの編集・完了・物理削除機能も含みます。
  */
 const TaskOverlay = ({ isOpen, onClose, task, logs, onUpdate, onDelete, onPhysicalDelete, onCompleteRequest }) => {
+    const { getLogsByTask } = useConditionLogs()
+    const [conditionLog, setConditionLog] = useState(null)
+    const [loadingCondition, setLoadingCondition] = useState(false)
     const [isEditing, setIsEditing] = useState(false);
     const [editForm, setEditForm] = useState({ title: '', deadline: null, sizeLabel: 'M' });
     const [isChartExpanded, setIsChartExpanded] = useState(true); // 実績チャートの開閉状態
@@ -38,6 +43,24 @@ const TaskOverlay = ({ isOpen, onClose, task, logs, onUpdate, onDelete, onPhysic
                 sizeLabel: task.sizeLabel || 'M'
             });
             setIsEditing(false); // モーダルを開いたときは閲覧モード
+
+            // タスクが提出完了(DONE)ならコンディションをロードする
+            if (task.status === 'DONE') {
+                setLoadingCondition(true)
+                getLogsByTask(task.id).then(cLogs => {
+                    if (cLogs && cLogs.length > 0) {
+                        setConditionLog(cLogs[0])
+                    } else {
+                        setConditionLog(null)
+                    }
+                    setLoadingCondition(false)
+                }).catch(err => {
+                    console.error("Failed to load condition log:", err)
+                    setLoadingCondition(false)
+                })
+            } else {
+                setConditionLog(null)
+            }
         }
     }, [task, isOpen]);
 
@@ -55,6 +78,22 @@ const TaskOverlay = ({ isOpen, onClose, task, logs, onUpdate, onDelete, onPhysic
         });
         setIsEditing(false);
     };
+
+    // 未提出に戻す（TODOに戻す）処理
+    const handleRevertToIncomplete = async () => {
+        if (window.confirm(`タスク「${task.title}」を未提出（これからやる）に戻しますか？`)) {
+            try {
+                await onUpdate(task.id, {
+                    status: 'TODO',
+                    completedAt: null,
+                    updatedAt: new Date()
+                })
+            } catch (err) {
+                console.error("Failed to revert task status:", err)
+                alert("未提出に戻す処理に失敗しました。")
+            }
+        }
+    }
 
     // タスク完了 (ステータス更新)
     const handleComplete = async () => {
@@ -172,7 +211,7 @@ const TaskOverlay = ({ isOpen, onClose, task, logs, onUpdate, onDelete, onPhysic
                                             <span className={`inline-block px-3 py-1 text-sm font-bold rounded-md ${task.status === 'DONE' ? 'bg-green-100 text-green-700' :
                                                 task.status === 'DOING' ? 'bg-yellow-100 text-yellow-700 border border-yellow-300' : 'bg-gray-100 text-gray-500'
                                                 }`}>
-                                                {task.status || 'TODO'}
+                                                {TASK_STATUS_LABELS[task.status] || 'これからやる'}
                                             </span>
                                         </>
                                     )}
@@ -206,7 +245,22 @@ const TaskOverlay = ({ isOpen, onClose, task, logs, onUpdate, onDelete, onPhysic
                                         </>
                                     ) : (
                                         <>
-                                            {/* 閲覧モード: 編集 + 削除 + 提出完了 */}
+                                            {/* 閲覧モード: 未提出に戻す + 編集 + 削除 + 提出完了 */}
+                                            {task.status === 'DONE' && (
+                                                <div className="flex flex-col items-center gap-1">
+                                                    <button
+                                                        onClick={handleRevertToIncomplete}
+                                                        className="w-10 h-10 flex items-center justify-center rounded-full bg-yellow-50 text-yellow-600 hover:bg-yellow-100 transition"
+                                                        title="未提出に戻す"
+                                                    >
+                                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
+                                                        </svg>
+                                                    </button>
+                                                    <span className="text-[10px] font-bold text-gray-500">未提出に戻す</span>
+                                                </div>
+                                            )}
+
                                             <div className="flex flex-col items-center gap-1">
                                                 <button
                                                     onClick={handlePhysicalDelete}
@@ -273,9 +327,41 @@ const TaskOverlay = ({ isOpen, onClose, task, logs, onUpdate, onDelete, onPhysic
                         </div>
                         {/* Divider */}
                         <div className="border-t border-gray-200 my-4"></div>
-                        {/* Timer Component */}
-                        <div className="bg-gray-100 rounded-2xl p-4 flex justify-center items-center">
-                            <Timer activeTask={task} onUpdateTask={onUpdate} logs={logs} />
+                        {/* Timer Component または コンディション表示 */}
+                        <h3 className="text-xl font-bold text-gray-800">
+                            コンディション
+                        </h3>
+                        <div className="bg-gray-100 rounded-2xl p-4 flex justify-center items-center w-full min-h-[120px] mt-4">
+                            {task.status === 'DONE' ? (
+                                loadingCondition ? (
+                                    <div className="text-gray-500 text-sm">コンディションを読み込み中...</div>
+                                ) : conditionLog ? (
+                                    <div className="flex flex-col md:flex-row items-center gap-6 justify-center w-full max-w-xl">
+                                        {/* 気分表示 */}
+                                        <div className="flex flex-col items-center gap-1 bg-white p-4 rounded-xl shadow-sm border border-gray-200 shrink-0 w-28">
+                                            <span className="text-5xl">
+                                                {conditionLog.condition === 'good' ? '😊' :
+                                                 conditionLog.condition === 'fair' ? '🙂' : '😥'}
+                                            </span>
+                                            <span className="text-xs font-bold text-gray-800 mt-1">
+                                                {conditionLog.condition === 'good' ? '良い' :
+                                                 conditionLog.condition === 'fair' ? '普通' : '悪い'}
+                                            </span>
+                                        </div>
+                                        {/* メモ表示 */}
+                                        <div className="flex-1 bg-white p-4 rounded-xl shadow-sm border border-gray-200 w-full min-h-[80px] flex flex-col">
+                                            <span className="text-xs font-bold text-gray-800 block mb-1">提出時のふりかえり</span>
+                                            <p className="text-sm text-gray-800 leading-relaxed font-medium whitespace-pre-wrap flex-1">
+                                                {conditionLog.memo || '（メモはありません）'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="text-gray-400 text-sm">コンディションの記録はありません。</div>
+                                )
+                            ) : (
+                                <Timer activeTask={task} onUpdateTask={onUpdate} logs={logs} />
+                            )}
                         </div>
                     </div>
                 </div>
