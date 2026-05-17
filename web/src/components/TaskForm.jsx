@@ -17,7 +17,7 @@ const TaskForm = ({ addTask }) => {
     // 入力フォームの状態管理
     const [title, setTitle] = useState('');
     const [deadline, setDeadline] = useState(getTodayEndOfDay());
-    const [sizeLabel, setSizeLabel] = useState('M'); // 🆕 デフォルトは'M'とする
+    const [sizeLabel, setSizeLabel] = useState('S'); // 🆕 デフォルトは'S'とする
 
     // フォーム送信時の処理
     const handleSubmit = (e) => {
@@ -33,7 +33,7 @@ const TaskForm = ({ addTask }) => {
         // フォームをクリアする
         setTitle('');
         setDeadline(getTodayEndOfDay());
-        setSizeLabel('M');
+        setSizeLabel('S');
     };
 
     return (
