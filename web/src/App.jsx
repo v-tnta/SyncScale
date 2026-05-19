@@ -175,6 +175,9 @@ function App() {
 
         console.log("Web App: Received tasks from extension", importedTasks);
 
+        // 重複実行を防ぐため、受け取ったらすぐにACKを返す
+        window.postMessage({ type: 'SYNC_SCALE_IMPORT_ACK' }, '*');
+
         if (!isAuthenticated) {
           // 未ログイン時は保留状態にしてモーダルを出す
           setPendingImportTasks(importedTasks);
@@ -187,6 +190,10 @@ function App() {
     };
 
     window.addEventListener('message', handleMessage);
+    
+    // アプリがマウントされた（リスナーが登録された）ことを拡張機能へ知らせる
+    window.postMessage({ type: 'SYNC_SCALE_APP_READY' }, '*');
+
     return () => window.removeEventListener('message', handleMessage);
   }, [isAuthenticated, tasks, addTasksBatch]);
 
