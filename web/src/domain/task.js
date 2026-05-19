@@ -26,6 +26,10 @@ export class Task {
         completedAt = null,
         createdAt = new Date(),
         updatedAt = new Date(),
+        manabaAssignmentId = null,
+        manabaCourseId = null,
+        courseName = null,
+        type = null,
     }) {
         this.id = id;
         this.title = title;
@@ -41,6 +45,10 @@ export class Task {
         this.completedAt = completedAt;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+        this.manabaAssignmentId = manabaAssignmentId;
+        this.manabaCourseId = manabaCourseId;
+        this.courseName = courseName;
+        this.type = type;
     }
 
     /**
@@ -101,6 +109,10 @@ export class Task {
             source: this.source,
             startedAt: this.startedAt,
             completedAt: this.completedAt,
+            manabaAssignmentId: this.manabaAssignmentId,
+            manabaCourseId: this.manabaCourseId,
+            courseName: this.courseName,
+            type: this.type,
         };
     }
 }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const TaskSizeEstimateModal = ({ isOpen, task, onSubmit }) => {
+const TaskSizeEstimateModal = ({ isOpen, task, currentIndex, totalCount, onSubmit }) => {
     const [sizeLabel, setSizeLabel] = useState('');
 
     useEffect(() => {
@@ -15,16 +15,25 @@ const TaskSizeEstimateModal = ({ isOpen, task, onSubmit }) => {
         onSubmit(task, sizeLabel);
     };
 
+    const isMultiple = totalCount > 1;
+
     return (
         <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity">
             <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6 relative animate-fade-in-up">
                 <div className="text-center mb-6">
-                    <div className="mx-auto w-16 h-16 bg-blue-100 text-blue-500 rounded-full flex items-center justify-center mb-4">
+                    <div className="mx-auto w-16 h-16 bg-blue-100 text-blue-500 rounded-full flex items-center justify-center mb-4 relative">
                         <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                         </svg>
+                        {isMultiple && (
+                            <div className="absolute -top-2 -right-4 bg-red-500 text-white text-xs font-black px-2 py-1 rounded-full shadow-md">
+                                {currentIndex}/{totalCount}
+                            </div>
+                        )}
                     </div>
-                    <h2 className="text-xl font-bold text-gray-800">新しい課題が見つかりました！</h2>
+                    <h2 className="text-xl font-bold text-gray-800">
+                        {isMultiple ? '複数の新しい課題があります！' : '新しい課題が見つかりました！'}
+                    </h2>
                     <p className="text-sm text-gray-500 mt-2 line-clamp-2 border-b border-gray-100 pb-2 px-2">
                         {task.title}
                     </p>

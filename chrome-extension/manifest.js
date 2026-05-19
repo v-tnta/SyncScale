@@ -9,26 +9,18 @@ const __dirname = path.dirname(__filename);
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 export default defineManifest({
-  manifest_version: 3,
-  name: "SyncScale - manaba課題取得",
-  version: "1.0.0",
-  //key: process.env.VITE_EXTENSION_KEY,
-  description: "manabaから課題と〆切を自動取得し、SyncScaleに登録します",
-  permissions: [
+  "manifest_version": 3,
+  "name": "SyncScale - manaba課題取得",
+  "version": "1.1.0",
+  "description": "manabaから課題と〆切を自動取得し、SyncScaleに登録します",
+  "permissions": [
     "activeTab",
-    "storage",
-    "identity"
+    "storage"
   ],
-  oauth2: {
-    client_id: process.env.VITE_OAUTH_CLIENT_ID,
-    scopes: ["profile", "email", "openid"]
-  },
-  host_permissions: [
+  "host_permissions": [
     "https://*.manaba.jp/*",
     "https://manaba.ibaraki.ac.jp/*",
-    "https://*.firebaseapp.com/*",
-    "https://*.firebaseio.com/*",
-    "https://www.googleapis.com/*"
+    "https://sync-scale.web.app/*"
   ],
   background: {
     service_worker: "src/background/background.js",
@@ -42,19 +34,26 @@ export default defineManifest({
       ],
       js: ["src/content/content.js"],
       run_at: "document_idle"
+    },
+    {
+      matches: [
+        "https://sync-scale.web.app/*"
+      ],
+      js: ["src/content/web-content.js"],
+      run_at: "document_idle"
     }
   ],
-  action: {
-    default_popup: "src/popup/popup.html",
-    default_icon: {
+  "action": {
+    "default_popup": "src/popup/popup.html",
+    "default_icon": {
       "16": "icons/logo.png",
       "48": "icons/logo.png",
       "128": "icons/logo.png"
     }
   },
-  icons: {
+  "icons": {
     "16": "icons/logo.png",
     "48": "icons/logo.png",
     "128": "icons/logo.png"
   }
-});
+})

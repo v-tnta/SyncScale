@@ -29,6 +29,12 @@ function App() {
   const { timeLogs } = useTimeLogs(); // 全体のログを取得
   const { addLog: addConditionLog } = useConditionLogs(); // フックを使用
 
+  // tasksの最新状態を保持するRef（useEffectの依存配列を減らすため）
+  const tasksRef = React.useRef(tasks);
+  React.useEffect(() => {
+    tasksRef.current = tasks;
+  }, [tasks]);
+
   // Googleログイン済みかどうかの判定
   const isAuthenticated = currentUser && currentUser.isAnonymous === false;
 
@@ -43,11 +49,25 @@ function App() {
   const incompleteTasks = React.useMemo(() => tasks.filter(t => t.status !== 'DONE'), [tasks]);
   const completedTasks = React.useMemo(() => tasks.filter(t => t.status === 'DONE'), [tasks]);
 
-  // 新規取得された見積もり待ちのタスクを抽出（1件ずつ表示するため先頭を取得）
-  const taskToEstimate = React.useMemo(() => {
-    return tasks.find(t => t.isNew === true && !t.sizeLabel) || null;
+  // 新規取得された見積もり待ちのタスクをすべて抽出
+  const allNewTasksToEstimate = React.useMemo(() => {
+    return tasks.filter(t => t.isNew === true && !t.sizeLabel);
   }, [tasks]);
 
+  const taskToEstimate = allNewTasksToEstimate.length > 0 ? allNewTasksToEstimate[0] : null;
+  const totalNewTasksRef = React.useRef(0);
+
+  // 未評価タスクが0件になったら総数をリセットし、増えたら総数を更新する
+  React.useEffect(() => {
+    if (allNewTasksToEstimate.length > totalNewTasksRef.current) {
+      totalNewTasksRef.current = allNewTasksToEstimate.length;
+    } else if (allNewTasksToEstimate.length === 0) {
+      totalNewTasksRef.current = 0;
+    }
+  }, [allNewTasksToEstimate.length]);
+
+  const estimateCurrentIndex = taskToEstimate ? (totalNewTasksRef.current - allNewTasksToEstimate.length + 1) : 0;
+  const estimateTotalCount = totalNewTasksRef.current;
   // モーダル用のステート (TaskOverlay: 詳細/編集)
   const [selectedTaskId, setSelectedTaskId] = React.useState(null);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
@@ -123,7 +143,8 @@ function App() {
   const handleImportTasks = async (importedTasks) => {
     if (!importedTasks || importedTasks.length === 0) return;
 
-    const existingIds = new Set(tasks.map(t => t.manabaAssignmentId).filter(Boolean));
+    // 最新のtasksをRefから取得して重複チェック
+    const existingIds = new Set(tasksRef.current.map(t => t.manabaAssignmentId).filter(Boolean));
     const newTasksData = [];
 
     for (const task of importedTasks) {
@@ -160,11 +181,12 @@ function App() {
 
   // ログイン成功時に保留中のタスクがあれば登録する
   React.useEffect(() => {
-    if (isAuthenticated && pendingImportTasks) {
+    // loadingがfalse（タスク一覧の取得が完了）になるまで待つことで重複登録を防ぐ
+    if (isAuthenticated && pendingImportTasks && !loading) {
       handleImportTasks(pendingImportTasks);
       setPendingImportTasks(null);
     }
-  }, [isAuthenticated, pendingImportTasks]);
+  }, [isAuthenticated, pendingImportTasks, loading]);
 
   // Chrome拡張機能からのタスクインポートメッセージを受信
   React.useEffect(() => {
@@ -178,14 +200,10 @@ function App() {
         // 重複実行を防ぐため、受け取ったらすぐにACKを返す
         window.postMessage({ type: 'SYNC_SCALE_IMPORT_ACK' }, '*');
 
-        if (!isAuthenticated) {
-          // 未ログイン時は保留状態にしてモーダルを出す
-          setPendingImportTasks(importedTasks);
-          return;
-        }
-
-        // ログイン済みの場合は即座に登録処理
-        await handleImportTasks(importedTasks);
+        // Firestoreからの既存タスクのロードが完了するのを待つため、
+        // ログイン状態に関わらず一旦pending状態にする。
+        // 上の useEffect が isAuthenticated && !loading を検知して自動でインポートを実行する。
+        setPendingImportTasks(importedTasks);
       }
     };
 
@@ -195,7 +213,7 @@ function App() {
     window.postMessage({ type: 'SYNC_SCALE_APP_READY' }, '*');
 
     return () => window.removeEventListener('message', handleMessage);
-  }, [isAuthenticated, tasks, addTasksBatch]);
+  }, []);
 
   return (
     <Layout tasks={isAuthenticated ? tasks : null} onTaskClick={handleTaskClick}>
@@ -288,6 +306,8 @@ function App() {
           <TaskSizeEstimateModal
             isOpen={!!taskToEstimate}
             task={taskToEstimate}
+            currentIndex={estimateCurrentIndex}
+            totalCount={estimateTotalCount}
             onSubmit={handleEstimateSubmit}
           />
 

@@ -2,9 +2,11 @@
 // SyncScale Webアプリのページに注入されるContent Script
 
 let isAckReceived = false;
+let isSending = false;
 
 function trySendTasks() {
-  if (isAckReceived) return;
+  if (isAckReceived || isSending) return;
+  isSending = true;
   
   chrome.storage.local.get(['pendingImportTasks'], (result) => {
     if (result.pendingImportTasks && result.pendingImportTasks.length > 0 && !isAckReceived) {
@@ -13,9 +15,24 @@ function trySendTasks() {
         type: "SYNC_SCALE_IMPORT_TASKS",
         tasks: result.pendingImportTasks
       }, "*");
+      
+      // 数秒後にリトライ可能にする（ACKが来なかった場合）
+      setTimeout(() => { isSending = false; }, 2000);
+    } else {
+      isSending = false;
     }
   });
 }
+
+// 拡張機能側から新しくタスクがセットされた時の監視
+// タブが既に開かれたままの状態で、裏でスクレイピングが行われた場合に対処
+chrome.storage.onChanged.addListener((changes, areaName) => {
+  if (areaName === 'local' && changes.pendingImportTasks && changes.pendingImportTasks.newValue) {
+    console.log("[SyncScale] 新しいスクレイピングデータを検知しました。");
+    isAckReceived = false;
+    trySendTasks();
+  }
+});
 
 // Webアプリ側からのメッセージを受け取る
 window.addEventListener("message", (event) => {
