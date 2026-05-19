@@ -42,16 +42,10 @@ class SyncScaleState extends ChangeNotifier {
   void start() {
     _authSubscription = authService.authStateChanges.listen((user) async {
       if (user == null) {
-        authLoading = true;
+        _unbindUserData();
+        authLoading = false;
         currentUser = null;
         notifyListeners();
-        try {
-          await authService.signInAnonymously();
-        } catch (error) {
-          errorMessage = '匿名ログインに失敗しました: $error';
-          authLoading = false;
-          notifyListeners();
-        }
         return;
       }
 
@@ -60,6 +54,16 @@ class SyncScaleState extends ChangeNotifier {
       _bindUserData(user.uid);
       notifyListeners();
     });
+  }
+
+  void _unbindUserData() {
+    _taskSubscription?.cancel();
+    _taskSubscription = null;
+    _timeLogSubscription?.cancel();
+    _timeLogSubscription = null;
+    tasks = const [];
+    timeLogs = const [];
+    errorMessage = null;
   }
 
   void _bindUserData(String userId) {
@@ -81,7 +85,9 @@ class SyncScaleState extends ChangeNotifier {
             errorMessage = null;
             notifyListeners();
           },
-          onError: (Object error) {
+          onError: (Object error, StackTrace stackTrace) {
+            debugPrint('ERROR: タスク取得失敗: $error');
+            debugPrint('STACKTRACE: $stackTrace');
             errorMessage = 'タスクの取得に失敗しました: $error';
             dataLoading = false;
             notifyListeners();
@@ -96,7 +102,9 @@ class SyncScaleState extends ChangeNotifier {
             timeLogs = newLogs;
             notifyListeners();
           },
-          onError: (Object error) {
+          onError: (Object error, StackTrace stackTrace) {
+            debugPrint('ERROR: 作業ログ取得失敗: $error');
+            debugPrint('STACKTRACE: $stackTrace');
             errorMessage = '作業ログの取得に失敗しました: $error';
             notifyListeners();
           },
@@ -201,7 +209,11 @@ class SyncScaleState extends ChangeNotifier {
   }
 
   Future<List<ConditionLog>> getConditionLogs(String taskId) {
-    return repository.getConditionLogs(taskId);
+    final user = currentUser;
+    if (user == null) {
+      return Future.value([]);
+    }
+    return repository.getConditionLogs(user.uid, taskId);
   }
 
   List<TimeLog> logsForTask(String taskId) {

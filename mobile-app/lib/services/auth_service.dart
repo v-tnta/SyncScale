@@ -13,10 +13,6 @@ class AuthService {
 
   User? get currentUser => _auth.currentUser;
 
-  Future<void> signInAnonymously() async {
-    await _auth.signInAnonymously();
-  }
-
   Future<void> loginWithGoogle() async {
     // 1. プラグインの初期化 (7.0.0以降で必須)
     await _googleSignIn.initialize();
@@ -39,20 +35,7 @@ class AuthService {
       idToken: googleUser.authentication.idToken, // 7.0.0以降は同期プロパティ
     );
 
-    // 5. 既存の匿名ユーザーがいる場合はリンク、いなければサインイン
-    final user = _auth.currentUser;
-    if (user != null && user.isAnonymous) {
-      try {
-        await user.linkWithCredential(credential);
-        return;
-      } on FirebaseAuthException catch (error) {
-        if (error.code != 'credential-already-in-use' &&
-            error.code != 'provider-already-linked') {
-          rethrow;
-        }
-      }
-    }
-
+    // 5. Googleログインを実行
     await _auth.signInWithCredential(credential);
   }
 

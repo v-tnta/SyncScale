@@ -91,10 +91,11 @@ class SyncScaleRepository {
     });
   }
 
-  Future<List<ConditionLog>> getConditionLogs(String taskId) async {
+  Future<List<ConditionLog>> getConditionLogs(String userId, String taskId) async {
     final snapshot =
         await _firestore
             .collection('conditionLogs')
+            .where('userId', isEqualTo: userId)
             .where('taskId', isEqualTo: taskId)
             .get();
     final logs = snapshot.docs.map(ConditionLog.fromFirestore).toList();
