@@ -329,7 +329,7 @@ const TaskOverlay = ({ isOpen, onClose, task, logs, onUpdate, onDelete, onPhysic
                         <div className="border-t border-gray-200 my-4"></div>
                         {/* Timer Component または コンディション表示 */}
                         <h3 className="text-xl font-bold text-gray-800">
-                            コンディション
+                            {task.status === 'DONE' ? 'コンディション' : 'タイマー'}
                         </h3>
                         <div className="bg-gray-100 rounded-2xl p-4 flex justify-center items-center w-full min-h-[120px] mt-4">
                             {task.status === 'DONE' ? (
