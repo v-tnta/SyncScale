@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "SyncScale - manaba課題取得",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "manabaから課題と〆切を自動取得し、SyncScaleに登録します",
   
   "permissions": [
@@ -14,9 +14,8 @@
   "host_permissions": [
     "https://*.manaba.jp/*",
     "https://*.ac.jp/*",
-    "https://*.firebaseapp.com/*",
-    "https://*.firebaseio.com/*",
-    "https://www.googleapis.com/*"
+    "https://sync-scale.web.app/*",
+    "http://localhost:5173/*"
   ],
   
   "background": {
@@ -28,6 +27,11 @@
     {
       "matches": ["https://*.manaba.jp/*", "https://*.ac.jp/*"],
       "js": ["src/content/content.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://sync-scale.web.app/*", "http://localhost:5173/*"],
+      "js": ["src/content/web-content.js"],
       "run_at": "document_idle"
     }
   ],

@@ -103,3 +103,28 @@ export const completelyDeleteTask = async (userId, taskId) => {
 
     await batch.commit();
 };
+
+/**
+ * 複数のタスクを一括で追加する
+ * @param {string} userId - ログイン中のユーザーID
+ * @param {Array<Object>} tasksData - Taskデータの配列
+ */
+export const addTasksBatch = async (userId, tasksData) => {
+    if (!tasksData || tasksData.length === 0) return;
+    
+    const batch = writeBatch(db);
+    const tasksCollection = collection(db, COLLECTION_NAME);
+    
+    tasksData.forEach(taskData => {
+        const docRef = doc(tasksCollection);
+        batch.set(docRef, {
+            ...taskData,
+            userId,
+            status: 'TODO',
+            isVisible: true,
+            createdAt: serverTimestamp()
+        });
+    });
+    
+    await batch.commit();
+};

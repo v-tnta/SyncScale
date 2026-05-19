@@ -97,9 +97,24 @@ export const useTasks = () => {
         }
     };
 
+    /**
+     * 複数タスクを一括追加
+     */
+    const addTasksBatch = async (tasksData) => {
+        if (!currentUser) return;
+        try {
+            await taskService.addTasksBatch(currentUser.uid, tasksData);
+            console.log(`${tasksData.length}件のタスク一括追加成功`);
+        } catch (err) {
+            console.error("一括追加エラー:", err);
+            alert("タスクの一括追加に失敗しました");
+        }
+    }
+
     return {
         tasks,
         addTask,
+        addTasksBatch,
         updateTask,
         deleteTask,
         completelyDeleteTask,
