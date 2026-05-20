@@ -179,3 +179,7 @@ src/
 - **データアクセス権限**:
   - 各ドキュメント (`tasks`, `timeLogs`) は `userId` フィールドによって所有者を管理。
   - Firestoreセキュリティルールにより、`request.auth != null && request.auth.uid == resource.data.userId` の条件を満たした場合のみ読み書きを許可。自分以外のデータへのアクセスは強固にブロックされる。
+- **モバイルアプリにおける API キーの環境変数化**:
+  - モバイルアプリ（Flutter）において、従来ハードコードされていた Firebase の APIキーや App ID などのクレデンシャル情報をコードから完全に排除。
+  - 各環境変数はローカルの `.env` ファイルに定義し、`flutter_dotenv` パッケージを使用して実行時に動的に読み込むセキュアな構造を採用。これにより、Gitリポジトリ等への認証情報漏洩を防ぎます。
+  - 機密情報を含む `.env` および `GoogleService-Info.plist` などの設定ファイルは `.gitignore` に追加し、バージョン管理から除外。
