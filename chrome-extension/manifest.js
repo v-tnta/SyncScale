@@ -10,7 +10,7 @@ dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 export default defineManifest({
   "manifest_version": 3,
-  "name": "SyncScale - manaba課題取得",
+  "name": "SyncScale - Chrome Extension",
   "version": "1.2.0",
   "description": "manabaから課題と〆切を自動取得し、SyncScaleに登録します",
   "permissions": [
@@ -21,9 +21,7 @@ export default defineManifest({
   ],
   "host_permissions": [
     "https://*.manaba.jp/*",
-    "https://*.ac.jp/*",
-    "https://sync-scale.web.app/*",
-    "http://localhost:5173/*"
+    "https://manaba.ibaraki.ac.jp/*"
   ],
   "options_page": "src/options/options.html",
   background: {

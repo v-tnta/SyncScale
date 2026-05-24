@@ -38,6 +38,14 @@ body {
   font-size: 18px;
   margin: 0;
   font-weight: 700;
+  line-height: 1.2;
+}
+
+.subtitle {
+  font-size: 11px;
+  margin: 4px;
+  color: #666;
+  font-weight: normal;
 }
 
 .settings-btn {

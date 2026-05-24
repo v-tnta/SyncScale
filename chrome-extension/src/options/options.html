@@ -1,37 +1,44 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SyncScale 設定</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="options.css">
 </head>
+
 <body>
   <div class="settings-card">
     <header class="settings-header">
       <div class="logo-wrapper">
         <svg class="logo" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13 17H11V15H13V17ZM13 13H11V7H13V13Z" fill="url(#logo-grad)"/>
+          <path
+            d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13 17H11V15H13V17ZM13 13H11V7H13V13Z"
+            fill="url(#logo-grad)" />
           <defs>
             <linearGradient id="logo-grad" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
-              <stop stop-color="#6366F1"/>
-              <stop offset="1" stop-color="#3B82F6"/>
+              <stop stop-color="#6366F1" />
+              <stop offset="1" stop-color="#3B82F6" />
             </linearGradient>
           </defs>
         </svg>
       </div>
       <h1>SyncScale 設定</h1>
-      <p class="subtitle">v1.2.0 - 課題同期のカスタマイズ</p>
+      <p class="subtitle">v1.2.0</p>
     </header>
-    
+
     <main class="settings-body">
       <div class="form-group">
-        <label for="url-input">未提出課題一覧のリンク (URL)</label>
+        <label for="url-input">manaba: 未提出課題一覧のリンク (URL)</label>
         <div class="input-wrapper">
-          <input type="text" id="url-input" placeholder="https://manaba.ibaraki.ac.jp/ct/home_library_query" autocomplete="off" spellcheck="false">
+          <input type="text" id="url-input" placeholder="https://manaba.ibaraki.ac.jp/ct/home_library_query"
+            autocomplete="off" spellcheck="false">
           <button id="clear-btn" class="clear-btn" title="入力をクリア" type="button">×</button>
         </div>
         <small class="helper-text">
@@ -39,7 +46,7 @@
           <span class="default-highlight">デフォルト: https://manaba.ibaraki.ac.jp/ct/home_library_query</span>
         </small>
       </div>
-      
+
       <div class="actions">
         <button id="save-btn" class="save-btn">設定を保存する</button>
       </div>
@@ -52,4 +59,5 @@
   </div>
   <script type="module" src="options.js"></script>
 </body>
+
 </html>

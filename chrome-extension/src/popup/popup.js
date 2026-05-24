@@ -6,7 +6,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const fetchBtn = document.getElementById('fetch-btn');
   const settingsBtn = document.getElementById('settings-btn');
   const resultArea = document.getElementById('result-area');
+  const appVersion = document.getElementById('app-version');
 
+  if (appVersion) {
+    appVersion.textContent = `v${chrome.runtime.getManifest().version}`;
+  }
   fetchBtn.addEventListener('click', () => {
     resultArea.style.color = '#333';
     resultArea.textContent = 'manabaを開いています...';
