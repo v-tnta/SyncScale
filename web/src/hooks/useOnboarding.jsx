@@ -44,6 +44,7 @@ export function OnboardingProvider({ children }) {
             }
         };
 
+        setLoading(true);
         fetchOnboarding();
     }, [currentUser, hasConsented]);
 

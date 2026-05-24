@@ -24,9 +24,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 async function handleFetchTasks() {
   try {
-    const items = await chrome.storage.sync.get({ manabaDomain: 'manaba.ibaraki.ac.jp' });
-    const domain = items.manabaDomain;
-    const url = `https://${domain}/ct/home_library_query`;
+    const items = await chrome.storage.sync.get({ manabaUrl: '', manabaDomain: '' });
+    let url = items.manabaUrl;
+    if (!url) {
+      if (items.manabaDomain) {
+        url = `https://${items.manabaDomain}/ct/home_library_query`;
+      } else {
+        url = 'https://manaba.ibaraki.ac.jp/ct/home_library_query';
+      }
+    }
 
     // スクレイピングモードをONにしてmanabaを開く
     await chrome.storage.local.set({ isScrapingMode: true });

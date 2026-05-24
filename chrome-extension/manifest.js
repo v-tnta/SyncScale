@@ -11,17 +11,21 @@ dotenv.config({ path: path.resolve(__dirname, '../.env') });
 export default defineManifest({
   "manifest_version": 3,
   "name": "SyncScale - manaba課題取得",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "manabaから課題と〆切を自動取得し、SyncScaleに登録します",
   "permissions": [
     "activeTab",
-    "storage"
+    "storage",
+    "tabs",
+    "notifications"
   ],
   "host_permissions": [
     "https://*.manaba.jp/*",
-    "https://manaba.ibaraki.ac.jp/*",
-    "https://sync-scale.web.app/*"
+    "https://*.ac.jp/*",
+    "https://sync-scale.web.app/*",
+    "http://localhost:5173/*"
   ],
+  "options_page": "src/options/options.html",
   background: {
     service_worker: "src/background/background.js",
     type: "module"

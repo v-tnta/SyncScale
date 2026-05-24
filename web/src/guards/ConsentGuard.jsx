@@ -12,7 +12,7 @@ export function ConsentGuard() {
 
     if (authLoading || consentLoading || onboardingLoading) {
         return (
-            <div className="flex h-screen items-center justify-center bg-slate-950 text-white">
+            <div className="flex h-screen items-center justify-center bg-slate-50 text-slate-800">
                 <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-violet-500"></div>
             </div>
         );

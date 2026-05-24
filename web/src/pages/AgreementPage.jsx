@@ -44,27 +44,27 @@ export function AgreementPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-slate-100 to-violet-100 dark:from-slate-950 dark:via-slate-900 dark:to-violet-950 p-6 text-slate-800 dark:text-slate-100 font-sans transition-colors duration-200">
-            <div className="w-full max-w-2xl bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-slate-200 dark:border-slate-800/80 rounded-3xl p-8 md:p-10 shadow-2xl relative overflow-hidden">
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-slate-100 to-violet-100 p-6 text-slate-800 font-sans transition-colors duration-200">
+            <div className="w-full max-w-2xl bg-white/70 backdrop-blur-xl border border-slate-200 rounded-3xl p-8 md:p-10 shadow-2xl relative overflow-hidden">
                 {/* 装飾用の光彩 */}
-                <div className="absolute -top-40 -right-40 w-80 h-80 bg-violet-600/10 dark:bg-violet-600/20 rounded-full blur-3xl pointer-events-none"></div>
-                <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-indigo-600/10 dark:bg-indigo-600/20 rounded-full blur-3xl pointer-events-none"></div>
+                <div className="absolute -top-40 -right-40 w-80 h-80 bg-violet-600/10 rounded-full blur-3xl pointer-events-none"></div>
+                <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none"></div>
 
                 <div className="relative z-10 flex flex-col space-y-6">
                     <div className="text-center space-y-2">
                         <div className="inline-flex items-center justify-center p-3 bg-violet-500/10 rounded-2xl border border-violet-500/20 mb-2">
                             <span className="text-3xl">📝</span>
                         </div>
-                        <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white bg-gradient-to-r from-slate-900 to-indigo-900 dark:from-violet-200 dark:via-indigo-200 dark:to-indigo-400 bg-clip-text text-transparent">
+                        <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight bg-gradient-to-r from-slate-900 to-indigo-900 bg-clip-text text-transparent">
                             {AGREEMENT_CONTENT.title}
                         </h1>
-                        <p className="text-slate-500 dark:text-slate-400 text-xs md:text-sm">
+                        <p className="text-slate-500 text-xs md:text-sm">
                             本研究の内容をご確認いただき、同意の上でご利用ください。
                         </p>
                     </div>
 
-                    <div className="border border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-950/60 p-6 rounded-2xl text-slate-700 dark:text-slate-300 leading-relaxed text-sm h-80 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800 scrollbar-track-transparent shadow-inner">
-                        <div className="whitespace-pre-line font-medium text-slate-700 dark:text-slate-300">
+                    <div className="border border-slate-200 bg-white/50 p-6 rounded-2xl text-slate-700 leading-relaxed text-sm h-80 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent shadow-inner">
+                        <div className="whitespace-pre-line font-medium text-slate-700">
                             {AGREEMENT_CONTENT.body}
                         </div>
                     </div>

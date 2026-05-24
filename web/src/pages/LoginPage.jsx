@@ -30,26 +30,26 @@ export function LoginPage() {
 
     if (authLoading || consentLoading) {
         return (
-            <div className="flex h-screen items-center justify-center bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors duration-200">
+            <div className="flex h-screen items-center justify-center bg-slate-50 text-slate-800 transition-colors duration-200">
                 <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-violet-500"></div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-slate-100 to-violet-100 dark:from-slate-950 dark:via-slate-900 dark:to-violet-950 p-6 text-slate-800 dark:text-slate-100 font-sans transition-colors duration-200">
-            <div className="w-full max-w-md bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-slate-200 dark:border-slate-800/80 rounded-3xl p-8 shadow-2xl relative overflow-hidden text-center space-y-6">
-                <div className="absolute -top-40 -right-40 w-80 h-80 bg-violet-600/10 dark:bg-violet-600/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-slate-100 to-violet-100 p-6 text-slate-800 font-sans transition-colors duration-200">
+            <div className="w-full max-w-md bg-white/70 backdrop-blur-xl border border-slate-200 rounded-3xl p-8 shadow-2xl relative overflow-hidden text-center space-y-6">
+                <div className="absolute -top-40 -right-40 w-80 h-80 bg-violet-600/10 rounded-full blur-3xl pointer-events-none"></div>
                 
                 <div className="inline-flex items-center justify-center p-4 bg-violet-500/10 rounded-2xl border border-violet-500/20 mb-2">
                     <span className="text-4xl">🔐</span>
                 </div>
                 
-                <h1 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white">
+                <h1 className="text-xl md:text-2xl font-black text-slate-900">
                     SyncScale
                 </h1>
                 
-                <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed px-4">
+                <p className="text-slate-600 text-sm leading-relaxed px-4">
                     本サービスを利用するにはログインが必要です。
                 </p>
 

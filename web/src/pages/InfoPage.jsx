@@ -29,7 +29,7 @@ export function InfoPage() {
 
     if (loading || !onboarding) {
         return (
-            <div className="flex h-screen items-center justify-center bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors duration-200">
+            <div className="flex h-screen items-center justify-center bg-slate-50 text-slate-800 transition-colors duration-200">
                 <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-violet-500"></div>
             </div>
         );
@@ -71,18 +71,18 @@ export function InfoPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-violet-100 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950 text-slate-800 dark:text-slate-100 font-sans p-6 flex flex-col items-center justify-center transition-colors duration-200">
-            <div className="w-full max-w-4xl bg-white/70 dark:bg-slate-900/60 backdrop-blur-xl border border-slate-200 dark:border-slate-800/80 rounded-3xl p-6 md:p-10 shadow-2xl relative overflow-hidden flex flex-col space-y-8">
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-violet-100 text-slate-800 font-sans p-6 flex flex-col items-center justify-center transition-colors duration-200">
+            <div className="w-full max-w-4xl bg-white/70 backdrop-blur-xl border border-slate-200 rounded-3xl p-6 md:p-10 shadow-2xl relative overflow-hidden flex flex-col space-y-8">
                 {/* 装飾用の光彩 */}
                 <div className="absolute -top-40 -right-40 w-85 h-85 bg-violet-600/10 rounded-full blur-3xl pointer-events-none"></div>
                 <div className="absolute -bottom-40 -left-40 w-85 h-85 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none"></div>
 
                 {/* 上部ヘッダー */}
                 <div className="text-center relative z-10">
-                    <h1 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white bg-gradient-to-r from-slate-900 to-indigo-950 dark:from-violet-200 dark:via-indigo-200 dark:to-indigo-400 bg-clip-text text-transparent">
+                    <h1 className="text-xl md:text-2xl font-black bg-gradient-to-r from-slate-900 to-indigo-950 bg-clip-text text-transparent">
                         研究参加オンボーディング
                     </h1>
-                    <p className="text-slate-500 dark:text-slate-400 text-xs md:text-sm mt-1">
+                    <p className="text-slate-500 text-xs md:text-sm mt-1">
                         SyncScaleを使い始めるためのステップを進めましょう
                     </p>
                 </div>
@@ -103,13 +103,13 @@ export function InfoPage() {
                                         active
                                             ? "bg-violet-600 border-violet-500 text-white shadow-lg shadow-violet-500/30 scale-110"
                                             : done
-                                            ? "bg-indigo-100 dark:bg-indigo-950 border-indigo-300 dark:border-indigo-500 text-indigo-700 dark:text-indigo-400"
-                                            : "bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed"
+                                            ? "bg-indigo-100 border-indigo-300 text-indigo-700"
+                                            : "bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed"
                                     }`}
                                 >
                                     {done && stepNum < 5 ? "✓" : stepNum}
                                 </button>
-                                <span className={`text-[10px] mt-2 hidden sm:block ${active ? "text-violet-600 dark:text-violet-300 font-bold" : done ? "text-indigo-650 dark:text-indigo-400" : "text-slate-400 dark:text-slate-500"}`}>
+                                <span className={`text-[10px] mt-2 hidden sm:block ${active ? "text-violet-600 font-bold" : done ? "text-indigo-600" : "text-slate-400"}`}>
                                     {stepNum === 1 && "アンケート"}
                                     {stepNum === 2 && "拡張機能"}
                                     {stepNum === 3 && "チュートリアル"}
@@ -122,18 +122,18 @@ export function InfoPage() {
                 </div>
 
                 {/* メインコンテンツ */}
-                <div className="relative z-10 bg-white/50 dark:bg-slate-950/40 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 md:p-8 flex flex-col space-y-6 flex-1 min-h-[350px]">
+                <div className="relative z-10 bg-white/50 border border-slate-200 rounded-2xl p-6 md:p-8 flex flex-col space-y-6 flex-1 min-h-[350px]">
                     {currentStep === 1 && (
                         <div className="flex flex-col space-y-4">
-                            <h2 className="text-xl font-bold flex items-center gap-2 text-slate-900 dark:text-white">
-                                <span className="p-1.5 bg-violet-500/10 rounded-lg text-violet-400">1</span>
+                            <h2 className="text-xl font-bold flex items-center gap-2 text-slate-900">
+                                <span className="p-1.5 bg-violet-500/10 rounded-lg text-violet-500">1</span>
                                 {ONBOARDING_STEPS.step1.title}
                             </h2>
-                            <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
+                            <p className="text-slate-600 text-sm leading-relaxed">
                                 {ONBOARDING_STEPS.step1.description}
                             </p>
                             {isMobile && (
-                                <div className="p-4 bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-300 rounded-xl text-xs flex items-center gap-2">
+                                <div className="p-4 bg-amber-500/10 border border-amber-500/20 text-amber-700 rounded-xl text-xs flex items-center gap-2">
                                     <span>⚠️</span>
                                     <span>{ONBOARDING_STEPS.step1.pcOnlyMessage}</span>
                                 </div>
@@ -143,7 +143,7 @@ export function InfoPage() {
                                     href={ONBOARDING_STEPS.step1.formUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="flex-1 py-3 px-6 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-white font-bold rounded-xl border border-slate-300 dark:border-slate-700 text-center transition duration-300 block text-sm"
+                                    className="flex-1 py-3 px-6 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-xl border border-slate-300 text-center transition duration-300 block text-sm"
                                 >
                                     {ONBOARDING_STEPS.step1.buttonText}
                                 </a>
@@ -159,15 +159,15 @@ export function InfoPage() {
 
                     {currentStep === 2 && (
                         <div className="flex flex-col space-y-4">
-                            <h2 className="text-xl font-bold flex items-center gap-2 text-slate-900 dark:text-white">
-                                <span className="p-1.5 bg-violet-500/10 rounded-lg text-violet-400">2</span>
+                            <h2 className="text-xl font-bold flex items-center gap-2 text-slate-900">
+                                <span className="p-1.5 bg-violet-500/10 rounded-lg text-violet-500">2</span>
                                 {ONBOARDING_STEPS.step2.title}
                             </h2>
-                            <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
+                            <p className="text-slate-600 text-sm leading-relaxed">
                                 {ONBOARDING_STEPS.step2.description}
                             </p>
                             {isMobile && (
-                                <div className="p-4 bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-300 rounded-xl text-xs flex items-center gap-2">
+                                <div className="p-4 bg-amber-500/10 border border-amber-500/20 text-amber-700 rounded-xl text-xs flex items-center gap-2">
                                     <span>⚠️</span>
                                     <span>拡張機能はPCブラウザでのみインストール・使用可能です。</span>
                                 </div>
@@ -177,7 +177,7 @@ export function InfoPage() {
                                     href={ONBOARDING_STEPS.step2.chromeWebStoreUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="flex-1 py-3 px-6 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-white font-bold rounded-xl border border-slate-300 dark:border-slate-700 text-center transition duration-300 block text-sm"
+                                    className="flex-1 py-3 px-6 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-xl border border-slate-300 text-center transition duration-300 block text-sm"
                                 >
                                     {ONBOARDING_STEPS.step2.buttonText}
                                 </a>
@@ -193,14 +193,14 @@ export function InfoPage() {
 
                     {currentStep === 3 && (
                         <div className="flex flex-col space-y-4">
-                            <h2 className="text-xl font-bold flex items-center gap-2 text-slate-900 dark:text-white">
-                                <span className="p-1.5 bg-violet-500/10 rounded-lg text-violet-400">3</span>
+                            <h2 className="text-xl font-bold flex items-center gap-2 text-slate-900">
+                                <span className="p-1.5 bg-violet-500/10 rounded-lg text-violet-500">3</span>
                                 {ONBOARDING_STEPS.step3.title}
                             </h2>
-                            <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed mb-2">
+                            <p className="text-slate-600 text-sm leading-relaxed mb-2">
                                 {ONBOARDING_STEPS.step3.description}
                             </p>
-                            <div className="border border-slate-200 dark:border-slate-800/80 rounded-2xl bg-white/30 dark:bg-slate-950/40 p-2 overflow-hidden shadow-inner">
+                            <div className="border border-slate-200 rounded-2xl bg-white/30 p-2 overflow-hidden shadow-inner">
                                 <Tutorial onComplete={() => handleStepComplete(3)} />
                             </div>
                         </div>
@@ -208,11 +208,11 @@ export function InfoPage() {
 
                     {currentStep === 4 && (
                         <div className="flex flex-col space-y-4">
-                            <h2 className="text-xl font-bold flex items-center gap-2 text-slate-900 dark:text-white">
-                                <span className="p-1.5 bg-violet-500/10 rounded-lg text-violet-400">4</span>
+                            <h2 className="text-xl font-bold flex items-center gap-2 text-slate-900">
+                                <span className="p-1.5 bg-violet-500/10 rounded-lg text-violet-500">4</span>
                                 {ONBOARDING_STEPS.step4.title}
                             </h2>
-                            <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed">
+                            <p className="text-slate-600 text-sm leading-relaxed">
                                 {ONBOARDING_STEPS.step4.description}
                             </p>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
@@ -220,7 +220,7 @@ export function InfoPage() {
                                     href={ONBOARDING_STEPS.step4.iosUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="py-3 px-6 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-white font-bold rounded-xl border border-slate-300 dark:border-slate-700 text-center transition duration-300 text-sm flex items-center justify-center gap-2"
+                                    className="py-3 px-6 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-xl border border-slate-300 text-center transition duration-300 text-sm flex items-center justify-center gap-2"
                                 >
                                     <span></span> iOS App Store
                                 </a>
@@ -228,7 +228,7 @@ export function InfoPage() {
                                     href={ONBOARDING_STEPS.step4.androidUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="py-3 px-6 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-white font-bold rounded-xl border border-slate-300 dark:border-slate-700 text-center transition duration-300 text-sm flex items-center justify-center gap-2"
+                                    className="py-3 px-6 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-xl border border-slate-300 text-center transition duration-300 text-sm flex items-center justify-center gap-2"
                                 >
                                     <span>🤖</span> Google Play Store
                                 </a>
@@ -248,16 +248,16 @@ export function InfoPage() {
                         <div className="flex flex-col space-y-6 text-center py-4">
                             <div className="text-5xl">🎉</div>
                             <div className="space-y-2">
-                                <h2 className="text-2xl font-black text-slate-900 dark:text-white">
+                                <h2 className="text-2xl font-black text-slate-900">
                                     {ONBOARDING_STEPS.step5.title}
                                 </h2>
-                                <p className="text-slate-600 dark:text-slate-300 text-sm max-w-lg mx-auto leading-relaxed">
+                                <p className="text-slate-600 text-sm max-w-lg mx-auto leading-relaxed">
                                     {ONBOARDING_STEPS.step5.description}
                                 </p>
                             </div>
 
-                            <div className="max-w-md mx-auto w-full bg-white/60 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800/80 p-6 rounded-2xl space-y-4 shadow-sm">
-                                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
+                            <div className="max-w-md mx-auto w-full bg-white/60 border border-slate-200 p-6 rounded-2xl space-y-4 shadow-sm">
+                                <p className="text-xs text-slate-500 font-medium leading-relaxed">
                                     {ONBOARDING_STEPS.step5.lineOpenChatText}
                                 </p>
                                 <a

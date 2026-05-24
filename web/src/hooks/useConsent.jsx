@@ -34,6 +34,7 @@ export function ConsentProvider({ children }) {
             }
         };
 
+        setLoading(true);
         fetchConsent();
     }, [currentUser]);
 
