@@ -18,8 +18,13 @@ export function ConsentGuard() {
         );
     }
 
-    if (!currentUser || !hasConsented) {
-        // 未ログインまたは未同意なら同意書へ
+    if (!currentUser) {
+        // 未ログインならログインページへ
+        return <Navigate to="/login" replace state={{ from: location }} />;
+    }
+
+    if (!hasConsented) {
+        // ログイン済み・未同意なら同意書へ
         return <Navigate to="/agreement" replace state={{ from: location }} />;
     }
 

@@ -2,54 +2,27 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { useConsent } from "../hooks/useConsent";
-import { EXT_SYNC_CONTENT } from "../config/content";
 
-export function ExtSyncPage() {
+export function LoginPage() {
     const { currentUser, login, loading: authLoading } = useAuth();
     const { hasConsented, loading: consentLoading } = useConsent();
     const [loginLoading, setLoginLoading] = useState(false);
     const navigate = useNavigate();
 
-    // 拡張機能からの postMessage を待機する
+    // ログイン済みの場合のリダイレクト判定
     useEffect(() => {
-        const handleMessage = (event) => {
-            if (event.data && event.data.type === "SYNC_SCALE_IMPORT_TASKS") {
-                console.log("拡張機能からタスクデータを受信 (ExtSyncPage):", event.data.tasks);
-                sessionStorage.setItem("pendingImportTasks", JSON.stringify(event.data.tasks));
-                // ACKを返信して拡張機能側のストレージをクリアさせる
-                window.postMessage({ type: 'SYNC_SCALE_IMPORT_ACK' }, '*');
-            }
-        };
-
-        window.addEventListener("message", handleMessage);
-        
-        // 拡張機能へWebアプリの準備ができたことを知らせる
-        window.postMessage({ type: 'SYNC_SCALE_APP_READY' }, '*');
-
-        return () => window.removeEventListener("message", handleMessage);
-    }, []);
-
-    // ログイン状態と同意状態の変化に応じてリダイレクト
-    useEffect(() => {
-        if (!authLoading && !consentLoading) {
-            if (currentUser) {
-                if (hasConsented) {
-                    // 同意済みならメインアプリへ
-                    navigate("/svc/home", { replace: true });
-                } else {
-                    // 未同意なら同意書へ
-                    navigate("/agreement", { replace: true });
-                }
-            }
+        if (!authLoading && !consentLoading && currentUser) {
+            // ログイン後はルート / にリダイレクトすることで RootRedirect に委ねる
+            navigate("/", { replace: true });
         }
-    }, [currentUser, hasConsented, authLoading, consentLoading, navigate]);
+    }, [currentUser, authLoading, consentLoading, navigate]);
 
     const handleLogin = async () => {
         setLoginLoading(true);
         try {
             await login();
         } catch (error) {
-            console.error("拡張機能フロー中のログインエラー:", error);
+            console.error("再ログインエラー:", error);
         } finally {
             setLoginLoading(false);
         }
@@ -69,15 +42,15 @@ export function ExtSyncPage() {
                 <div className="absolute -top-40 -right-40 w-80 h-80 bg-violet-600/10 dark:bg-violet-600/20 rounded-full blur-3xl pointer-events-none"></div>
                 
                 <div className="inline-flex items-center justify-center p-4 bg-violet-500/10 rounded-2xl border border-violet-500/20 mb-2">
-                    <span className="text-4xl">🔌</span>
+                    <span className="text-4xl">🔐</span>
                 </div>
                 
                 <h1 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white">
-                    {EXT_SYNC_CONTENT.title}
+                    SyncScale
                 </h1>
                 
                 <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed px-4">
-                    {EXT_SYNC_CONTENT.loginMessage}
+                    本サービスを利用するにはログインが必要です。
                 </p>
 
                 <div className="pt-4">
@@ -91,15 +64,11 @@ export function ExtSyncPage() {
                         ) : (
                             <>
                                 <span>🔑</span>
-                                <span>{EXT_SYNC_CONTENT.buttonText}</span>
+                                <span>Googleでログイン</span>
                             </>
                         )}
                     </button>
                 </div>
-                
-                <p className="text-[10px] text-slate-500 dark:text-slate-500">
-                    ※ ログイン後、拡張機能から送信された課題が自動的にSyncScaleにインポートされます。
-                </p>
             </div>
         </div>
     );

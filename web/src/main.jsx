@@ -6,17 +6,20 @@ import App from './App.jsx'
 import { AuthProvider } from './hooks/useAuth.jsx'
 import { ConsentProvider } from './hooks/useConsent.jsx'
 import { OnboardingProvider } from './hooks/useOnboarding.jsx'
+import { ThemeProvider } from './hooks/useTheme.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
-      <AuthProvider>
-        <ConsentProvider>
-          <OnboardingProvider>
-            <App />
-          </OnboardingProvider>
-        </ConsentProvider>
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <ConsentProvider>
+            <OnboardingProvider>
+              <App />
+            </OnboardingProvider>
+          </ConsentProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </BrowserRouter>
   </StrictMode>,
 )

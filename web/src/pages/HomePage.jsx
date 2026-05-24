@@ -27,6 +27,9 @@ export function HomePage() {
   // 完了タスク一覧モーダルの状態
   const [isCompletedModalOpen, setIsCompletedModalOpen] = React.useState(false);
 
+  // 拡張機能からのインポートタスクの一時保持
+  const [pendingImportTasks, setPendingImportTasks] = React.useState(null);
+
   // コンディション入力モーダルの状態（対象タスクを保持）
   const [taskToComplete, setTaskToComplete] = React.useState(null);
 
@@ -158,22 +161,20 @@ export function HomePage() {
 
   // 1. セッションストレージからの保留中のインポート復元
   React.useEffect(() => {
-    if (!loading) {
-      const pending = sessionStorage.getItem("pendingImportTasks");
-      if (pending) {
-        try {
-          const parsed = JSON.parse(pending);
-          if (parsed && parsed.length > 0) {
-            handleImportTasks(parsed);
-          }
-        } catch (e) {
-          console.error("sessionStorageからのインポートタスク復元に失敗しました", e);
-        } finally {
-          sessionStorage.removeItem("pendingImportTasks");
+    const pending = sessionStorage.getItem("pendingImportTasks");
+    if (pending) {
+      try {
+        const parsed = JSON.parse(pending);
+        if (parsed && parsed.length > 0) {
+          setPendingImportTasks(parsed);
         }
+      } catch (e) {
+        console.error("sessionStorageからのインポートタスク復元に失敗しました", e);
+      } finally {
+        sessionStorage.removeItem("pendingImportTasks");
       }
     }
-  }, [loading]);
+  }, []);
 
   // 2. 起動中のリアルタイム postMessage 受信
   React.useEffect(() => {
@@ -184,10 +185,7 @@ export function HomePage() {
 
         console.log("Web App (HomePage): Received tasks from extension", importedTasks);
         window.postMessage({ type: 'SYNC_SCALE_IMPORT_ACK' }, '*');
-
-        if (!loading) {
-          handleImportTasks(importedTasks);
-        }
+        setPendingImportTasks(importedTasks);
       }
     };
 
@@ -195,7 +193,15 @@ export function HomePage() {
     window.postMessage({ type: 'SYNC_SCALE_APP_READY' }, '*');
 
     return () => window.removeEventListener('message', handleMessage);
-  }, [loading]);
+  }, []);
+
+  // 3. データのロード完了時に保留中のインポートを実行する
+  React.useEffect(() => {
+    if (!loading && pendingImportTasks) {
+      handleImportTasks(pendingImportTasks);
+      setPendingImportTasks(null);
+    }
+  }, [loading, pendingImportTasks]);
 
   return (
     <Layout tasks={tasks} onTaskClick={handleTaskClick}>

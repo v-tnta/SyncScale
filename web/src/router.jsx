@@ -6,6 +6,7 @@ import { useOnboarding } from "./hooks/useOnboarding";
 import { AgreementPage } from "./pages/AgreementPage";
 import PrivacyPolicy from "./components/PrivacyPolicy";
 import { ExtSyncPage } from "./pages/ExtSyncPage";
+import { LoginPage } from "./pages/LoginPage";
 import { ConsentGuard } from "./guards/ConsentGuard";
 import { InfoPage } from "./pages/InfoPage";
 import { HomePage } from "./pages/HomePage";
@@ -42,6 +43,7 @@ export function AppRouter() {
             <Route path="/agreement" element={<AgreementPage />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/svc/ext-sync" element={<ExtSyncPage />} />
+            <Route path="/login" element={<LoginPage />} />
             
             {/* 同意済みかつログイン済みで保護されたルート */}
             <Route element={<ConsentGuard />}>
