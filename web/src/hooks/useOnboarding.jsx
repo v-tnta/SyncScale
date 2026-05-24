@@ -19,7 +19,7 @@ export function OnboardingProvider({ children }) {
     const { hasConsented } = useConsent();
     const [onboarding, setOnboarding] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [lastUidAndConsent, setLastUidAndConsent] = useState({ uid: null, consented: false });
+    const [lastUidAndConsent, setLastUidAndConsent] = useState({ uid: undefined, consented: undefined });
 
     // ログインユーザーまたは同意ステータスが変更されたら同期的に状態をリセット
     const currentUid = currentUser ? currentUser.uid : null;

@@ -10,7 +10,7 @@ export function ConsentProvider({ children }) {
     const { currentUser } = useAuth();
     const [consent, setConsent] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [lastUid, setLastUid] = useState(null);
+    const [lastUid, setLastUid] = useState(undefined);
 
     // ユーザーが変わったことを検出したら同期的に状態をリセット
     const currentUid = currentUser ? currentUser.uid : null;
