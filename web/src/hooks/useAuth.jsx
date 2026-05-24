@@ -51,19 +51,6 @@ export function AuthProvider({ children }) {
     return (
         <AuthContext.Provider value={value}>
             {!loading && children}
-            {/* データ引き継ぎ確認用のカスタムモーダル */}
-            <ConfirmModal
-                isOpen={!!pendingCredential}
-                title="アカウントデータの統合"
-                confirmText="データを統合する"
-                cancelText="破棄してログイン"
-                onConfirm={() => handleMergeChoice(true)}
-                onCancel={() => handleMergeChoice(false)}
-            >
-                このGoogleアカウントは既に利用されています。<br /><br />
-                ログイン前に作成した現在のデータを、既存のGoogleアカウントへ<strong>引き継ぎ（結合）</strong>しますか？<br /><br />
-                <span className="text-red-500 font-medium text-xs">※「破棄してログイン」を選ぶと、現在画面上にある一時的なデータは失われます。</span>
-            </ConfirmModal>
         </AuthContext.Provider>
     );
 }
