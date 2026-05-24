@@ -95,8 +95,8 @@ export function SettingsPanel({ isOpen, onClose }) {
                             >
                                 <span className="text-lg">📋</span>
                                 <div>
-                                    <p className="font-bold text-sm text-gray-800">研究参加情報 (/info)</p>
-                                    <p className="text-xs text-gray-500 mt-0.5">各種アンケートやリンクを確認する</p>
+                                    <p className="font-bold text-sm text-gray-800">研究参加オンボーディング</p>
+                                    <p className="text-xs text-gray-500 mt-0.5">各種アンケートやリンクを再確認する</p>
                                 </div>
                             </button>
                         </div>
