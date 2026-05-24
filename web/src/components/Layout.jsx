@@ -9,7 +9,7 @@ import { useAuth } from '../hooks/useAuth'
 import { ConfirmModal } from './ConfirmModal';
 
 import { APP_INFO } from '../constants/appInfo'
-import logo from '../assets/logo.svg'
+import logo from '../assets/logo.png'
 
 const Layout = ({ children, tasks, onTaskClick }) => {
     const { currentUser, logout } = useAuth();

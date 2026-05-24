@@ -37,7 +37,8 @@ export const getConditionLogsByTask = async (userId, taskId) => {
     const logsCollection = collection(db, COLLECTION_NAME);
     const q = query(
         logsCollection,
-        where('taskId', '==', taskId)
+        where('taskId', '==', taskId),
+        where('userId', '==', userId)
     );
     const snapshot = await getDocs(q);
     const logs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));

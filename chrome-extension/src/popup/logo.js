@@ -1,4 +1,4 @@
-import logoUrl from '@shared/assets/logo.svg';
+import logoUrl from '@shared/assets/logo.png';
 
 export function renderSyncScaleLogo2(containerId, color1 = '#3399ff', color2 = '#0056b3', size = 100) {
   const container = document.getElementById(containerId);
