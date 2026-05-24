@@ -10,11 +10,23 @@ export function ConsentProvider({ children }) {
     const { currentUser } = useAuth();
     const [consent, setConsent] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [lastUid, setLastUid] = useState(null);
+
+    // ユーザーが変わったことを検出したら同期的に状態をリセット
+    const currentUid = currentUser ? currentUser.uid : null;
+    if (currentUid !== lastUid) {
+        setLastUid(currentUid);
+        if (currentUid) {
+            setLoading(true);
+            setConsent(null);
+        } else {
+            setLoading(false);
+            setConsent(null);
+        }
+    }
 
     useEffect(() => {
         if (!currentUser) {
-            setConsent(null);
-            setLoading(false);
             return;
         }
 
@@ -34,7 +46,6 @@ export function ConsentProvider({ children }) {
             }
         };
 
-        setLoading(true);
         fetchConsent();
     }, [currentUser]);
 

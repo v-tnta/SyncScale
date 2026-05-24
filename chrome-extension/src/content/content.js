@@ -1,9 +1,19 @@
 // content.js (manabaに注入される)
 
-// ロードされたら、スクレイピングモードかどうかチェックする
-chrome.storage.local.get(['isScrapingMode'], (localResult) => {
-  if (localResult.isScrapingMode) {
-    chrome.storage.sync.get({ manabaUrl: '', manabaDomain: '' }, (syncResult) => {
+function isExtensionValid() {
+  return typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.id;
+}
+
+if (isExtensionValid()) {
+  // ロードされたら、スクレイピングモードかどうかチェックする
+  chrome.storage.local.get(['isScrapingMode'], (localResult) => {
+    if (!isExtensionValid()) return;
+    if (chrome.runtime.lastError) return;
+
+    if (localResult.isScrapingMode) {
+      chrome.storage.sync.get({ manabaUrl: '', manabaDomain: '' }, (syncResult) => {
+        if (!isExtensionValid()) return;
+        if (chrome.runtime.lastError) return;
       let targetUrl = syncResult.manabaUrl;
       if (!targetUrl) {
         if (syncResult.manabaDomain) {
@@ -59,6 +69,7 @@ chrome.storage.local.get(['isScrapingMode'], (localResult) => {
     });
   }
 });
+}
 
 /**
  * 現在開いている manaba の課題一覧ページからタスク情報を抽出する

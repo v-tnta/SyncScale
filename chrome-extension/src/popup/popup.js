@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderSyncScaleLogo2('logo-container');
 
   const fetchBtn = document.getElementById('fetch-btn');
+  const settingsBtn = document.getElementById('settings-btn');
   const resultArea = document.getElementById('result-area');
 
   fetchBtn.addEventListener('click', () => {
@@ -14,4 +15,10 @@ document.addEventListener('DOMContentLoaded', () => {
       // タブが開くとPopupが閉じる可能性があるため、処理結果はBackgroundからの通知で表示されます
     });
   });
+
+  if (settingsBtn) {
+    settingsBtn.addEventListener('click', () => {
+      chrome.runtime.openOptionsPage();
+    });
+  }
 });

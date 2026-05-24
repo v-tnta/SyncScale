@@ -13,54 +13,85 @@ body {
   align-items: center;
 }
 
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 20px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 #logo-container {
-  margin-bottom: 10px;
+  display: inline-flex;
+  align-items: center;
 }
 
 .title {
   font-size: 18px;
-  margin: 0 0 16px 0;
+  margin: 0;
+  font-weight: 700;
+}
+
+.settings-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: #64748B;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.settings-btn:hover {
+  background-color: #e2e8f0;
+  color: #1e293b;
+}
+
+.settings-icon {
+  width: 20px;
+  height: 20px;
 }
 
 section {
   width: 100%;
-  margin-bottom: 16px;
+  margin-bottom: 8px;
   text-align: center;
 }
 
 .hint {
   font-size: 12px;
   color: #666;
-  margin-bottom: 8px;
-}
-
-button {
-  width: 100%;
-  padding: 10px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: bold;
-  font-size: 14px;
-  transition: background-color 0.2s;
+  margin-bottom: 12px;
 }
 
 .primary-btn {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 14px;
   background-color: #3399ff;
   color: white;
+  transition: background-color 0.2s;
 }
 
 .primary-btn:hover {
   background-color: #0056b3;
-}
-
-.secondary-btn {
-  background-color: #e0e0e0;
-  color: #333;
-}
-
-.secondary-btn:hover {
-  background-color: #ccc;
 }
 
 #result-area {

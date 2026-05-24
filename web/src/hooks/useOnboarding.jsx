@@ -19,11 +19,23 @@ export function OnboardingProvider({ children }) {
     const { hasConsented } = useConsent();
     const [onboarding, setOnboarding] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [lastUidAndConsent, setLastUidAndConsent] = useState({ uid: null, consented: false });
+
+    // ログインユーザーまたは同意ステータスが変更されたら同期的に状態をリセット
+    const currentUid = currentUser ? currentUser.uid : null;
+    if (currentUid !== lastUidAndConsent.uid || hasConsented !== lastUidAndConsent.consented) {
+        setLastUidAndConsent({ uid: currentUid, consented: hasConsented });
+        if (currentUid && hasConsented) {
+            setLoading(true);
+            setOnboarding(null);
+        } else {
+            setLoading(false);
+            setOnboarding(null);
+        }
+    }
 
     useEffect(() => {
         if (!currentUser || !hasConsented) {
-            setOnboarding(null);
-            setLoading(false);
             return;
         }
 
@@ -44,7 +56,6 @@ export function OnboardingProvider({ children }) {
             }
         };
 
-        setLoading(true);
         fetchOnboarding();
     }, [currentUser, hasConsented]);
 
