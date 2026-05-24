@@ -23,7 +23,8 @@ export function AuthProvider({ children }) {
     // Googleアカウントでログイン
     const login = async () => {
         try {
-            await signInWithPopup(auth, googleProvider);
+            const result = await signInWithPopup(auth, googleProvider);
+            return result.user;
         } catch (error) {
             console.error("ログインエラー:", error);
             alert(`ログインに失敗しました。\nエラーコード: ${error.code}\nメッセージ: ${error.message}`);

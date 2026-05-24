@@ -34,26 +34,23 @@ service cloud.firestore {
 
     // タスク
     match /tasks/{taskId} {
-      allow read, update, delete: if isOwner(resource.data.userId) 
-        && hasConsented(request.auth.uid);
-      allow create: if isOwner(request.resource.data.userId) 
-        && hasConsented(request.auth.uid);
+      allow read, delete: if isOwner(resource.data.userId);
+      allow update: if isOwner(resource.data.userId) && hasConsented(request.auth.uid);
+      allow create: if isOwner(request.resource.data.userId) && hasConsented(request.auth.uid);
     }
     
     // タイムログ
     match /timeLogs/{logId} {
-      allow read, update, delete: if isOwner(resource.data.userId) 
-        && hasConsented(request.auth.uid);
-      allow create: if isOwner(request.resource.data.userId) 
-        && hasConsented(request.auth.uid);
+      allow read, delete: if isOwner(resource.data.userId);
+      allow update: if isOwner(resource.data.userId) && hasConsented(request.auth.uid);
+      allow create: if isOwner(request.resource.data.userId) && hasConsented(request.auth.uid);
     }
     
     // コンディションログ
     match /conditionLogs/{logId} {
-      allow read, update, delete: if isOwner(resource.data.userId) 
-        && hasConsented(request.auth.uid);
-      allow create: if isOwner(request.resource.data.userId) 
-        && hasConsented(request.auth.uid);
+      allow read, delete: if isOwner(resource.data.userId);
+      allow update: if isOwner(resource.data.userId) && hasConsented(request.auth.uid);
+      allow create: if isOwner(request.resource.data.userId) && hasConsented(request.auth.uid);
     }
   }
 }

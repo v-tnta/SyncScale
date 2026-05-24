@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { doc, getDoc, setDoc, updateDoc, deleteField, serverTimestamp, collection, query, where, getDocs, writeBatch } from "firebase/firestore";
+import { doc, getDoc, setDoc, updateDoc, deleteField, serverTimestamp, collection, query, where, getDocs, writeBatch, onSnapshot } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { useAuth } from "./useAuth";
 import { AGREEMENT_CONTENT } from "../config/content";
@@ -30,29 +30,27 @@ export function ConsentProvider({ children }) {
             return;
         }
 
-        const fetchConsent = async () => {
-            try {
-                const docRef = doc(db, "consents", currentUser.uid);
-                const docSnap = await getDoc(docRef);
-                if (docSnap.exists()) {
-                    setConsent(docSnap.data());
-                } else {
-                    setConsent(null);
-                }
-            } catch (error) {
-                console.error("同意情報の取得に失敗しました:", error);
-            } finally {
-                setLoading(false);
+        const docRef = doc(db, "consents", currentUser.uid);
+        const unsubscribe = onSnapshot(docRef, (docSnap) => {
+            if (docSnap.exists()) {
+                setConsent(docSnap.data());
+            } else {
+                setConsent(null);
             }
-        };
+            setLoading(false);
+        }, (error) => {
+            console.error("同意情報の監視に失敗しました:", error);
+            setLoading(false);
+        });
 
-        fetchConsent();
+        return () => unsubscribe();
     }, [currentUser]);
 
     // 同意を記録する
-    const recordConsent = async () => {
-        if (!currentUser) return;
-        const docRef = doc(db, "consents", currentUser.uid);
+    const recordConsent = async (uidToUse) => {
+        const uid = uidToUse || (currentUser ? currentUser.uid : null);
+        if (!uid) return;
+        const docRef = doc(db, "consents", uid);
         
         try {
             const docSnap = await getDoc(docRef);
@@ -69,9 +67,12 @@ export function ConsentProvider({ children }) {
                 });
             }
             
-            // 最新の状態を取得
+            // onSnapshotの初回発火までの隙間を埋めるため、手動でもstateを更新
             const updatedSnap = await getDoc(docRef);
             setConsent(updatedSnap.data());
+            
+            // UID変更による同期リセットで上書きされないよう、lastUidも更新
+            setLastUid(uid);
         } catch (error) {
             console.error("同意の記録に失敗しました:", error);
             throw error;
@@ -85,14 +86,9 @@ export function ConsentProvider({ children }) {
         const docRef = doc(db, "consents", userId);
 
         try {
-            // 1. consents/{userId} に withdrawnAt を記録
-            await updateDoc(docRef, {
-                withdrawnAt: serverTimestamp()
-            });
-
-            // 2. ユーザーの全データを削除 (tasks, timeLogs, conditionLogs, onboarding)
             const batch = writeBatch(db);
             
+            // 1. 関連データを取得 (この時点では同意状態なので読み取り可能)
             // tasks の削除
             const tasksSnap = await getDocs(query(collection(db, "tasks"), where("userId", "==", userId)));
             tasksSnap.forEach((doc) => batch.delete(doc.ref));
@@ -112,7 +108,14 @@ export function ConsentProvider({ children }) {
                 batch.delete(onboardingRef);
             }
 
+            // 2. consents/{userId} に withdrawnAt を記録（研究記録として残す）
+            batch.update(docRef, {
+                withdrawnAt: serverTimestamp()
+            });
+
+            // 3. バッチをコミットして全データを一度に削除・更新
             await batch.commit();
+
             setConsent(prev => ({ ...prev, withdrawnAt: new Date() }));
         } catch (error) {
             console.error("同意の撤回に失敗しました:", error);

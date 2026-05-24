@@ -28,14 +28,14 @@ export function AgreementPage() {
         setIsLoginModalOpen(false);
         setLoading(true);
         try {
-            if (!currentUser) {
+            let uid = currentUser?.uid;
+            if (!uid) {
                 // 未ログインならGoogleログインを実行
-                await login();
+                const user = await login();
+                uid = user.uid;
             }
-            // 同意を記録
-            await recordConsent();
-            // オンボーディング画面へ遷移
-            navigate("/info", { replace: true });
+            // 同意を記録 (完了後、上部のuseEffectが自動で遷移させます)
+            await recordConsent(uid);
         } catch (error) {
             console.error("同意・ログイン処理エラー:", error);
         } finally {

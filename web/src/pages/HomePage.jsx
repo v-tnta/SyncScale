@@ -56,7 +56,7 @@ export function HomePage() {
 
   const estimateCurrentIndex = taskToEstimate ? (totalNewTasksRef.current - allNewTasksToEstimate.length + 1) : 0;
   const estimateTotalCount = totalNewTasksRef.current;
-  
+
   // モーダル用のステート (TaskOverlay: 詳細/編集)
   const [selectedTaskId, setSelectedTaskId] = React.useState(null);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
@@ -96,27 +96,27 @@ export function HomePage() {
 
     const targetTaskId = taskToComplete.id;
     setTaskToComplete(null);
-    
+
     if (selectedTaskId === targetTaskId) {
-        setIsModalOpen(false);
-        setSelectedTaskId(null);
+      setIsModalOpen(false);
+      setSelectedTaskId(null);
     }
 
     try {
-        await addConditionLog(targetTaskId, { condition, memo });
+      await addConditionLog(targetTaskId, { condition, memo });
     } catch (err) {
-        console.error("コンディションの保存に失敗しました", err);
+      console.error("コンディションの保存に失敗しました", err);
     }
-    
+
     await updateTask(targetTaskId, { status: 'DONE', updatedAt: new Date() });
   };
 
   // SML見積もり入力完了時の処理
   const handleEstimateSubmit = async (task, sizeLabel) => {
-    await updateTask(task.id, { 
-      sizeLabel: sizeLabel, 
-      isNew: false, 
-      updatedAt: new Date() 
+    await updateTask(task.id, {
+      sizeLabel: sizeLabel,
+      isNew: false,
+      updatedAt: new Date()
     });
   };
 
@@ -149,7 +149,7 @@ export function HomePage() {
     if (newTasksData.length > 0) {
       try {
         await addTasksBatch(newTasksData);
-        alert(`${newTasksData.length}件の課題を新規登録しました！（既に登録済みのものはスキップしました）`);
+        alert(`${newTasksData.length}件の課題を新規登録しました！`);
       } catch (e) {
         console.error("課題の一括登録に失敗しました", e);
         alert("課題の登録中にエラーが発生しました。");
