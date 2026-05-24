@@ -84,14 +84,14 @@ export function OnboardingProvider({ children }) {
         }
     };
 
-    // チュートリアルの再実行（step3を未完了にし、全体完了も一時的にfalseにする）
+    // チュートリアルの再実行（step4を未完了にし、全体完了も一時的にfalseにする）
     const resetTutorial = async () => {
         if (!currentUser || !hasConsented) return;
         const docRef = doc(db, "onboarding", currentUser.uid);
         
         const nextOnboarding = {
             ...onboarding,
-            step3: false,
+            step4: false,
             completed: false
         };
 
@@ -104,11 +104,29 @@ export function OnboardingProvider({ children }) {
         }
     };
 
+    // モバイルアプリ案内の「あとで通知する」処理
+    const dismissMobilePromo = async () => {
+        if (!currentUser || !hasConsented) return;
+        const docRef = doc(db, "onboarding", currentUser.uid);
+        
+        try {
+            await setDoc(docRef, { mobilePromoDismissedAt: serverTimestamp() }, { merge: true });
+            
+            // 最新の状態を取得して更新
+            const updatedSnap = await getDoc(docRef);
+            setOnboarding(updatedSnap.data());
+        } catch (error) {
+            console.error("モバイルプロモの非表示処理に失敗しました:", error);
+            throw error;
+        }
+    };
+
     const value = {
         onboarding,
         loading,
         completeStep,
-        resetTutorial
+        resetTutorial,
+        dismissMobilePromo
     };
 
     return (

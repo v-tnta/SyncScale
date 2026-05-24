@@ -73,6 +73,10 @@ class SyncScaleState extends ChangeNotifier {
     dataLoading = true;
     errorMessage = null;
 
+    repository.markMobileAsInstalled(userId).catchError((e) {
+      debugPrint('Failed to mark mobile as installed: $e');
+    });
+
     // Firestore は更新のたびに Stream が流れるため、UI側で再取得ボタンを
     // 押さなくても webApp と同じリアルタイム同期になります。
     _taskSubscription = repository

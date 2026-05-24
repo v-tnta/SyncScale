@@ -90,6 +90,7 @@ const TaskList = ({ tasks, timeLogs, loading, error, onTaskClick, onUpdateTask, 
                     <span>📋</span> タスク一覧
                 </h2>
                 <button
+                    id="tutorial-completed-list-button"
                     onClick={onOpenCompletedModal}
                     className="flex items-center gap-2 text-sm text-gray-600 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg transition font-medium border border-gray-200 shadow-sm"
                 >
@@ -105,6 +106,7 @@ const TaskList = ({ tasks, timeLogs, loading, error, onTaskClick, onUpdateTask, 
                     tasks.map((task) => (
                         <div
                             key={task.id}
+                            id={task.title.includes("線形代数") ? "tutorial-target-task" : undefined}
                             onClick={() => onTaskClick(task)}
                             className={`cursor-pointer hover:shadow-md transition p-4 border border-l-8 rounded-lg flex justify-between items-center bg-white ${getSizeColor(task.sizeLabel)}`}
                         >

@@ -86,6 +86,7 @@ const CompletedTasksModal = ({ isOpen, onClose, tasks, onTaskClick }) => {
             onClick={onClose}
         >
             <div 
+                id="tutorial-completed-modal"
                 className="bg-white w-full max-w-3xl max-h-[85vh] rounded-xl shadow-2xl m-4 flex flex-col"
                 onClick={e => e.stopPropagation()}
             >

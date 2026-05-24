@@ -31,17 +31,17 @@ export function LoginPage() {
     if (authLoading || consentLoading) {
         return (
             <div className="flex h-screen items-center justify-center bg-slate-50 text-slate-800 transition-colors duration-200">
-                <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-violet-500"></div>
+                <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-slate-100 to-violet-100 p-6 text-slate-800 font-sans transition-colors duration-200">
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-slate-100 to-blue-100 p-6 text-slate-800 font-sans transition-colors duration-200">
             <div className="w-full max-w-md bg-white/70 backdrop-blur-xl border border-slate-200 rounded-3xl p-8 shadow-2xl relative overflow-hidden text-center space-y-6">
-                <div className="absolute -top-40 -right-40 w-80 h-80 bg-violet-600/10 rounded-full blur-3xl pointer-events-none"></div>
+                <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
                 
-                <div className="inline-flex items-center justify-center p-4 bg-violet-500/10 rounded-2xl border border-violet-500/20 mb-2">
+                <div className="inline-flex items-center justify-center p-4 bg-blue-500/10 rounded-2xl border border-blue-500/20 mb-2">
                     <span className="text-4xl">🔐</span>
                 </div>
                 
@@ -57,7 +57,7 @@ export function LoginPage() {
                     <button
                         onClick={handleLogin}
                         disabled={loginLoading}
-                        className="w-full py-3.5 px-6 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold rounded-xl shadow-lg hover:shadow-violet-500/20 transition duration-300 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:pointer-events-none"
+                        className="w-full py-3.5 px-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-xl shadow-lg hover:shadow-blue-500/20 transition duration-300 flex items-center justify-center space-x-2 disabled:opacity-50 disabled:pointer-events-none"
                     >
                         {loginLoading ? (
                             <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></div>

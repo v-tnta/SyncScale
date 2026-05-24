@@ -20,7 +20,7 @@ const ConditionInputModal = ({ isOpen, onClose, task, onSubmit }) => {
 
     return (
         <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity">
-            <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6 relative animate-fade-in-up">
+            <div id="tutorial-condition-modal" className="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6 relative animate-fade-in-up">
                 <div className="text-center mb-6">
                     <div className="mx-auto w-16 h-16 bg-green-100 text-green-500 rounded-full flex items-center justify-center mb-4">
                         <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -84,6 +84,7 @@ const ConditionInputModal = ({ isOpen, onClose, task, onSubmit }) => {
                             キャンセル
                         </button>
                         <button
+                            id="tutorial-condition-submit"
                             onClick={handleSubmit}
                             disabled={!condition}
                             className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-blue-200 transition disabled:opacity-50 disabled:cursor-not-allowed"

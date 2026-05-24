@@ -13,7 +13,7 @@ export function ConsentGuard() {
     if (authLoading || consentLoading || onboardingLoading) {
         return (
             <div className="flex h-screen items-center justify-center bg-slate-50 text-slate-800">
-                <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-violet-500"></div>
+                <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div>
             </div>
         );
     }
@@ -28,8 +28,8 @@ export function ConsentGuard() {
         return <Navigate to="/agreement" replace state={{ from: location }} />;
     }
 
-    // オンボーディング未完了の状態で /svc/home にアクセスしようとしたら /info にリダイレクト
-    if (location.pathname === "/svc/home" && onboarding && !onboarding.completed) {
+    // オンボーディング（拡張機能まで）未完了の状態で /svc/home にアクセスしようとしたら /info にリダイレクト
+    if (location.pathname === "/svc/home" && onboarding && !onboarding.step3) {
         return <Navigate to="/info" replace />;
     }
 

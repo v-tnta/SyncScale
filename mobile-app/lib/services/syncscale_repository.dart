@@ -106,4 +106,10 @@ class SyncScaleRepository {
     });
     return logs;
   }
+
+  Future<void> markMobileAsInstalled(String userId) async {
+    await _firestore.collection('onboarding').doc(userId).set({
+      'mobileInstalled': true,
+    }, SetOptions(merge: true));
+  }
 }

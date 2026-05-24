@@ -178,6 +178,7 @@ const Timer = ({ activeTask, logs, onUpdateTask }) => {
                         タイマー
                     </button>
                     <button
+                        id="tutorial-manual-tab"
                         onClick={() => setActiveTab('manual')}
                         disabled={isActive && activeTab !== 'manual'}
                         className={`flex-1 md:flex-none py-2 px-3 text-sm font-bold text-center rounded-lg border-2 transition-all ${
@@ -268,7 +269,7 @@ const Timer = ({ activeTask, logs, onUpdateTask }) => {
                         <div className="flex items-center justify-between gap-4">
                             <div className="flex items-center gap-4">
                                 <span className="font-bold text-gray-700 whitespace-nowrap">作業時間</span>
-                                <div className="flex items-center gap-2">
+                                <div id="tutorial-manual-duration" className="flex items-center gap-2 transition-all duration-300 rounded-lg p-1">
                                     <input
                                         type="number"
                                         placeholder="60"
@@ -280,6 +281,7 @@ const Timer = ({ activeTask, logs, onUpdateTask }) => {
                                 </div>
                             </div>
                             <button
+                                id="tutorial-manual-save-button"
                                 onClick={handleManualSave}
                                 className="bg-blue-600 text-white font-bold py-2 px-8 rounded-full hover:bg-blue-700 transition shadow-sm"
                             >

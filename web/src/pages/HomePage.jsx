@@ -6,14 +6,19 @@ import TaskOverlay from '../components/TaskOverlay'
 import CompletedTasksModal from '../components/CompletedTasksModal'
 import ConditionInputModal from '../components/ConditionInputModal'
 import TaskSizeEstimateModal from '../components/TaskSizeEstimateModal'
+import DynamicTutorialGuide from '../components/DynamicTutorialGuide'
+import MobileAppPromoModal from '../components/MobileAppPromoModal'
 import { DebugLogger } from '../components/DebugLogger'
 import { useTasks } from '../hooks/useTasks'
 import { useTimeLogs } from '../hooks/useTimeLogs'
 import { useConditionLogs } from '../hooks/useConditionLogs'
 import { useAuth } from '../hooks/useAuth'
+import { useOnboarding } from '../hooks/useOnboarding'
+import ExtensionGuideModal from '../components/ExtensionGuideModal'
 
 export function HomePage() {
   const { currentUser } = useAuth();
+  const { onboarding, completeStep, dismissMobilePromo } = useOnboarding();
   const { tasks, addTask, addTasksBatch, updateTask, deleteTask, completelyDeleteTask, loading, error } = useTasks();
   const { timeLogs } = useTimeLogs();
   const { addLog: addConditionLog } = useConditionLogs();
@@ -60,6 +65,58 @@ export function HomePage() {
   // モーダル用のステート (TaskOverlay: 詳細/編集)
   const [selectedTaskId, setSelectedTaskId] = React.useState(null);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
+
+  // 動的チュートリアルがアクティブか判定
+  const isTutorialActive = React.useMemo(() => {
+    return onboarding && onboarding.step3 && !onboarding.step4;
+  }, [onboarding]);
+
+  // Chrome拡張機能使い方ガイドモーダルの状態
+  const [isExtensionGuideOpen, setIsExtensionGuideOpen] = React.useState(false);
+
+  // チュートリアル完了（step4がfalseからtrueに変化した）タイミングで拡張機能ガイドを開く
+  const prevStep4 = React.useRef(null);
+  React.useEffect(() => {
+    if (onboarding) {
+      if (prevStep4.current === false && onboarding.step4 === true) {
+        setIsExtensionGuideOpen(true);
+      }
+      prevStep4.current = onboarding.step4;
+    }
+  }, [onboarding]);
+
+  // モバイルアプリプロモを表示するか判定
+  const isMobilePromoOpen = React.useMemo(() => {
+    if (!onboarding || !onboarding.completed) return false;
+    if (onboarding.mobileInstalled) return false;
+    if (isExtensionGuideOpen) return false; // 拡張機能ガイド表示中は非表示
+
+    if (onboarding.mobilePromoDismissedAt) {
+      let dismissedTime;
+      const dismissed = onboarding.mobilePromoDismissedAt;
+      if (dismissed.seconds) {
+        dismissedTime = new Date(dismissed.seconds * 1000);
+      } else {
+        dismissedTime = new Date(dismissed);
+      }
+      
+      const now = new Date();
+      const diffMs = now - dismissedTime;
+      const diffHours = diffMs / (1000 * 60 * 60);
+      if (diffHours < 24) {
+        return false; // 24時間以内なら非表示
+      }
+    }
+    return true;
+  }, [onboarding, isExtensionGuideOpen]);
+
+  const handleTutorialComplete = async () => {
+    try {
+      await completeStep(4);
+    } catch (e) {
+      console.error("チュートリアル完了処理に失敗しました", e);
+    }
+  };
 
   // タスクがクリックされた時の処理
   const handleTaskClick = (task) => {
@@ -265,6 +322,32 @@ export function HomePage() {
 
         <DebugLogger tasks={tasks} taskToEstimate={taskToEstimate} />
       </div>
+
+      {/* 動的チュートリアルガイド */}
+      {isTutorialActive && (
+        <DynamicTutorialGuide
+          tasks={tasks}
+          timeLogs={timeLogs}
+          selectedTask={selectedTask}
+          isCompletedModalOpen={isCompletedModalOpen}
+          taskToComplete={taskToComplete}
+          onComplete={handleTutorialComplete}
+        />
+      )}
+
+      {/* モバイルアプリ案内プロモ */}
+      <MobileAppPromoModal
+        isOpen={isMobilePromoOpen}
+        onClose={dismissMobilePromo}
+        iosUrl="https://apps.apple.com/app/syncscale"
+        androidUrl="https://play.google.com/store/apps/details?id=app.syncscale"
+      />
+
+      {/* Chrome拡張機能解説モーダル */}
+      <ExtensionGuideModal
+        isOpen={isExtensionGuideOpen}
+        onClose={() => setIsExtensionGuideOpen(false)}
+      />
     </Layout>
   )
 }

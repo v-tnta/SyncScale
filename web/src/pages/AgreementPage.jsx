@@ -44,15 +44,15 @@ export function AgreementPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-slate-100 to-violet-100 p-6 text-slate-800 font-sans transition-colors duration-200">
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-slate-100 to-blue-100 p-6 text-slate-800 font-sans transition-colors duration-200">
             <div className="w-full max-w-2xl bg-white/70 backdrop-blur-xl border border-slate-200 rounded-3xl p-8 md:p-10 shadow-2xl relative overflow-hidden">
                 {/* 装飾用の光彩 */}
-                <div className="absolute -top-40 -right-40 w-80 h-80 bg-violet-600/10 rounded-full blur-3xl pointer-events-none"></div>
+                <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
                 <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none"></div>
 
                 <div className="relative z-10 flex flex-col space-y-6">
                     <div className="text-center space-y-2">
-                        <div className="inline-flex items-center justify-center p-3 bg-violet-500/10 rounded-2xl border border-violet-500/20 mb-2">
+                        <div className="inline-flex items-center justify-center p-3 bg-blue-500/10 rounded-2xl border border-blue-500/20 mb-2">
                             <span className="text-3xl">📝</span>
                         </div>
                         <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight bg-gradient-to-r from-slate-900 to-indigo-900 bg-clip-text text-transparent">
@@ -73,7 +73,7 @@ export function AgreementPage() {
                         <button
                             onClick={handleAgreeClick}
                             disabled={loading}
-                            className="w-full py-4 px-6 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold rounded-2xl shadow-lg hover:shadow-violet-500/20 transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0 focus:outline-none focus:ring-2 focus:ring-violet-500 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center space-x-2"
+                            className="w-full py-4 px-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-2xl shadow-lg hover:shadow-blue-500/20 transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center space-x-2"
                         >
                             {loading ? (
                                 <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></div>
@@ -96,7 +96,7 @@ export function AgreementPage() {
                 cancelText="キャンセル"
                 onConfirm={handleLoginAndConsent}
                 onCancel={() => setIsLoginModalOpen(false)}
-                confirmButtonClass="text-white bg-violet-600 hover:bg-violet-700 shadow-sm"
+                confirmButtonClass="text-white bg-blue-600 hover:bg-blue-700 shadow-sm"
                 cancelButtonClass="text-slate-600 bg-slate-100 hover:bg-slate-200"
             >
                 <div className="space-y-3 leading-relaxed">

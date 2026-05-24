@@ -40,7 +40,7 @@ const TaskForm = ({ addTask }) => {
         <div className="bg-white p-4 rounded-lg shadow-md mb-4">
             <form onSubmit={handleSubmit} className="space-y-3">
                 {/* タスク名入力 */}
-                <div>
+                <div id="tutorial-title-input" className="transition-all duration-300 rounded-lg p-1">
                     <label className="block text-sm font-medium text-gray-600 mb-1">タスク名</label>
                     <input
                         type="text"
@@ -54,7 +54,7 @@ const TaskForm = ({ addTask }) => {
 
                 <div className="flex gap-4 flex-wrap">
                     {/* 締切日時入力 */}
-                    <div className="flex-1 min-w-[150px]">
+                    <div id="tutorial-deadline-input" className="flex-1 min-w-[150px] transition-all duration-300 rounded-lg p-1">
                         <label className="block text-sm font-medium text-gray-600 mb-1">締切日時</label>
                         <DateTimePicker
                             value={deadline}
@@ -64,7 +64,7 @@ const TaskForm = ({ addTask }) => {
                 </div>
 
                 {/* 🆕 相対見積もり選択 */}
-                <div>
+                <div id="tutorial-size-selector" className="transition-all duration-300 rounded-lg p-1">
                     <label className="block text-sm font-medium text-gray-600 mb-1">規模感 (相対見積もり)</label>
                     <SizeLabelSelector 
                         selectedLabel={sizeLabel} 
@@ -74,6 +74,7 @@ const TaskForm = ({ addTask }) => {
 
                 {/* 登録ボタン */}
                 <button
+                    id="tutorial-submit-button"
                     type="submit"
                     className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-200"
                 >
