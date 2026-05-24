@@ -39,7 +39,7 @@ async function handleFetchTasks() {
 
 async function openSyncScale() {
   try {
-    const targetUrl = 'https://sync-scale.web.app/';
+    const targetUrl = 'https://sync-scale.web.app/svc/ext-sync';
     
     // 全てのタブを取得してURLで探す
     const allTabs = await chrome.tabs.query({});

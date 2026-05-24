@@ -6,20 +6,54 @@ service cloud.firestore {
     function isOwner(userId) {
       return request.auth != null && request.auth.uid == userId;
     }
+    
+    // 同意チェック: 同意済み かつ 撤回していない
+    function hasConsented(userId) {
+      let consent = get(/databases/$(database)/documents/consents/$(userId));
+      return consent != null 
+        && !('withdrawnAt' in consent.data);
+    }
 
+    // 同意書（撤回時のみ withdrawnAt を追記可能）
+    match /consents/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId)
+        && request.resource.data.keys().hasAll(['agreedAt', 'version'])
+        && !('withdrawnAt' in request.resource.data);
+      allow update: if isOwner(userId)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['withdrawnAt']);
+      allow delete: if false;
+    }
+
+    // オンボーディング進捗
+    match /onboarding/{userId} {
+      allow read: if isOwner(userId);
+      allow create, update: if isOwner(userId) && hasConsented(userId);
+      allow delete: if isOwner(userId); // 撤回時に削除
+    }
+
+    // タスク
     match /tasks/{taskId} {
-      allow read, update, delete: if isOwner(resource.data.userId);
-      allow create: if isOwner(request.resource.data.userId);
+      allow read, update, delete: if isOwner(resource.data.userId) 
+        && hasConsented(request.auth.uid);
+      allow create: if isOwner(request.resource.data.userId) 
+        && hasConsented(request.auth.uid);
     }
     
+    // タイムログ
     match /timeLogs/{logId} {
-      allow read, update, delete: if isOwner(resource.data.userId);
-      allow create: if isOwner(request.resource.data.userId);
+      allow read, update, delete: if isOwner(resource.data.userId) 
+        && hasConsented(request.auth.uid);
+      allow create: if isOwner(request.resource.data.userId) 
+        && hasConsented(request.auth.uid);
     }
     
+    // コンディションログ
     match /conditionLogs/{logId} {
-      allow read, update, delete: if isOwner(resource.data.userId);
-      allow create: if isOwner(request.resource.data.userId);
+      allow read, update, delete: if isOwner(resource.data.userId) 
+        && hasConsented(request.auth.uid);
+      allow create: if isOwner(request.resource.data.userId) 
+        && hasConsented(request.auth.uid);
     }
   }
 }

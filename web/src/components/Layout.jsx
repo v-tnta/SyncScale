@@ -1,19 +1,14 @@
 import React from 'react'
-
-/**
- * 共通レイアウトコンポーネント
- * ヘッダーとメインコンテンツエリアを定義します。
- */
 import Calendar from './Calendar'
 import { useAuth } from '../hooks/useAuth'
-import { ConfirmModal } from './ConfirmModal';
+import { SettingsPanel } from './SettingsPanel'
 
 import { APP_INFO } from '../constants/appInfo'
 import logo from '../assets/logo.png'
 
 const Layout = ({ children, tasks, onTaskClick }) => {
-    const { currentUser, logout } = useAuth();
-    const [isLogoutModalOpen, setIsLogoutModalOpen] = React.useState(false);
+    const { currentUser } = useAuth();
+    const [isSettingsOpen, setIsSettingsOpen] = React.useState(false);
     return (
         <div className="flex flex-col min-h-screen md:h-screen bg-gray-50 text-gray-800 md:overflow-hidden">
             {/* ヘッダーエリア */}
@@ -27,10 +22,14 @@ const Layout = ({ children, tasks, onTaskClick }) => {
                         </div>
                         <p className="text-[15px] font-medium text-gray-400 mt-1 tracking-wider">v{APP_INFO.VERSION}</p>
                     </div>
-                    {currentUser && currentUser.isAnonymous === false && (
+                    {currentUser && (
                         <div className="flex items-center gap-4">
-                            <button onClick={() => setIsLogoutModalOpen(true)} className="text-sm bg-gray-200 hover:bg-gray-300 transition-colors px-3 py-1.5 rounded-md font-medium text-gray-700">
-                                ログアウト
+                            <button
+                                onClick={() => setIsSettingsOpen(true)}
+                                className="text-sm bg-gray-100 hover:bg-gray-200 transition-colors p-2 rounded-xl font-medium text-gray-700 flex items-center justify-center border border-gray-200/80 shadow-sm"
+                                title="設定"
+                            >
+                                ⚙️ 設定
                             </button>
                             {currentUser.photoURL && (
                                 <img src={currentUser.photoURL} alt={currentUser.displayName} className="w-8 h-8 rounded-full shadow-sm" />
@@ -60,21 +59,11 @@ const Layout = ({ children, tasks, onTaskClick }) => {
                 )}
             </main>
 
-            {/* ログアウト確認モーダル */}
-            <ConfirmModal
-                isOpen={isLogoutModalOpen}
-                title="ログアウトの確認"
-                confirmText="ログアウトする"
-                cancelText="キャンセル"
-                onConfirm={() => {
-                    setIsLogoutModalOpen(false);
-                    logout();
-                }}
-                onCancel={() => setIsLogoutModalOpen(false)}
-            >
-                本当にログアウトしますか？<br />
-                ログアウト後も、同じGoogleアカウントでログインすればデータは復元されます。
-            </ConfirmModal>
+            {/* 設定パネル */}
+            <SettingsPanel
+                isOpen={isSettingsOpen}
+                onClose={() => setIsSettingsOpen(false)}
+            />
 
             {/* フッターエリア (必要であれば) */}
             <footer className="text-center p-4 text-gray-400 text-xs">

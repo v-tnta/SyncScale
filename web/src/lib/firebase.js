@@ -2,7 +2,7 @@
 
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
-import { getAuth, GoogleAuthProvider, signInAnonymously, linkWithPopup } from "firebase/auth";
+import { getAuth, GoogleAuthProvider } from "firebase/auth";
 
 // Firebaseコンソールから取得した設定をここに貼り付けます
 const firebaseConfig = {
@@ -25,4 +25,4 @@ export const db = getFirestore(app);
 // AuthのインスタンスとGoogleプロバイダをエクスポートします
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
-export { signInAnonymously, linkWithPopup }; // 匿名ログインとアカウント連携用に追加
+

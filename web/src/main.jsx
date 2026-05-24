@@ -1,13 +1,22 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { BrowserRouter } from 'react-router-dom'
 import './index.css'
 import App from './App.jsx'
 import { AuthProvider } from './hooks/useAuth.jsx'
+import { ConsentProvider } from './hooks/useConsent.jsx'
+import { OnboardingProvider } from './hooks/useOnboarding.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <AuthProvider>
-      <App />
-    </AuthProvider>
+    <BrowserRouter>
+      <AuthProvider>
+        <ConsentProvider>
+          <OnboardingProvider>
+            <App />
+          </OnboardingProvider>
+        </ConsentProvider>
+      </AuthProvider>
+    </BrowserRouter>
   </StrictMode>,
 )
