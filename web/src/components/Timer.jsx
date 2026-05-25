@@ -175,7 +175,7 @@ const Timer = ({ activeTask, logs, onUpdateTask }) => {
                                 : 'bg-gray-100 border-transparent text-gray-500 hover:bg-gray-200'
                         }`}
                     >
-                        タイマー
+                        きろく  
                     </button>
                     <button
                         id="tutorial-manual-tab"
@@ -254,11 +254,11 @@ const Timer = ({ activeTask, logs, onUpdateTask }) => {
                 ) : (
                     <div className="flex flex-col gap-4">
                         <div className="flex items-center gap-4">
-                            <span className="font-bold text-gray-700 whitespace-nowrap">やること</span>
+                            <span className="font-bold text-gray-700 whitespace-nowrap">やったこと</span>
                             <div className="flex-1 max-w-[200px]">
                                 <input
                                     type="text"
-                                    placeholder="例: 事後報告"
+                                    placeholder="例: 調べ物 / 発表練習 など"
                                     className="w-full p-2 border-2 border-gray-300 rounded font-bold text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                                     value={manualData.subTaskName}
                                     onChange={(e) => setManualData({ ...manualData, subTaskName: e.target.value })}

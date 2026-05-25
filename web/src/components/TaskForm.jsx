@@ -6,7 +6,7 @@ import DateTimePicker from './DateTimePicker'
  * タスク登録フォーム
  * 親コンポーネント(App)から addTask 関数を受け取り、実行します。
  */
-const TaskForm = ({ addTask }) => {
+const TaskForm = ({ addTask, disabled, isTutorialActive }) => {
     // 初期値: 今日の 23:59
     const getTodayEndOfDay = () => {
         const d = new Date();
@@ -54,11 +54,14 @@ const TaskForm = ({ addTask }) => {
 
                 <div className="flex gap-4 flex-wrap">
                     {/* 締切日時入力 */}
-                    <div id="tutorial-deadline-input" className="flex-1 min-w-[150px] transition-all duration-300 rounded-lg p-1">
+                    <div className="flex-1 min-w-[150px] transition-all duration-300 rounded-lg p-1">
                         <label className="block text-sm font-medium text-gray-600 mb-1">締切日時</label>
                         <DateTimePicker
+                            id="tutorial-deadline-input"
                             value={deadline}
                             onChange={setDeadline}
+                            disabled={isTutorialActive}
+                            isTutorialActive={isTutorialActive}
                         />
                     </div>
                 </div>
@@ -76,7 +79,8 @@ const TaskForm = ({ addTask }) => {
                 <button
                     id="tutorial-submit-button"
                     type="submit"
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition duration-200"
+                    disabled={disabled}
+                    className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold py-2 px-4 rounded transition duration-200"
                 >
                     タスクを登録
                 </button>

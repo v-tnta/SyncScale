@@ -30,6 +30,7 @@ export class Task {
         manabaCourseId = null,
         courseName = null,
         type = null,
+        isTutorialTask = false,
     }) {
         this.id = id;
         this.title = title;
@@ -49,6 +50,7 @@ export class Task {
         this.manabaCourseId = manabaCourseId;
         this.courseName = courseName;
         this.type = type;
+        this.isTutorialTask = isTutorialTask;
     }
 
     /**
@@ -113,6 +115,7 @@ export class Task {
             manabaCourseId: this.manabaCourseId,
             courseName: this.courseName,
             type: this.type,
+            isTutorialTask: this.isTutorialTask,
         };
     }
 }

@@ -13,17 +13,22 @@ export function SettingsPanel({ isOpen, onClose }) {
     const navigate = useNavigate();
     const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
     const [isSecondWithdrawOpen, setIsSecondWithdrawOpen] = useState(false);
+    const [isTransitioning, setIsTransitioning] = useState(false);
+    const [loadingText, setLoadingText] = useState("");
 
     if (!isOpen) return null;
 
     const handleRestartTutorial = async () => {
         if (window.confirm("チュートリアルを再実行しますか？\n（一時的にオンボーディング画面に戻りますが、登録したデータは消えません）")) {
             try {
+                setLoadingText("チュートリアルを準備中...");
+                setIsTransitioning(true);
                 await resetTutorial();
-                onClose();
-                navigate("/info", { replace: true });
+                window.location.reload();
             } catch (error) {
                 console.error("チュートリアルのリセットに失敗しました:", error);
+                setIsTransitioning(false);
+                alert("チュートリアルのリセットに失敗しました。");
             }
         }
     };
@@ -36,20 +41,29 @@ export function SettingsPanel({ isOpen, onClose }) {
     // 2段階目のモーダル完了時（実際の削除処理）
     const handleActualWithdraw = async () => {
         try {
+            setLoadingText("同意を撤回し、データを削除中...");
+            setIsTransitioning(true);
+            setIsSecondWithdrawOpen(false);
             await withdrawConsent();
             await logout();
-            setIsSecondWithdrawOpen(false);
             onClose();
             // 自動で更新をかけて、確実に全状態をクリアし /agreement へ戻す
             window.location.href = "/agreement";
         } catch (error) {
             console.error("撤回およびログアウト中にエラーが発生しました:", error);
+            setIsTransitioning(false);
             alert("処理中にエラーが発生しました。");
         }
     };
 
     return (
         <>
+            {isTransitioning && (
+                <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-[200] flex flex-col items-center justify-center gap-4">
+                    <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                    <p className="font-bold text-gray-700">{loadingText || "処理中..."}</p>
+                </div>
+            )}
             {/* バックドロップ */}
             <div
                 className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[90] transition-opacity"

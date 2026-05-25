@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const ConditionInputModal = ({ isOpen, onClose, task, onSubmit }) => {
+const ConditionInputModal = ({ isOpen, onClose, task, onSubmit, isTutorialActive }) => {
     const [condition, setCondition] = useState('');
     const [memo, setMemo] = useState('');
 
@@ -77,17 +77,20 @@ const ConditionInputModal = ({ isOpen, onClose, task, onSubmit }) => {
 
                     {/* アクションボタン */}
                     <div className="flex gap-3 pt-2">
-                        <button
-                            onClick={onClose}
-                            className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-4 rounded-xl transition"
-                        >
-                            キャンセル
-                        </button>
+                        {!isTutorialActive && (
+                            <button
+                                onClick={onClose}
+                                className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-4 rounded-xl transition"
+                            >
+                                キャンセル
+                            </button>
+                        )}
                         <button
                             id="tutorial-condition-submit"
                             onClick={handleSubmit}
                             disabled={!condition}
                             className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-blue-200 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                            style={isTutorialActive ? { width: '100%', flex: 'none' } : undefined}
                         >
                             記録して提出完了
                         </button>

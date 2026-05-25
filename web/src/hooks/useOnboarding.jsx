@@ -121,12 +121,30 @@ export function OnboardingProvider({ children }) {
         }
     };
 
+    // 拡張機能ガイドを表示したことを記録する
+    const viewExtensionGuide = async () => {
+        if (!currentUser || !hasConsented) return;
+        const docRef = doc(db, "onboarding", currentUser.uid);
+        
+        try {
+            await setDoc(docRef, { extensionGuideViewed: true }, { merge: true });
+            
+            // 最新の状態を取得して更新
+            const updatedSnap = await getDoc(docRef);
+            setOnboarding(updatedSnap.data());
+        } catch (error) {
+            console.error("拡張機能ガイド既読処理に失敗しました:", error);
+            throw error;
+        }
+    };
+
     const value = {
         onboarding,
         loading,
         completeStep,
         resetTutorial,
-        dismissMobilePromo
+        dismissMobilePromo,
+        viewExtensionGuide
     };
 
     return (

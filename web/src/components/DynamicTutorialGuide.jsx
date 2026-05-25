@@ -14,12 +14,13 @@ const DynamicTutorialGuide = ({
     selectedTask,
     isCompletedModalOpen,
     taskToComplete,
-    onComplete
+    onComplete,
+    step,
+    setStep
 }) => {
     // 1から14までの細分化されたステップ (13ステップの表示 + 14: 完了画面)
-    const [step, setStep] = useState(1);
     const [tutorialTaskId, setTutorialTaskId] = useState(null);
-    const prevTasksLength = useRef(tasks.length);
+    const prevTasks = useRef(tasks);
     const hasAddedLog = useRef(false);
 
     // ターゲット要素の矩形座標 (clip-path / ツールチップ配置に使用)
@@ -38,11 +39,10 @@ const DynamicTutorialGuide = ({
                 };
             case 2:
                 return {
-                    title: "2/13. 締切日時を設定しましょう 📅",
-                    desc: "次に、締切日時を設定してみましょう。\n期限を選択したら「次へ進む」を押してください。",
+                    title: "2/13. 締切日時の確認 📅",
+                    desc: "ここで締め切り時間を変更できます。\nチュートリアルでは当日の23:59に固定されています。\n確認したら「次へ進む」を押してください。",
                     targetId: "tutorial-deadline-input",
-                    showNext: true,
-                    extraPadding: { bottom: 280 }
+                    showNext: true
                 };
             case 3:
                 return {
@@ -81,8 +81,8 @@ const DynamicTutorialGuide = ({
                 };
             case 8:
                 return {
-                    title: "8/13. 事後報告タブに切り替えましょう ⏱️",
-                    desc: "作業時間はタイマーでも計れますが、\n今回は「手動できろく（事後報告）」タブを\nクリックして切り替えましょう。",
+                    title: "8/13. 手動できろくタブに切り替えましょう ⏱️",
+                    desc: "作業時間はタイマーでも計れますが、\n今回は「手動できろく」タブを\nクリックして切り替えましょう。",
                     targetId: "tutorial-manual-tab",
                     showNext: false
                 };
@@ -191,6 +191,14 @@ const DynamicTutorialGuide = ({
         if (step !== 9) return;
 
         const handleSaveClick = () => {
+            const durationInput = document.querySelector('#tutorial-manual-duration input');
+            const durationValue = durationInput ? durationInput.value.trim() : "";
+            
+            if (!durationValue || isNaN(Number(durationValue)) || Number(durationValue) <= 0) {
+                // 時間が未入力、または0以下の場合は進行しない
+                return;
+            }
+
             // 少し待ってから進む（保存処理が完了するのを待つ）
             setTimeout(() => {
                 hasAddedLog.current = true;
@@ -229,18 +237,15 @@ const DynamicTutorialGuide = ({
 
     // Step 4: タスクが追加されたかを検知
     useEffect(() => {
-        if (step === 4 && tasks.length > prevTasksLength.current) {
-            // 新しく追加されたタスクを見つける
-            const newTasks = tasks.filter(t => t.status !== 'DONE');
-            if (newTasks.length > 0) {
-                const latestTask = newTasks[newTasks.length - 1];
-                if (latestTask.title.includes('線形代数のレポート')) {
-                    setTutorialTaskId(latestTask.id);
-                    setStep(5);
-                }
+        if (step === 4 && tasks.length > prevTasks.current.length) {
+            // 新しく追加されたタスクを見つける（以前のtasksに含まれていないIDのもの）
+            const addedTask = tasks.find(t => !prevTasks.current.some(pt => pt.id === t.id));
+            if (addedTask && addedTask.isTutorialTask === true) {
+                setTutorialTaskId(addedTask.id);
+                setStep(5);
             }
         }
-        prevTasksLength.current = tasks.length;
+        prevTasks.current = tasks;
     }, [tasks, step]);
 
     // Step 5: 対象のタスク詳細が開かれたかを検知
@@ -504,10 +509,10 @@ const DynamicTutorialGuide = ({
                     {step === 14 && (
                         <div className="pt-2">
                             <button
-                                onClick={onComplete}
+                                onClick={() => onComplete(tutorialTaskId)}
                                 className="w-full py-3 px-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold rounded-xl shadow-lg shadow-blue-500/20 transition duration-300 transform active:scale-95 text-center text-sm"
                             >
-                                実際に使ってみる！
+                                サービスに戻る
                             </button>
                         </div>
                     )}

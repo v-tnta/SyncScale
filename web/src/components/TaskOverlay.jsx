@@ -11,7 +11,7 @@ import { useConditionLogs } from '../hooks/useConditionLogs'
  * タスクの詳細（分析とガントチャート）を表示するオーバーレイです。
  * タスクの編集・完了・物理削除機能も含みます。
  */
-const TaskOverlay = ({ isOpen, onClose, task, logs, onUpdate, onDelete, onPhysicalDelete, onCompleteRequest }) => {
+const TaskOverlay = ({ isOpen, onClose, task, logs, onUpdate, onDelete, onPhysicalDelete, onCompleteRequest, isTutorialActive, tutorialStep }) => {
     const { getLogsByTask } = useConditionLogs()
     const [conditionLog, setConditionLog] = useState(null)
     const [loadingCondition, setLoadingCondition] = useState(false)
@@ -267,6 +267,7 @@ const TaskOverlay = ({ isOpen, onClose, task, logs, onUpdate, onDelete, onPhysic
                                                     className="w-10 h-10 flex items-center justify-center rounded-full bg-red-50 text-red-600 hover:bg-red-100 transition"
                                                     title="削除"
                                                     id="tutorial-delete-button"
+                                                    style={isTutorialActive ? { pointerEvents: 'none', cursor: 'default' } : undefined}
                                                 >
                                                     <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -280,6 +281,7 @@ const TaskOverlay = ({ isOpen, onClose, task, logs, onUpdate, onDelete, onPhysic
                                                     className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition"
                                                     title="編集"
                                                     id="tutorial-edit-button"
+                                                    style={isTutorialActive ? { pointerEvents: 'none', cursor: 'default' } : undefined}
                                                 >
                                                     <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
@@ -294,6 +296,7 @@ const TaskOverlay = ({ isOpen, onClose, task, logs, onUpdate, onDelete, onPhysic
                                                         onClick={handleComplete}
                                                         className="w-12 h-12 flex items-center justify-center rounded-full bg-green-50 text-green-600 hover:bg-green-100 transition shadow-sm"
                                                         title="提出完了"
+                                                        style={isTutorialActive && tutorialStep !== 10 ? { pointerEvents: 'none', cursor: 'default' } : undefined}
                                                     >
                                                         <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                                                             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />

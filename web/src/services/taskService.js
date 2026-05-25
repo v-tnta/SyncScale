@@ -83,18 +83,20 @@ export const softDeleteTask = async (taskId) => {
  * @param {string} taskId
  */
 export const completelyDeleteTask = async (userId, taskId) => {
-    // 1. TimeLogsの削除 (Cascade) - ここでTimeLogsへの依存が発生してしまうが、
-    // 本来はCloud FunctionまたはTimeLogService側で処理すべきかもしれない。
-    // 今回は要件に従いここに記述するが、理想的にはTimeLogService.deleteByTaskId(taskId)などを呼びたい。
-    // 一旦既存ロジックを移植。
-
-    // Note: 本来はTransactionを使うべきだが、既存ロジックに合わせてBatchで実装
+    // 1. TimeLogsの削除 (Cascade)
     const logsQuery = query(collection(db, 'timeLogs'), where('taskId', '==', taskId), where('userId', '==', userId));
     const logsSnapshot = await getDocs(logsQuery);
+
+    // 1-2. ConditionLogsの削除 (Cascade)
+    const condQuery = query(collection(db, 'conditionLogs'), where('taskId', '==', taskId), where('userId', '==', userId));
+    const condSnapshot = await getDocs(condQuery);
 
     const batch = writeBatch(db);
     logsSnapshot.forEach((logDoc) => {
         batch.delete(logDoc.ref);
+    });
+    condSnapshot.forEach((condDoc) => {
+        batch.delete(condDoc.ref);
     });
 
     // 2. Task自体の削除

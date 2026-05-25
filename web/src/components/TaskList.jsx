@@ -5,7 +5,7 @@ import { TASK_STATUS_LABELS } from '../domain/task';
  * 親コンポーネント(App)から受け取った tasks データをもとにリストを表示します。
  * スクロール機能、ローディング表示、エラー表示を含みます。
  */
-const TaskList = ({ tasks, timeLogs, loading, error, onTaskClick, onUpdateTask, onDeleteTask, onCompleteRequest, onOpenCompletedModal }) => {
+const TaskList = ({ tasks, timeLogs, loading, error, onTaskClick, onUpdateTask, onDeleteTask, onCompleteRequest, onOpenCompletedModal, isTutorialActive }) => {
     // サイズに応じたアクセントカラーを取得
     const getSizeColor = (label) => {
         switch (label) {
@@ -138,8 +138,9 @@ const TaskList = ({ tasks, timeLogs, loading, error, onTaskClick, onUpdateTask, 
                                         {task.status !== 'DONE' && (
                                             <button
                                                 onClick={(e) => handleComplete(e, task)}
-                                                className="p-1 text-gray-400 hover:text-green-600 rounded-full hover:bg-green-50 transition"
-                                                title="完了にする"
+                                                disabled={isTutorialActive}
+                                                className="p-1 text-gray-400 hover:text-green-600 disabled:text-gray-200 disabled:hover:bg-transparent disabled:cursor-not-allowed rounded-full hover:bg-green-50 transition"
+                                                title={isTutorialActive ? "チュートリアル中は詳細画面から完了してください" : "完了にする"}
                                             >
                                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />

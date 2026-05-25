@@ -1,10 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import Picker from 'react-mobile-picker';
 
-const DateTimePicker = ({ value, onChange }) => {
+const DateTimePicker = ({ id, value, onChange, disabled, isTutorialActive }) => {
     // 選択可能な値の生成
     const generateOptions = () => {
-        const currentYear = new Date().getFullYear();
+        const now = new Date();
+        const currentYear = now.getFullYear();
+
+        if (isTutorialActive) {
+            // チュートリアル中は当日（今日の23:59）付近のみに制限する
+            const yearStr = `${currentYear}年`;
+            const monthStr = `${now.getMonth() + 1}月`;
+            const dayStr = `${now.getDate()}日`;
+            return { 
+                year: [yearStr], 
+                month: [monthStr], 
+                day: [dayStr], 
+                hour: ["23時"], 
+                minute: ["59分"] 
+            };
+        }
+
         const years = Array.from({ length: 11 }, (_, i) => `${currentYear + i}年`);
         const months = Array.from({ length: 12 }, (_, i) => `${i + 1}月`);
         const days = Array.from({ length: 31 }, (_, i) => `${i + 1}日`);
@@ -69,9 +85,12 @@ const DateTimePicker = ({ value, onChange }) => {
         <div className="relative">
             {/* 表示用のボタン */}
             <button
+                id={id}
                 type="button"
-                onClick={() => setIsOpen(!isOpen)}
-                className="w-full text-left p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white flex justify-between items-center"
+                onClick={() => !disabled && setIsOpen(!isOpen)}
+                className={`w-full text-left p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white flex justify-between items-center ${
+                    disabled ? "cursor-default" : ""
+                }`}
             >
                 <span>{formatDisplay()}</span>
                 <span className="text-gray-400">▼</span>

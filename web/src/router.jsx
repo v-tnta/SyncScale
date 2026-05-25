@@ -9,6 +9,7 @@ import { ExtSyncPage } from "./pages/ExtSyncPage";
 import { LoginPage } from "./pages/LoginPage";
 import { ConsentGuard } from "./guards/ConsentGuard";
 import { InfoPage } from "./pages/InfoPage";
+import { OnboardingPage } from "./pages/OnboardingPage";
 import { HomePage } from "./pages/HomePage";
 
 // ルートパス / にアクセスした際のリダイレクト先を判定するコンポーネント
@@ -30,7 +31,7 @@ export function RootRedirect() {
     }
 
     if (onboarding && !onboarding.step3) {
-        return <Navigate to="/info" replace />;
+        return <Navigate to="/onboarding" replace />;
     }
 
     return <Navigate to="/svc/home" replace />;
@@ -47,6 +48,7 @@ export function AppRouter() {
             
             {/* 同意済みかつログイン済みで保護されたルート */}
             <Route element={<ConsentGuard />}>
+                <Route path="/onboarding" element={<OnboardingPage />} />
                 <Route path="/info" element={<InfoPage />} />
                 <Route path="/svc/home" element={<HomePage />} />
             </Route>

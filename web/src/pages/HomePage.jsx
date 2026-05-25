@@ -18,7 +18,7 @@ import ExtensionGuideModal from '../components/ExtensionGuideModal'
 
 export function HomePage() {
   const { currentUser } = useAuth();
-  const { onboarding, completeStep, dismissMobilePromo } = useOnboarding();
+  const { onboarding, completeStep, dismissMobilePromo, viewExtensionGuide } = useOnboarding();
   const { tasks, addTask, addTasksBatch, updateTask, deleteTask, completelyDeleteTask, loading, error } = useTasks();
   const { timeLogs } = useTimeLogs();
   const { addLog: addConditionLog } = useConditionLogs();
@@ -32,15 +32,48 @@ export function HomePage() {
   // 完了タスク一覧モーダルの状態
   const [isCompletedModalOpen, setIsCompletedModalOpen] = React.useState(false);
 
+  // チュートリアルの現在のステップ
+  const [tutorialStep, setTutorialStep] = React.useState(1);
+
+  // 動的チュートリアルがアクティブか判定
+  const isTutorialActive = React.useMemo(() => {
+    return onboarding && onboarding.step3 && !onboarding.step4;
+  }, [onboarding]);
+
   // 拡張機能からのインポートタスクの一時保持
   const [pendingImportTasks, setPendingImportTasks] = React.useState(null);
 
   // コンディション入力モーダルの状態（対象タスクを保持）
   const [taskToComplete, setTaskToComplete] = React.useState(null);
 
-  // 表示用タスクと完了タスクの切り分け
-  const incompleteTasks = React.useMemo(() => tasks.filter(t => t.status !== 'DONE'), [tasks]);
-  const completedTasks = React.useMemo(() => tasks.filter(t => t.status === 'DONE'), [tasks]);
+  // チュートリアル終了時のトランジション状態
+  const [isTransitioning, setIsTransitioning] = React.useState(false);
+
+  // 表示用タスクと完了タスクの切り分け（チュートリアル中かどうかに応じて動的フィルタリング）
+  const incompleteTasks = React.useMemo(() => {
+    if (isTutorialActive) {
+      return tasks.filter(t => t.status !== 'DONE' && t.isTutorialTask === true);
+    } else {
+      return tasks.filter(t => t.status !== 'DONE' && t.isTutorialTask !== true);
+    }
+  }, [tasks, isTutorialActive]);
+
+  const completedTasks = React.useMemo(() => {
+    if (isTutorialActive) {
+      return tasks.filter(t => t.status === 'DONE' && t.isTutorialTask === true);
+    } else {
+      return tasks.filter(t => t.status === 'DONE' && t.isTutorialTask !== true);
+    }
+  }, [tasks, isTutorialActive]);
+
+  // カレンダー等の表示用タスクのフィルタリング
+  const filteredTasks = React.useMemo(() => {
+    if (isTutorialActive) {
+      return tasks.filter(t => t.isTutorialTask === true);
+    } else {
+      return tasks.filter(t => t.isTutorialTask !== true);
+    }
+  }, [tasks, isTutorialActive]);
 
   // 新規取得された見積もり待ちのタスクをすべて抽出
   const allNewTasksToEstimate = React.useMemo(() => {
@@ -66,24 +99,42 @@ export function HomePage() {
   const [selectedTaskId, setSelectedTaskId] = React.useState(null);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
 
-  // 動的チュートリアルがアクティブか判定
-  const isTutorialActive = React.useMemo(() => {
-    return onboarding && onboarding.step3 && !onboarding.step4;
-  }, [onboarding]);
-
   // Chrome拡張機能使い方ガイドモーダルの状態
   const [isExtensionGuideOpen, setIsExtensionGuideOpen] = React.useState(false);
 
-  // チュートリアル完了（step4がfalseからtrueに変化した）タイミングで拡張機能ガイドを開く
-  const prevStep4 = React.useRef(null);
+  // オンボーディング完了かつ拡張機能ガイド未読の場合に自動表示する
   React.useEffect(() => {
-    if (onboarding) {
-      if (prevStep4.current === false && onboarding.step4 === true) {
-        setIsExtensionGuideOpen(true);
-      }
-      prevStep4.current = onboarding.step4;
+    if (onboarding && onboarding.completed && !onboarding.extensionGuideViewed) {
+      setIsExtensionGuideOpen(true);
     }
   }, [onboarding]);
+
+  // チュートリアル開始時のクリーンアップ実行フラグと自動一掃処理
+  const hasCleanedUpRef = React.useRef(false);
+  React.useEffect(() => {
+    if (!isTutorialActive) {
+      hasCleanedUpRef.current = false;
+    }
+  }, [isTutorialActive]);
+
+  React.useEffect(() => {
+    if (loading) return; // データの初期ロード完了を待つ
+
+    if (isTutorialActive && !hasCleanedUpRef.current) {
+      hasCleanedUpRef.current = true; // タスクの有無に関わらず、チェックしたためフラグをtrueにする
+      const tutorialTasks = tasks.filter(t => t.isTutorialTask === true);
+      if (tutorialTasks.length > 0) {
+        console.log("過去のチュートリアル用タスクを自動一掃します:", tutorialTasks);
+        tutorialTasks.forEach(async (t) => {
+          try {
+            await completelyDeleteTask(t.id);
+          } catch (e) {
+            console.error("チュートリアルタスクのクリーンアップに失敗しました:", e);
+          }
+        });
+      }
+    }
+  }, [isTutorialActive, tasks, loading, completelyDeleteTask]);
 
   // モバイルアプリプロモを表示するか判定
   const isMobilePromoOpen = React.useMemo(() => {
@@ -110,12 +161,26 @@ export function HomePage() {
     return true;
   }, [onboarding, isExtensionGuideOpen]);
 
-  const handleTutorialComplete = async () => {
+  const handleTutorialComplete = async (tutorialTaskId) => {
     try {
+      setIsTransitioning(true);
+      if (tutorialTaskId) {
+        await completelyDeleteTask(tutorialTaskId);
+      }
       await completeStep(4);
+      window.location.reload();
     } catch (e) {
       console.error("チュートリアル完了処理に失敗しました", e);
+      setIsTransitioning(false);
     }
+  };
+
+  // タスク登録時にチュートリアル用フラグを付与するラッパー関数
+  const handleAddTask = async (taskData) => {
+    await addTask({
+      ...taskData,
+      isTutorialTask: isTutorialActive ? true : false
+    });
   };
 
   // タスクがクリックされた時の処理
@@ -261,11 +326,11 @@ export function HomePage() {
   }, [loading, pendingImportTasks]);
 
   return (
-    <Layout tasks={tasks} onTaskClick={handleTaskClick}>
+    <Layout tasks={filteredTasks} onTaskClick={handleTaskClick}>
       <div className="flex flex-col gap-8">
         {/* 上部: 新規タスク追加 */}
         <div>
-          <TaskForm addTask={addTask} />
+          <TaskForm addTask={handleAddTask} disabled={isTutorialActive && tutorialStep < 4} isTutorialActive={isTutorialActive} />
         </div>
 
         {/* 下部: タスク一覧 */}
@@ -280,6 +345,7 @@ export function HomePage() {
             onDeleteTask={deleteTask}
             onCompleteRequest={handleCompleteRequest}
             onOpenCompletedModal={() => setIsCompletedModalOpen(true)}
+            isTutorialActive={isTutorialActive}
           />
         </div>
 
@@ -293,6 +359,8 @@ export function HomePage() {
           onDelete={deleteTask}
           onPhysicalDelete={completelyDeleteTask}
           onCompleteRequest={handleCompleteRequest}
+          isTutorialActive={isTutorialActive}
+          tutorialStep={tutorialStep}
         />
 
         {/* 完了タスク一覧モーダル */}
@@ -309,6 +377,7 @@ export function HomePage() {
           onClose={() => setTaskToComplete(null)}
           task={taskToComplete}
           onSubmit={handleConditionSubmit}
+          isTutorialActive={isTutorialActive}
         />
 
         {/* 新規タスクのSML見積もりモーダル */}
@@ -332,6 +401,8 @@ export function HomePage() {
           isCompletedModalOpen={isCompletedModalOpen}
           taskToComplete={taskToComplete}
           onComplete={handleTutorialComplete}
+          step={tutorialStep}
+          setStep={setTutorialStep}
         />
       )}
 
@@ -346,8 +417,24 @@ export function HomePage() {
       {/* Chrome拡張機能解説モーダル */}
       <ExtensionGuideModal
         isOpen={isExtensionGuideOpen}
-        onClose={() => setIsExtensionGuideOpen(false)}
+        onClose={async () => {
+          setIsExtensionGuideOpen(false);
+          if (onboarding && onboarding.completed && !onboarding.extensionGuideViewed) {
+            try {
+              await viewExtensionGuide();
+            } catch (err) {
+              console.error("拡張機能ガイドの既読状態の更新に失敗しました:", err);
+            }
+          }
+        }}
       />
+
+      {isTransitioning && (
+        <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-[200] flex flex-col items-center justify-center gap-4">
+          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          <p className="font-bold text-gray-700">サービスに戻ります...</p>
+        </div>
+      )}
     </Layout>
   )
 }

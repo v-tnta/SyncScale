@@ -28,9 +28,9 @@ export function ConsentGuard() {
         return <Navigate to="/agreement" replace state={{ from: location }} />;
     }
 
-    // オンボーディング（拡張機能まで）未完了の状態で /svc/home にアクセスしようとしたら /info にリダイレクト
+    // オンボーディング（拡張機能まで）未完了の状態で /svc/home にアクセスしようとしたら /onboarding にリダイレクト
     if (location.pathname === "/svc/home" && onboarding && !onboarding.step3) {
-        return <Navigate to="/info" replace />;
+        return <Navigate to="/onboarding" replace />;
     }
 
     return <Outlet />;
