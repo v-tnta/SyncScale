@@ -1,13 +1,21 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useOnboarding } from "../hooks/useOnboarding";
+import { useAuth } from "../hooks/useAuth";
 import { ONBOARDING_STEPS } from "../config/content";
 
 export function InfoPage() {
     const { onboarding, loading, completeStep } = useOnboarding();
+    const { currentUser } = useAuth();
     const navigate = useNavigate();
     const [currentStep, setCurrentStep] = useState(1);
     const [isMobile, setIsMobile] = useState(false);
+
+    // UIDを動的に事前入力したURLを生成
+    const prefilledFormUrl = React.useMemo(() => {
+        if (!currentUser) return ONBOARDING_STEPS.step1.formUrl;
+        return ONBOARDING_STEPS.step1.formUrl.replace("TEMP_UID", encodeURIComponent(currentUser.uid));
+    }, [currentUser]);
     
     // 各ステップのリンククリック状態
     const [linkClicked, setLinkClicked] = useState({
@@ -152,7 +160,7 @@ export function InfoPage() {
                             )}
                             <div className="pt-4 flex flex-col sm:flex-row gap-4">
                                 <a
-                                    href={ONBOARDING_STEPS.step1.formUrl}
+                                    href={prefilledFormUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     onClick={() => handleLinkClick(1)}

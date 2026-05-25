@@ -22,7 +22,6 @@ web/dist/
 web/dist-ssr/
 web/.firebase/
 web/firebase-debug.log
-web/src/config/content.js
 
 # Logs
 logs
