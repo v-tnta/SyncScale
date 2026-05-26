@@ -5,18 +5,28 @@ import '../models/task.dart';
 import '../state/syncscale_state.dart';
 import 'condition_dialog.dart';
 import 'formatters.dart';
-import 'gantt_chart.dart';
 import 'manual_log_dialog.dart';
 import 'task_form_sheet.dart';
 import 'timer_panel.dart';
 
 Future<void> showTaskDetailSheet(BuildContext context, Task task) {
+  final appState = SyncScaleScope.of(context);
+
+  // 完了したタスクの詳細を開いた時に Step 14 から Step 15 へ進める
+  if (appState.tutorialStep == 14 && task.isCompleted && task.isTutorialTask) {
+    appState.setTutorialStep(15);
+  }
+
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
     showDragHandle: true,
     builder: (context) => TaskDetailSheet(taskId: task.id),
-  );
+  ).then((_) {
+    if (appState.tutorialStep == 15 && task.isTutorialTask) {
+      appState.setTutorialStep(16);
+    }
+  });
 }
 
 class TaskDetailSheet extends StatelessWidget {
@@ -35,11 +45,15 @@ class TaskDetailSheet extends StatelessWidget {
       );
     }
 
+    // --- チュートリアルのステップ遷移判定 ---
+    if (appState.tutorialStep == 6 && task.isTutorialTask) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        appState.setTutorialStep(7);
+      });
+    }
+    // -------------------------------------
+
     final logs = appState.logsForTask(task.id);
-    final totalSeconds = logs.fold<int>(
-      0,
-      (sum, log) => sum + log.durationSeconds,
-    );
 
     return SafeArea(
       child: DraggableScrollableSheet(
@@ -52,6 +66,16 @@ class TaskDetailSheet extends StatelessWidget {
             controller: controller,
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
             children: [
+              // 完了タスクの場合のみ、コンディションを一番上に表示
+              if (task.isCompleted) ...[
+                _ConditionPanel(
+                  key: (appState.isTutorialActive && task.isTutorialTask)
+                      ? appState.tutorialKeys[15]
+                      : null,
+                  taskId: task.id,
+                ),
+                const SizedBox(height: 12),
+              ],
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -59,11 +83,22 @@ class TaskDetailSheet extends StatelessWidget {
                     child: Text(
                       task.title,
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w900,
-                      ),
+                            fontWeight: FontWeight.w900,
+                          ),
                     ),
                   ),
                   IconButton(
+                    key: (appState.isTutorialActive && task.isTutorialTask)
+                        ? appState.tutorialKeys[8]
+                        : null,
+                    tooltip: '完全削除',
+                    onPressed: () => _physicalDelete(context, task),
+                    icon: const Icon(Icons.delete_outline, color: Colors.red),
+                  ),
+                  IconButton(
+                    key: (appState.isTutorialActive && task.isTutorialTask)
+                        ? appState.tutorialKeys[7]
+                        : null,
                     tooltip: '編集',
                     onPressed: () => showTaskFormSheet(context, task: task),
                     icon: const Icon(Icons.edit_outlined),
@@ -77,58 +112,103 @@ class TaskDetailSheet extends StatelessWidget {
                 children: [
                   Chip(label: Text(task.status.label)),
                   Chip(label: Text('締切 ${formatDateTime(task.deadline)}')),
-                  Chip(label: Text('見積 ${task.estimatedMinutes}分')),
-                  Chip(
-                    label: Text('実績 ${formatDurationSeconds(totalSeconds)}'),
-                  ),
-                  if (task.sizeLabel != null && task.sizeLabel!.isNotEmpty)
-                    Chip(label: Text('Size ${task.sizeLabel}')),
                 ],
               ),
               const SizedBox(height: 16),
               _StatusAndSize(task: task),
               const SizedBox(height: 16),
-              if (!task.isCompleted) TimerPanel(task: task),
+              if (!task.isCompleted)
+                TimerPanel(
+                  key: (appState.isTutorialActive && task.isTutorialTask)
+                      ? appState.tutorialKeys[9]
+                      : null,
+                  task: task,
+                ),
               if (!task.isCompleted) const SizedBox(height: 12),
               OutlinedButton.icon(
-                onPressed: () => showManualLogDialog(context, task),
+                key: (appState.isTutorialActive && task.isTutorialTask)
+                    ? appState.tutorialKeys[10]
+                    : null,
+                onPressed: () {
+                  if (appState.tutorialStep == 10 && task.isTutorialTask) {
+                    appState.setTutorialStep(11);
+                  }
+                  showManualLogDialog(context, task);
+                },
                 icon: const Icon(Icons.add_alarm_outlined),
                 label: const Text('作業ログを手入力'),
               ),
               const SizedBox(height: 16),
-              if (!task.isCompleted)
+              if (!task.isCompleted) ...[
                 FilledButton.icon(
+                  key: (appState.isTutorialActive && task.isTutorialTask)
+                      ? appState.tutorialKeys[12]
+                      : null,
                   onPressed: () => _complete(context, task),
                   icon: const Icon(Icons.check),
                   label: const Text('提出完了にする'),
                 ),
-              const SizedBox(height: 16),
+                const SizedBox(height: 16),
+              ],
+              // 実績ガントの代わりに作業実績を表示
               _Panel(
-                title: '実績ガントチャート',
-                icon: Icons.view_timeline_outlined,
-                child: GanttChart(logs: logs),
-              ),
-              const SizedBox(height: 12),
-              if (task.isCompleted) _ConditionPanel(taskId: task.id),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () => _softDelete(context, task),
-                      icon: const Icon(Icons.visibility_off_outlined),
-                      label: const Text('目録から外す'),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () => _physicalDelete(context, task),
-                      icon: const Icon(Icons.delete_outline),
-                      label: const Text('完全削除'),
-                    ),
-                  ),
-                ],
+                title: '作業実績',
+                icon: Icons.history_toggle_off_outlined,
+                child: logs.isEmpty
+                    ? const Text('作業実績はまだありません。')
+                    : Column(
+                        children: logs.map((log) {
+                          return Card(
+                            margin: const EdgeInsets.only(bottom: 8),
+                            elevation: 0,
+                            color: Colors.grey.shade50,
+                            shape: RoundedRectangleBorder(
+                              side: BorderSide(color: Colors.grey.shade200),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          log.subTaskName.isEmpty
+                                              ? '作業名未入力'
+                                              : log.subTaskName,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          formatDateTime(log.startTime),
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey.shade600,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Text(
+                                    formatDurationSeconds(log.durationSeconds),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.blueAccent,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
               ),
             ],
           );
@@ -139,23 +219,29 @@ class TaskDetailSheet extends StatelessWidget {
 
   Future<void> _complete(BuildContext context, Task task) async {
     final appState = SyncScaleScope.of(context);
+    
+    final isStep12 = appState.tutorialStep == 12 && task.isTutorialTask;
+    if (isStep12) {
+      appState.setTutorialStep(13);
+    }
+
     final result = await showConditionDialog(context);
     if (result == null) {
+      if (isStep12) {
+        appState.setTutorialStep(12);
+      }
       return;
     }
 
+    final isStep13 = appState.tutorialStep == 13 && task.isTutorialTask;
     await appState.completeTask(
       task: task,
       condition: result.condition,
       memo: result.memo,
     );
-    if (!context.mounted) return;
-    Navigator.of(context).pop();
-  }
-
-  Future<void> _softDelete(BuildContext context, Task task) async {
-    final appState = SyncScaleScope.of(context);
-    await appState.softDeleteTask(task.id);
+    if (isStep13) {
+      appState.setTutorialStep(14);
+    }
     if (!context.mounted) return;
     Navigator.of(context).pop();
   }
@@ -206,43 +292,18 @@ class _StatusAndSize extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const Text(
-              '状態とS/M/L',
+              '課題の規模感',
               style: TextStyle(fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 12),
-            DropdownButtonFormField<TaskStatus>(
-              value: task.status,
-              decoration: const InputDecoration(
-                labelText: 'ステータス',
-                border: OutlineInputBorder(),
-              ),
-              items: [
-                for (final status in TaskStatus.values)
-                  DropdownMenuItem(value: status, child: Text(status.label)),
-              ],
-              onChanged: (status) {
-                if (status == null) return;
-                appState.updateTask(task.id, {'status': status.value});
-              },
-            ),
-            const SizedBox(height: 12),
-            SegmentedButton<String>(
-              emptySelectionAllowed: true,
-              selected:
-                  task.sizeLabel == null || task.sizeLabel!.isEmpty
-                      ? <String>{}
-                      : {task.sizeLabel!},
-              onSelectionChanged: (selection) {
+            _SizeSelector(
+              selectedSize: task.sizeLabel,
+              onSelect: (size) {
                 appState.updateTask(task.id, {
-                  'sizeLabel': selection.isEmpty ? null : selection.first,
+                  'sizeLabel': size,
                   'isNew': false,
                 });
               },
-              segments: const [
-                ButtonSegment(value: 'S', label: Text('S')),
-                ButtonSegment(value: 'M', label: Text('M')),
-                ButtonSegment(value: 'L', label: Text('L')),
-              ],
             ),
           ],
         ),
@@ -251,8 +312,72 @@ class _StatusAndSize extends StatelessWidget {
   }
 }
 
+class _SizeSelector extends StatelessWidget {
+  const _SizeSelector({required this.selectedSize, required this.onSelect});
+  final String? selectedSize;
+  final ValueChanged<String?> onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    final options = [
+      {'value': 'S', 'label': 'S (すぐ)', 'color': const Color(0xFF06B6D4)},
+      {
+        'value': 'M',
+        'label': 'M (半日〜1日)',
+        'color': const Color(0xFFF97316),
+      },
+      {'value': 'L', 'label': 'L (数日)', 'color': const Color(0xFFEF4444)},
+    ];
+
+    return Row(
+      children:
+          options.map((opt) {
+            final val = opt['value'] as String;
+            final label = opt['label'] as String;
+            final color = opt['color'] as Color;
+            final isSelected = selectedSize == val;
+
+            return Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: InkWell(
+                  onTap: () => onSelect(isSelected ? null : val),
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 12,
+                      horizontal: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color:
+                          isSelected ? color.withAlpha(31) : Colors.white,
+                      border: Border.all(
+                        color: isSelected ? color : Colors.grey.shade300,
+                        width: isSelected ? 2 : 1,
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Center(
+                      child: Text(
+                        label,
+                        style: TextStyle(
+                          color: isSelected ? color : Colors.grey.shade600,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+    );
+  }
+}
+
 class _ConditionPanel extends StatelessWidget {
-  const _ConditionPanel({required this.taskId});
+  const _ConditionPanel({super.key, required this.taskId});
 
   final String taskId;
 
@@ -263,40 +388,64 @@ class _ConditionPanel extends StatelessWidget {
     return FutureBuilder<List<ConditionLog>>(
       future: appState.getConditionLogs(taskId),
       builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const SizedBox.shrink();
+        }
         final logs = snapshot.data ?? const <ConditionLog>[];
-        return _Panel(
-          title: '提出時のコンディション',
-          icon: Icons.favorite_border,
-          child:
-              snapshot.connectionState == ConnectionState.waiting
-                  ? const LinearProgressIndicator()
-                  : logs.isEmpty
-                  ? const Text('コンディション記録はありません。')
-                  : Column(
+        if (logs.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        final log = logs.first;
+        final emoji = _conditionEmoji(log.condition);
+
+        return Card(
+          color: const Color(0xFFFDF8E2),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Text(emoji, style: const TextStyle(fontSize: 40)),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      for (final log in logs)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 8),
-                          child: Text(
-                            '${_conditionLabel(log.condition)}: ${log.memo.isEmpty ? 'メモなし' : log.memo}',
-                          ),
+                      const Text(
+                        '提出時のコンディション',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                          fontWeight: FontWeight.bold,
                         ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'メモ：${log.memo.isEmpty ? 'なし' : log.memo}',
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ],
                   ),
+                ),
+              ],
+            ),
+          ),
         );
       },
     );
   }
 
-  String _conditionLabel(String value) {
+  String _conditionEmoji(String value) {
     switch (value) {
       case 'good':
-        return 'よい';
+        return '😊';
       case 'poor':
-        return '悪い';
+        return '😥';
       default:
-        return '普通';
+        return '🙂';
     }
   }
 }

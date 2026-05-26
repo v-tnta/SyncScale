@@ -1,3 +1,22 @@
+// スマホ判定と双方向リダイレクト処理
+const checkAndRedirect = () => {
+  const isMobile = /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+  const isCurrentlyOnMobilePage = window.location.pathname.startsWith('/svc/mobile');
+  const isSvcPath = window.location.pathname.startsWith('/svc/');
+
+  if (isMobile && !isCurrentlyOnMobilePage && isSvcPath) {
+    // スマホ判定かつ /svc/ 配下のPC版ページにいる場合はモバイル版へリダイレクト
+    window.location.href = '/svc/mobile/home.html';
+  } else if (!isMobile && isCurrentlyOnMobilePage) {
+    // PC判定かつモバイル版ページにいる場合はPC版へリダイレクト
+    window.location.href = '/';
+  }
+};
+
+// 初回実行と画面サイズ変更時の監視
+checkAndRedirect();
+window.addEventListener('resize', checkAndRedirect);
+
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'

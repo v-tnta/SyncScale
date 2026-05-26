@@ -33,6 +33,18 @@
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
+  <script>
+    function checkAndRedirect() {
+      // PC表示（幅が768px超）かつモバイル用URLにいる場合、PC版（/）へリダイレクトする
+      const isMobile = /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+      if (!isMobile) {
+        window.location.href = '/';
+      }
+    }
+    // 初回とリサイズ時の監視
+    checkAndRedirect();
+    window.addEventListener('resize', checkAndRedirect);
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

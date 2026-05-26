@@ -33,7 +33,10 @@ class _ManualLogDialogState extends State<ManualLogDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final appState = SyncScaleScope.of(context);
+
     return AlertDialog(
+      key: appState.isTutorialActive ? appState.tutorialKeys[11] : null,
       title: const Text('作業ログを手入力'),
       content: Column(
         mainAxisSize: MainAxisSize.min,
@@ -69,6 +72,8 @@ class _ManualLogDialogState extends State<ManualLogDialog> {
     final end = DateTime.now();
     final start = end.subtract(Duration(minutes: minutes));
 
+    final isTutorial = appState.tutorialStep == 11 && widget.task.isTutorialTask;
+
     await appState.addTimeLog(
       TimeLog(
         id: '',
@@ -79,6 +84,10 @@ class _ManualLogDialogState extends State<ManualLogDialog> {
         durationSeconds: minutes * 60,
       ),
     );
+
+    if (isTutorial) {
+      appState.setTutorialStep(12);
+    }
 
     if (!mounted) {
       return;

@@ -37,6 +37,7 @@ class Task {
     this.manabaCourseId,
     this.courseName,
     this.type,
+    this.isTutorialTask = false,
   });
 
   final String id;
@@ -56,6 +57,7 @@ class Task {
   final String? manabaCourseId;
   final String? courseName;
   final String? type;
+  final bool isTutorialTask;
 
   bool get isCompleted => status == TaskStatus.done;
 
@@ -86,6 +88,7 @@ class Task {
       manabaCourseId: data['manabaCourseId']?.toString(),
       courseName: data['courseName']?.toString(),
       type: data['type']?.toString(),
+      isTutorialTask: data['isTutorialTask'] == true,
     );
   }
 
@@ -106,6 +109,7 @@ class Task {
       'manabaCourseId': manabaCourseId,
       'courseName': courseName,
       'type': type,
+      'isTutorialTask': isTutorialTask,
       'createdAt': FieldValue.serverTimestamp(),
     };
   }

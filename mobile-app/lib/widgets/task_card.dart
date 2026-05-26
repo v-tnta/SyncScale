@@ -1,28 +1,20 @@
 import 'package:flutter/material.dart';
 
 import '../models/task.dart';
-import '../models/time_log.dart';
 import 'formatters.dart';
 
 class TaskCard extends StatelessWidget {
   const TaskCard({
     super.key,
     required this.task,
-    required this.logs,
     required this.onTap,
   });
 
   final Task task;
-  final List<TimeLog> logs;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final actualSeconds = logs.fold<int>(
-      0,
-      (sum, log) => sum + log.durationSeconds,
-    );
-
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
       child: InkWell(
@@ -65,14 +57,10 @@ class TaskCard extends StatelessWidget {
                           label: formatDateTime(task.deadline),
                           danger: task.isOverdue,
                         ),
-                        _ChipText(
-                          icon: Icons.timer_outlined,
-                          label: formatDurationSeconds(actualSeconds),
-                        ),
-                        _ChipText(label: task.status.label),
                         if (task.sizeLabel != null &&
                             task.sizeLabel!.isNotEmpty)
                           _ChipText(label: task.sizeLabel!),
+                        _ChipText(label: task.status.label),
                       ],
                     ),
                   ],

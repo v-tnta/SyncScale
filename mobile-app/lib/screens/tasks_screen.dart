@@ -44,8 +44,10 @@ class TasksScreen extends StatelessWidget {
         else
           for (final task in todo)
             TaskCard(
+              key: (appState.isTutorialActive && task.isTutorialTask)
+                  ? appState.tutorialKeys[6]
+                  : null,
               task: task,
-              logs: appState.logsForTask(task.id),
               onTap: () => showTaskDetailSheet(context, task),
             ),
         const SizedBox(height: 20),
@@ -59,8 +61,10 @@ class TasksScreen extends StatelessWidget {
         else
           for (final task in completed)
             TaskCard(
+              key: (appState.isTutorialActive && task.isTutorialTask)
+                  ? appState.tutorialKeys[14]
+                  : null,
               task: task,
-              logs: appState.logsForTask(task.id),
               onTap: () => showTaskDetailSheet(context, task),
             ),
       ],
@@ -94,7 +98,12 @@ class _SectionHeader extends StatelessWidget {
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
           ),
           const SizedBox(width: 8),
-          Badge(label: Text('$count')),
+          Text(
+            '$countつ',
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+          ),
         ],
       ),
     );

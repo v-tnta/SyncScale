@@ -24,7 +24,6 @@ class TaskFormSheet extends StatefulWidget {
 
 class _TaskFormSheetState extends State<TaskFormSheet> {
   late final TextEditingController _titleController;
-  late final TextEditingController _estimateController;
   late DateTime _deadline;
   String? _sizeLabel;
 
@@ -35,25 +34,48 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
     super.initState();
     final task = widget.task;
     _titleController = TextEditingController(text: task?.title ?? '');
-    _estimateController = TextEditingController(
-      text:
-          task == null || task.estimatedMinutes == 0
-              ? ''
-              : task.estimatedMinutes.toString(),
-    );
-    _deadline = task?.deadline ?? DateTime.now().add(const Duration(days: 7));
+    _titleController.addListener(_onTitleChanged);
+    if (task != null) {
+      _deadline = task.deadline ?? DateTime.now();
+    } else {
+      final now = DateTime.now();
+      _deadline = DateTime(now.year, now.month, now.day, 23, 59);
+    }
     _sizeLabel = task?.sizeLabel;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      try {
+        final appState = SyncScaleScope.of(context);
+        if (appState.tutorialStep == 1) {
+          appState.setTutorialStep(2);
+        }
+      } catch (_) {}
+    });
+  }
+
+  void _onTitleChanged() {
+    if (!mounted) return;
+    try {
+      final appState = SyncScaleScope.of(context);
+      if (appState.tutorialStep == 2) {
+        if (_titleController.text.trim().contains('線形代数のレポート')) {
+          appState.setTutorialStep(3);
+        }
+      }
+    } catch (_) {}
   }
 
   @override
   void dispose() {
+    _titleController.removeListener(_onTitleChanged);
     _titleController.dispose();
-    _estimateController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final appState = SyncScaleScope.of(context);
     final bottom = MediaQuery.of(context).viewInsets.bottom;
 
     return Padding(
@@ -63,13 +85,14 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            _isEditing ? 'タスクを編集' : 'タスクを追加',
+            _isEditing ? 'タスクを編集' : 'タスクを登録',
             style: Theme.of(
               context,
             ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
           ),
           const SizedBox(height: 16),
           TextField(
+            key: appState.isTutorialActive ? appState.tutorialKeys[2] : null,
             controller: _titleController,
             decoration: const InputDecoration(
               labelText: 'タスク名',
@@ -78,22 +101,15 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
             textInputAction: TextInputAction.next,
           ),
           const SizedBox(height: 12),
-          TextField(
-            controller: _estimateController,
-            decoration: const InputDecoration(
-              labelText: '見積時間（分）',
-              border: OutlineInputBorder(),
-            ),
-            keyboardType: TextInputType.number,
-          ),
-          const SizedBox(height: 12),
           OutlinedButton.icon(
-            onPressed: _pickDeadline,
+            key: appState.isTutorialActive ? appState.tutorialKeys[3] : null,
+            onPressed: appState.isTutorialActive ? null : _pickDeadline,
             icon: const Icon(Icons.event),
             label: Text('締切: ${formatDateTime(_deadline)}'),
           ),
           const SizedBox(height: 12),
           SegmentedButton<String>(
+            key: appState.isTutorialActive ? appState.tutorialKeys[4] : null,
             emptySelectionAllowed: true,
             selected: _sizeLabel == null ? <String>{} : {_sizeLabel!},
             onSelectionChanged: (selection) {
@@ -109,9 +125,10 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
           ),
           const SizedBox(height: 16),
           FilledButton.icon(
+            key: appState.isTutorialActive ? appState.tutorialKeys[5] : null,
             onPressed: _save,
             icon: Icon(_isEditing ? Icons.save : Icons.add),
-            label: Text(_isEditing ? '保存' : '追加'),
+            label: Text(_isEditing ? '保存' : 'タスクを登録'),
           ),
         ],
       ),
@@ -119,16 +136,6 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
   }
 
   Future<void> _pickDeadline() async {
-    final date = await showDatePicker(
-      context: context,
-      initialDate: _deadline,
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2100),
-    );
-    if (date == null || !mounted) {
-      return;
-    }
-
     final time = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.fromDateTime(_deadline),
@@ -139,9 +146,9 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
 
     setState(() {
       _deadline = DateTime(
-        date.year,
-        date.month,
-        date.day,
+        _deadline.year,
+        _deadline.month,
+        _deadline.day,
         time.hour,
         time.minute,
       );
@@ -158,31 +165,35 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
     }
 
     final appState = SyncScaleScope.of(context);
-    final estimatedMinutes = int.tryParse(_estimateController.text.trim()) ?? 0;
 
     try {
       if (_isEditing) {
         await appState.updateTask(widget.task!.id, {
           'title': title,
-          'estimatedMinutes': estimatedMinutes,
+          'estimatedMinutes': 0,
           'deadline': _deadline,
           'sizeLabel': _sizeLabel,
           'isNew': false,
         });
       } else {
+        final isTutorial = appState.isTutorialActive;
         await appState.addTask(
           Task(
             id: '',
             title: title,
             status: TaskStatus.todo,
-            estimatedMinutes: estimatedMinutes,
+            estimatedMinutes: 0,
             deadline: _deadline,
             isVisible: true,
             sizeLabel: _sizeLabel,
             isNew: false,
             source: 'manual',
+            isTutorialTask: isTutorial,
           ),
         );
+        if (appState.tutorialStep == 5) {
+          appState.setTutorialStep(6);
+        }
       }
 
       if (!mounted) {

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../state/syncscale_state.dart';
 import '../widgets/task_form_sheet.dart';
 import '../widgets/task_size_estimate_dialog.dart';
+import '../widgets/tutorial_guide_overlay.dart';
 import 'analytics_screen.dart';
 import 'calendar_screen.dart';
 import 'tasks_screen.dart';
@@ -17,10 +18,63 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _index = 0;
   String? _openEstimateTaskId;
+  OverlayEntry? _tutorialOverlayEntry;
+  SyncScaleState? _appState;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final state = SyncScaleScope.of(context);
+    if (_appState != state) {
+      _appState?.removeListener(_handleTutorialStateChanged);
+      _appState = state;
+      _appState?.addListener(_handleTutorialStateChanged);
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _handleTutorialStateChanged();
+    });
+  }
+
+  @override
+  void dispose() {
+    _appState?.removeListener(_handleTutorialStateChanged);
+    _removeTutorialOverlay();
+    super.dispose();
+  }
+
+  void _handleTutorialStateChanged() {
+    if (!mounted) return;
+    final state = _appState;
+    if (state != null && state.isTutorialActive) {
+      _showOrUpdateTutorialOverlay();
+    } else {
+      _removeTutorialOverlay();
+    }
+  }
+
+  void _showOrUpdateTutorialOverlay() {
+    if (_tutorialOverlayEntry == null) {
+      _tutorialOverlayEntry = OverlayEntry(
+        builder: (context) => const TutorialGuideOverlay(),
+      );
+      // MaterialApp全体のOverlayに挿入
+      Overlay.of(context).insert(_tutorialOverlayEntry!);
+    } else {
+      _tutorialOverlayEntry!.markNeedsBuild();
+    }
+  }
+
+  void _removeTutorialOverlay() {
+    if (_tutorialOverlayEntry != null) {
+      _tutorialOverlayEntry!.remove();
+      _tutorialOverlayEntry = null;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final appState = SyncScaleScope.of(context);
+    final isTutorial = appState.isTutorialActive;
     _scheduleEstimateDialog(appState);
 
     final pages = [
@@ -31,7 +85,33 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('SyncScale'),
+        title: Row(
+          children: [
+            Image.asset(
+              'assets/images/logo.png',
+              width: 32,
+              height: 32,
+              fit: BoxFit.contain,
+            ),
+            const SizedBox(width: 8),
+            const Text(
+              'SyncScale',
+              style: TextStyle(
+                fontWeight: FontWeight.w900,
+                letterSpacing: -0.5,
+              ),
+            ),
+            const SizedBox(width: 6),
+            const Text(
+              'v0.3.0',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
         actions: [
           IconButton(
             tooltip: 'ログアウト',
@@ -42,18 +122,33 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: SafeArea(child: pages[_index]),
-      floatingActionButton:
-          _index == 0
-              ? FloatingActionButton.extended(
-                onPressed: () => showTaskFormSheet(context),
-                icon: const Icon(Icons.add),
-                label: const Text('タスク追加'),
-              )
-              : null,
+      body: SafeArea(
+        // チュートリアル中のStep 16（カレンダー選択案内）まではTasksScreenを表示
+        child: pages[(isTutorial && (appState.tutorialStep ?? 0) < 16) ? 0 : _index],
+      ),
+      floatingActionButton: (_index == 0 && (!isTutorial || appState.tutorialStep == 1))
+          ? FloatingActionButton.extended(
+              key: isTutorial ? appState.tutorialKeys[1] : null,
+              onPressed: () => showTaskFormSheet(context),
+              icon: const Icon(Icons.add),
+              label: const Text('タスクを登録'),
+            )
+          : null,
       bottomNavigationBar: NavigationBar(
-        selectedIndex: _index,
-        onDestinationSelected: (value) => setState(() => _index = value),
+        key: isTutorial ? appState.tutorialKeys[16] : null,
+        // チュートリアル中のStep 16まではタスクタブ（0）を選択状態に固定
+        selectedIndex: (isTutorial && (appState.tutorialStep ?? 0) < 16) ? 0 : _index,
+        onDestinationSelected: (value) {
+          if (isTutorial) {
+            // チュートリアル中かつStep 16（カレンダー選択案内）のときのみカレンダーへの遷移を許可
+            if (appState.tutorialStep == 16 && value == 1) {
+              setState(() => _index = value);
+              appState.setTutorialStep(17);
+            }
+            return;
+          }
+          setState(() => _index = value);
+        },
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.checklist_outlined),

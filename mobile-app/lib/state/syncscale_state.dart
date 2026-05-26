@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../models/condition_log.dart';
+import '../models/onboarding.dart';
 import '../models/task.dart';
 import '../models/time_log.dart';
 import '../services/auth_service.dart';
@@ -22,21 +23,39 @@ class SyncScaleState extends ChangeNotifier {
   String? errorMessage;
   List<Task> tasks = const [];
   List<TimeLog> timeLogs = const [];
+  Onboarding? onboarding;
 
   StreamSubscription<User?>? _authSubscription;
   StreamSubscription<List<Task>>? _taskSubscription;
   StreamSubscription<List<TimeLog>>? _timeLogSubscription;
+  StreamSubscription<Onboarding?>? _onboardingSubscription;
 
   bool get isAuthenticated {
     return currentUser != null && currentUser!.isAnonymous == false;
   }
 
   List<Task> get incompleteTasks {
-    return tasks.where((task) => task.status != TaskStatus.done).toList();
+    if (isTutorialActive) {
+      return tasks
+          .where((task) => task.status != TaskStatus.done && task.isTutorialTask)
+          .toList();
+    } else {
+      return tasks
+          .where((task) => task.status != TaskStatus.done && !task.isTutorialTask)
+          .toList();
+    }
   }
 
   List<Task> get completedTasks {
-    return tasks.where((task) => task.status == TaskStatus.done).toList();
+    if (isTutorialActive) {
+      return tasks
+          .where((task) => task.status == TaskStatus.done && task.isTutorialTask)
+          .toList();
+    } else {
+      return tasks
+          .where((task) => task.status == TaskStatus.done && !task.isTutorialTask)
+          .toList();
+    }
   }
 
   void start() {
@@ -61,14 +80,18 @@ class SyncScaleState extends ChangeNotifier {
     _taskSubscription = null;
     _timeLogSubscription?.cancel();
     _timeLogSubscription = null;
+    _onboardingSubscription?.cancel();
+    _onboardingSubscription = null;
     tasks = const [];
     timeLogs = const [];
+    onboarding = null;
     errorMessage = null;
   }
 
   void _bindUserData(String userId) {
     _taskSubscription?.cancel();
     _timeLogSubscription?.cancel();
+    _onboardingSubscription?.cancel();
 
     dataLoading = true;
     errorMessage = null;
@@ -76,6 +99,20 @@ class SyncScaleState extends ChangeNotifier {
     repository.markMobileAsInstalled(userId).catchError((e) {
       debugPrint('Failed to mark mobile as installed: $e');
     });
+
+    _onboardingSubscription = repository
+        .watchOnboarding(userId)
+        .listen(
+          (newOnboarding) {
+            debugPrint('onboarding fetched: ${newOnboarding?.step4}');
+            onboarding = newOnboarding;
+            initTutorialIfNeeded();
+            notifyListeners();
+          },
+          onError: (Object error) {
+            debugPrint('ERROR: オンボーディング取得失敗: $error');
+          },
+        );
 
     // Firestore は更新のたびに Stream が流れるため、UI側で再取得ボタンを
     // 押さなくても webApp と同じリアルタイム同期になります。
@@ -224,6 +261,87 @@ class SyncScaleState extends ChangeNotifier {
     return timeLogs.where((log) => log.taskId == taskId).toList();
   }
 
+  // 各チュートリアルステップで使用するGlobalKey
+  final Map<int, GlobalKey> tutorialKeys = {
+    1: GlobalKey(debugLabel: 'tutorial_step_1'), // ホーム画面の「タスクを登録」FAB
+    2: GlobalKey(debugLabel: 'tutorial_step_2'), // タスクフォームの「タスク名」入力欄
+    3: GlobalKey(debugLabel: 'tutorial_step_3'), // タスクフォームの「締切」ボタン
+    4: GlobalKey(debugLabel: 'tutorial_step_4'), // タスクフォームの「規模感」SegmentedButton
+    5: GlobalKey(debugLabel: 'tutorial_step_5'), // タスクフォームの「タスクを登録」FilledButton
+    6: GlobalKey(debugLabel: 'tutorial_step_6'), // 未完了タスクカード
+    7: GlobalKey(debugLabel: 'tutorial_step_7'), // 詳細の「編集」ボタン
+    8: GlobalKey(debugLabel: 'tutorial_step_8'), // 詳細の「完全削除」ボタン
+    9: GlobalKey(debugLabel: 'tutorial_step_9'), // 詳細の「タイマーパネル」
+    10: GlobalKey(debugLabel: 'tutorial_step_10'), // 詳細の「作業ログを手入力」ボタン
+    11: GlobalKey(debugLabel: 'tutorial_step_11'), // 作業ログダイアログ全体
+    12: GlobalKey(debugLabel: 'tutorial_step_12'), // 詳細の「提出完了にする」ボタン
+    13: GlobalKey(debugLabel: 'tutorial_step_13'), // コンディションダイアログの「完了にする」ボタン
+    14: GlobalKey(debugLabel: 'tutorial_step_14'), // 完了タスクカード
+    15: GlobalKey(debugLabel: 'tutorial_step_15'), // 詳細のコンディション振り返りパネル
+    16: GlobalKey(debugLabel: 'tutorial_step_16'), // NavigationBar 全体（カレンダータブ案内用）
+  };
+
+  GlobalKey? get tutorialTargetKey {
+    final step = tutorialStep;
+    if (step == null) return null;
+    return tutorialKeys[step];
+  }
+
+  int? tutorialStep;
+
+  bool get isTutorialActive =>
+      onboarding != null && onboarding!.step3 == true && onboarding!.step4 == false;
+
+  void initTutorialIfNeeded() {
+    if (isTutorialActive) {
+      if (tutorialStep == null) {
+        tutorialStep = 1;
+        _cleanupTutorialTasks();
+      }
+    } else {
+      tutorialStep = null;
+    }
+  }
+
+  Future<void> _cleanupTutorialTasks() async {
+    final user = currentUser;
+    if (user == null) return;
+    final tutorialTasks = tasks.where((t) => t.isTutorialTask).toList();
+    if (tutorialTasks.isNotEmpty) {
+      debugPrint('過去のチュートリアル用タスクを自動一掃します: ${tutorialTasks.length}件');
+      for (final t in tutorialTasks) {
+        try {
+          await repository.deleteTaskCompletely(user.uid, t.id);
+        } catch (e) {
+          debugPrint('チュートリアルタスクのクリーンアップに失敗しました: $e');
+        }
+      }
+    }
+  }
+
+  void setTutorialStep(int step) {
+    if (tutorialStep != step) {
+      tutorialStep = step;
+      notifyListeners();
+    }
+  }
+
+  void nextTutorialStep() {
+    if (tutorialStep != null && tutorialStep! < 17) {
+      tutorialStep = tutorialStep! + 1;
+      notifyListeners();
+    }
+  }
+
+  Future<void> completeTutorial() async {
+    final user = currentUser;
+    if (user == null) {
+      return;
+    }
+    await _cleanupTutorialTasks();
+    await _run(() => repository.completeTutorial(user.uid));
+  }
+
   Future<void> _run(Future<void> Function() action) async {
     try {
       errorMessage = null;
@@ -241,6 +359,7 @@ class SyncScaleState extends ChangeNotifier {
     _authSubscription?.cancel();
     _taskSubscription?.cancel();
     _timeLogSubscription?.cancel();
+    _onboardingSubscription?.cancel();
     super.dispose();
   }
 }

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../state/syncscale_state.dart';
+
 class ConditionResult {
   const ConditionResult({required this.condition, required this.memo});
 
@@ -33,7 +35,10 @@ class _ConditionDialogState extends State<ConditionDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final appState = SyncScaleScope.of(context);
+
     return AlertDialog(
+      key: appState.isTutorialActive ? appState.tutorialKeys[13] : null,
       title: const Text('提出時のコンディション'),
       content: Column(
         mainAxisSize: MainAxisSize.min,
@@ -44,9 +49,18 @@ class _ConditionDialogState extends State<ConditionDialog> {
               setState(() => _condition = selection.first);
             },
             segments: const [
-              ButtonSegment(value: 'good', label: Text('よい')),
-              ButtonSegment(value: 'fair', label: Text('普通')),
-              ButtonSegment(value: 'poor', label: Text('悪い')),
+              ButtonSegment(
+                value: 'good',
+                label: Text('😊', style: TextStyle(fontSize: 26)),
+              ),
+              ButtonSegment(
+                value: 'fair',
+                label: Text('🙂', style: TextStyle(fontSize: 26)),
+              ),
+              ButtonSegment(
+                value: 'poor',
+                label: Text('😥', style: TextStyle(fontSize: 26)),
+              ),
             ],
           ),
           const SizedBox(height: 12),

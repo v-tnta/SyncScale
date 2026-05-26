@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../models/condition_log.dart';
+import '../models/onboarding.dart';
 import '../models/task.dart';
 import '../models/time_log.dart';
 
@@ -110,6 +111,27 @@ class SyncScaleRepository {
   Future<void> markMobileAsInstalled(String userId) async {
     await _firestore.collection('onboarding').doc(userId).set({
       'mobileInstalled': true,
+    }, SetOptions(merge: true));
+  }
+
+  Stream<Onboarding?> watchOnboarding(String userId) {
+    return _firestore
+        .collection('onboarding')
+        .doc(userId)
+        .snapshots()
+        .map((snapshot) {
+      if (!snapshot.exists || snapshot.data() == null) {
+        return null;
+      }
+      return Onboarding.fromMap(snapshot.data()!);
+    });
+  }
+
+  Future<void> completeTutorial(String userId) async {
+    await _firestore.collection('onboarding').doc(userId).set({
+      'step4': true,
+      'completed': true,
+      'completedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
   }
 }
