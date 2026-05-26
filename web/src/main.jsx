@@ -1,6 +1,7 @@
 // スマホ判定と双方向リダイレクト処理
 const checkAndRedirect = () => {
-  const isMobile = /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+  // 画面幅による不安定な判定を排除し、純粋な userAgent のみで判定
+  const isMobile = /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   const isCurrentlyOnMobilePage = window.location.pathname.startsWith('/svc/mobile');
   const isSvcPath = window.location.pathname.startsWith('/svc/');
 
