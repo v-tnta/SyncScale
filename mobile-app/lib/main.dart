@@ -2,6 +2,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
+
 import 'firebase_options.dart';
 import 'screens/auth_gate.dart';
 import 'services/auth_service.dart';
@@ -10,7 +12,13 @@ import 'state/syncscale_state.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: '.env');
+  if (!kIsWeb) {
+    try {
+      await dotenv.load(fileName: '.env');
+    } catch (_) {
+      // .envが無い場合のフォールバック（String.fromEnvironmentで定義されている場合など）
+    }
+  }
   await Firebase.initializeApp(options: SyncScaleFirebaseOptions.current);
 
   final appState = SyncScaleState(

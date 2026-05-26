@@ -41,8 +41,12 @@ class SyncScaleFirebaseOptions {
   }
 
   static FirebaseOptions get web => FirebaseOptions(
-        apiKey: dotenv.get('FIREBASE_API_KEY_WEB'),
-        appId: dotenv.get('FIREBASE_APP_ID_WEB'),
+        apiKey: const String.fromEnvironment('FIREBASE_API_KEY_WEB').isNotEmpty
+            ? const String.fromEnvironment('FIREBASE_API_KEY_WEB')
+            : (dotenv.isInitialized ? dotenv.get('FIREBASE_API_KEY_WEB') : ''),
+        appId: const String.fromEnvironment('FIREBASE_APP_ID_WEB').isNotEmpty
+            ? const String.fromEnvironment('FIREBASE_APP_ID_WEB')
+            : (dotenv.isInitialized ? dotenv.get('FIREBASE_APP_ID_WEB') : ''),
         messagingSenderId: '66964728618',
         projectId: 'sync-scale',
         authDomain: 'sync-scale.firebaseapp.com',
@@ -51,16 +55,24 @@ class SyncScaleFirebaseOptions {
       );
 
   static FirebaseOptions get android => FirebaseOptions(
-        apiKey: dotenv.get('FIREBASE_API_KEY_ANDROID'),
-        appId: dotenv.get('FIREBASE_APP_ID_ANDROID'),
+        apiKey: const String.fromEnvironment('FIREBASE_API_KEY_ANDROID').isNotEmpty
+            ? const String.fromEnvironment('FIREBASE_API_KEY_ANDROID')
+            : (dotenv.isInitialized ? dotenv.get('FIREBASE_API_KEY_ANDROID') : ''),
+        appId: const String.fromEnvironment('FIREBASE_APP_ID_ANDROID').isNotEmpty
+            ? const String.fromEnvironment('FIREBASE_APP_ID_ANDROID')
+            : (dotenv.isInitialized ? dotenv.get('FIREBASE_APP_ID_ANDROID') : ''),
         messagingSenderId: '66964728618',
         projectId: 'sync-scale',
         storageBucket: 'sync-scale.firebasestorage.app',
       );
 
   static FirebaseOptions get ios => FirebaseOptions(
-        apiKey: dotenv.get('FIREBASE_API_KEY_IOS'),
-        appId: dotenv.get('FIREBASE_APP_ID_IOS'),
+        apiKey: const String.fromEnvironment('FIREBASE_API_KEY_IOS').isNotEmpty
+            ? const String.fromEnvironment('FIREBASE_API_KEY_IOS')
+            : (dotenv.isInitialized ? dotenv.get('FIREBASE_API_KEY_IOS') : ''),
+        appId: const String.fromEnvironment('FIREBASE_APP_ID_IOS').isNotEmpty
+            ? const String.fromEnvironment('FIREBASE_APP_ID_IOS')
+            : (dotenv.isInitialized ? dotenv.get('FIREBASE_APP_ID_IOS') : ''),
         messagingSenderId: '66964728618',
         projectId: 'sync-scale',
         storageBucket: 'sync-scale.firebasestorage.app',
@@ -70,8 +82,12 @@ class SyncScaleFirebaseOptions {
       );
 
   static FirebaseOptions get macos => FirebaseOptions(
-        apiKey: dotenv.get('FIREBASE_API_KEY_MACOS'),
-        appId: dotenv.get('FIREBASE_APP_ID_MACOS'),
+        apiKey: const String.fromEnvironment('FIREBASE_API_KEY_MACOS').isNotEmpty
+            ? const String.fromEnvironment('FIREBASE_API_KEY_MACOS')
+            : (dotenv.isInitialized ? dotenv.get('FIREBASE_API_KEY_MACOS') : ''),
+        appId: const String.fromEnvironment('FIREBASE_APP_ID_MACOS').isNotEmpty
+            ? const String.fromEnvironment('FIREBASE_APP_ID_MACOS')
+            : (dotenv.isInitialized ? dotenv.get('FIREBASE_APP_ID_MACOS') : ''),
         messagingSenderId: '66964728618',
         projectId: 'sync-scale',
         storageBucket: 'sync-scale.firebasestorage.app',
@@ -81,8 +97,12 @@ class SyncScaleFirebaseOptions {
       );
 
   static FirebaseOptions get windows => FirebaseOptions(
-        apiKey: dotenv.get('FIREBASE_API_KEY_WINDOWS'),
-        appId: dotenv.get('FIREBASE_APP_ID_WINDOWS'),
+        apiKey: const String.fromEnvironment('FIREBASE_API_KEY_WINDOWS').isNotEmpty
+            ? const String.fromEnvironment('FIREBASE_API_KEY_WINDOWS')
+            : (dotenv.isInitialized ? dotenv.get('FIREBASE_API_KEY_WINDOWS') : ''),
+        appId: const String.fromEnvironment('FIREBASE_APP_ID_WINDOWS').isNotEmpty
+            ? const String.fromEnvironment('FIREBASE_APP_ID_WINDOWS')
+            : (dotenv.isInitialized ? dotenv.get('FIREBASE_APP_ID_WINDOWS') : ''),
         messagingSenderId: '66964728618',
         projectId: 'sync-scale',
         authDomain: 'sync-scale.firebaseapp.com',
