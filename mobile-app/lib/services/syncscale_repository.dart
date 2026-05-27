@@ -135,9 +135,57 @@ class SyncScaleRepository {
     }, SetOptions(merge: true));
   }
 
+  Future<void> resetTutorial(String userId) async {
+    await _firestore.collection('onboarding').doc(userId).set({
+      'step4': false,
+      'completed': false,
+    }, SetOptions(merge: true));
+  }
+
   Future<void> dismissMobilePromo(String userId) async {
     await _firestore.collection('onboarding').doc(userId).set({
       'mobilePromoDismissedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
+  }
+
+  Future<void> withdrawConsent(String userId) async {
+    final batch = _firestore.batch();
+
+    final tasksSnap = await _firestore
+        .collection('tasks')
+        .where('userId', isEqualTo: userId)
+        .get();
+    for (var doc in tasksSnap.docs) {
+      batch.delete(doc.reference);
+    }
+
+    final timeLogsSnap = await _firestore
+        .collection('timeLogs')
+        .where('userId', isEqualTo: userId)
+        .get();
+    for (var doc in timeLogsSnap.docs) {
+      batch.delete(doc.reference);
+    }
+
+    final conditionLogsSnap = await _firestore
+        .collection('conditionLogs')
+        .where('userId', isEqualTo: userId)
+        .get();
+    for (var doc in conditionLogsSnap.docs) {
+      batch.delete(doc.reference);
+    }
+
+    final onboardingRef = _firestore.collection('onboarding').doc(userId);
+    final onboardingSnap = await onboardingRef.get();
+    if (onboardingSnap.exists) {
+      batch.delete(onboardingRef);
+    }
+
+    final consentRef = _firestore.collection('consents').doc(userId);
+    batch.update(consentRef, {
+      'withdrawnAt': FieldValue.serverTimestamp(),
+    });
+
+    await batch.commit();
   }
 }

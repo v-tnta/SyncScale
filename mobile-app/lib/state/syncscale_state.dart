@@ -270,16 +270,17 @@ class SyncScaleState extends ChangeNotifier {
     4: GlobalKey(debugLabel: 'tutorial_step_4'), // タスクフォームの「規模感」SegmentedButton
     5: GlobalKey(debugLabel: 'tutorial_step_5'), // タスクフォームの「タスクを登録」FilledButton
     6: GlobalKey(debugLabel: 'tutorial_step_6'), // 未完了タスクカード
-    7: GlobalKey(debugLabel: 'tutorial_step_7'), // 詳細の「編集」ボタン
-    8: GlobalKey(debugLabel: 'tutorial_step_8'), // 詳細の「完全削除」ボタン
-    9: GlobalKey(debugLabel: 'tutorial_step_9'), // 詳細の「タイマーパネル」
-    10: GlobalKey(debugLabel: 'tutorial_step_10'), // 詳細の「作業ログを手入力」ボタン
-    11: GlobalKey(debugLabel: 'tutorial_step_11'), // 作業ログダイアログ全体
-    12: GlobalKey(debugLabel: 'tutorial_step_12'), // 詳細の「提出完了にする」ボタン
-    13: GlobalKey(debugLabel: 'tutorial_step_13'), // コンディションダイアログの「完了にする」ボタン
-    14: GlobalKey(debugLabel: 'tutorial_step_14'), // 完了タスクカード
-    15: GlobalKey(debugLabel: 'tutorial_step_15'), // 詳細のコンディション振り返りパネル
-    16: GlobalKey(debugLabel: 'tutorial_step_16'), // NavigationBar 全体（カレンダータブ案内用）
+    7: GlobalKey(debugLabel: 'tutorial_step_7'), // 詳細画面全体
+    8: GlobalKey(debugLabel: 'tutorial_step_8'), // 詳細の「編集」ボタン
+    9: GlobalKey(debugLabel: 'tutorial_step_9'), // 詳細の「完全削除」ボタン
+    10: GlobalKey(debugLabel: 'tutorial_step_10'), // 詳細の「タイマーパネル」
+    11: GlobalKey(debugLabel: 'tutorial_step_11'), // 詳細の「作業ログを手入力」ボタン
+    12: GlobalKey(debugLabel: 'tutorial_step_12'), // 作業ログダイアログ全体
+    13: GlobalKey(debugLabel: 'tutorial_step_13'), // 詳細の「提出完了にする」ボタン
+    14: GlobalKey(debugLabel: 'tutorial_step_14'), // コンディションダイアログ全体
+    15: GlobalKey(debugLabel: 'tutorial_step_15'), // 完了タスクカード
+    16: GlobalKey(debugLabel: 'tutorial_step_16'), // 詳細のコンディション振り返りパネル
+    17: GlobalKey(debugLabel: 'tutorial_step_17'), // NavigationBar 全体（カレンダータブ案内用）
   };
 
   GlobalKey? get tutorialTargetKey {
@@ -341,6 +342,22 @@ class SyncScaleState extends ChangeNotifier {
     }
     await _cleanupTutorialTasks();
     await _run(() => repository.completeTutorial(user.uid));
+  }
+
+  Future<void> resetTutorial() async {
+    final user = currentUser;
+    if (user == null) {
+      return;
+    }
+    await _run(() => repository.resetTutorial(user.uid));
+  }
+
+  Future<void> withdrawConsent() async {
+    final user = currentUser;
+    if (user == null) {
+      return;
+    }
+    await _run(() => repository.withdrawConsent(user.uid));
   }
 
   Future<void> dismissMobilePromo() async {

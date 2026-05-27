@@ -104,7 +104,7 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
           const SizedBox(height: 12),
           OutlinedButton.icon(
             key: appState.isTutorialActive ? appState.tutorialKeys[3] : null,
-            onPressed: appState.isTutorialActive ? null : _pickDeadline,
+            onPressed: appState.isTutorialActive ? () {} : _pickDeadline,
             icon: const Icon(Icons.event),
             label: Text('締切: ${formatDateTime(_deadline)}'),
           ),

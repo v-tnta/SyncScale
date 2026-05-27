@@ -165,6 +165,7 @@ const TaskOverlay = ({ isOpen, onClose, task, logs, onUpdate, onDelete, onPhysic
         >
             {/* モーダル本体 */}
             <div
+                id="tutorial-task-detail-container"
                 className="bg-white w-full max-w-5xl max-h-[90vh] overflow-y-auto rounded-xl shadow-2xl m-4 p-6 relative animate-fade-in-up"
                 onClick={(e) => e.stopPropagation()}
             >
@@ -296,7 +297,7 @@ const TaskOverlay = ({ isOpen, onClose, task, logs, onUpdate, onDelete, onPhysic
                                                         onClick={handleComplete}
                                                         className="w-12 h-12 flex items-center justify-center rounded-full bg-green-50 text-green-600 hover:bg-green-100 transition shadow-sm"
                                                         title="提出完了"
-                                                        style={isTutorialActive && tutorialStep !== 10 ? { pointerEvents: 'none', cursor: 'default' } : undefined}
+                                                        style={isTutorialActive && tutorialStep !== 11 ? { pointerEvents: 'none', cursor: 'default' } : undefined}
                                                     >
                                                         <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                                                             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />

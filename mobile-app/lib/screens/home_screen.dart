@@ -8,6 +8,7 @@ import '../widgets/tutorial_guide_overlay.dart';
 import 'analytics_screen.dart';
 import 'calendar_screen.dart';
 import 'tasks_screen.dart';
+import '../widgets/settings_dialog.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -132,11 +133,11 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         actions: [
           IconButton(
-            tooltip: 'ログアウト',
-            onPressed: () async {
-              await appState.logout();
+            tooltip: '設定',
+            onPressed: () {
+              SettingsDialog.show(context);
             },
-            icon: const Icon(Icons.logout),
+            icon: const Icon(Icons.settings),
           ),
         ],
       ),

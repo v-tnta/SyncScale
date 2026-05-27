@@ -62,7 +62,7 @@ class TasksScreen extends StatelessWidget {
           for (final task in completed)
             TaskCard(
               key: (appState.isTutorialActive && task.isTutorialTask)
-                  ? appState.tutorialKeys[14]
+                  ? appState.tutorialKeys[15]
                   : null,
               task: task,
               onTap: () => showTaskDetailSheet(context, task),

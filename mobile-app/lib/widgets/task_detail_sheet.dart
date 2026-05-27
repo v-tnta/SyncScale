@@ -12,9 +12,9 @@ import 'timer_panel.dart';
 Future<void> showTaskDetailSheet(BuildContext context, Task task) {
   final appState = SyncScaleScope.of(context);
 
-  // 完了したタスクの詳細を開いた時に Step 14 から Step 15 へ進める
-  if (appState.tutorialStep == 14 && task.isCompleted && task.isTutorialTask) {
-    appState.setTutorialStep(15);
+  // 完了したタスクの詳細を開いた時に Step 15 から Step 16 へ進める
+  if (appState.tutorialStep == 15 && task.isCompleted && task.isTutorialTask) {
+    appState.setTutorialStep(16);
   }
 
   return showModalBottomSheet<void>(
@@ -23,8 +23,8 @@ Future<void> showTaskDetailSheet(BuildContext context, Task task) {
     showDragHandle: true,
     builder: (context) => TaskDetailSheet(taskId: task.id),
   ).then((_) {
-    if (appState.tutorialStep == 15 && task.isTutorialTask) {
-      appState.setTutorialStep(16);
+    if (appState.tutorialStep == 16 && task.isTutorialTask) {
+      appState.setTutorialStep(17);
     }
   });
 }
@@ -63,6 +63,9 @@ class TaskDetailSheet extends StatelessWidget {
         minChildSize: 0.55,
         builder: (context, controller) {
           return ListView(
+            key: (appState.isTutorialActive && task.isTutorialTask && appState.tutorialStep == 7)
+                ? appState.tutorialKeys[7]
+                : null,
             controller: controller,
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
             children: [
@@ -70,7 +73,7 @@ class TaskDetailSheet extends StatelessWidget {
               if (task.isCompleted) ...[
                 _ConditionPanel(
                   key: (appState.isTutorialActive && task.isTutorialTask)
-                      ? appState.tutorialKeys[15]
+                      ? appState.tutorialKeys[16]
                       : null,
                   taskId: task.id,
                 ),
@@ -87,21 +90,27 @@ class TaskDetailSheet extends StatelessWidget {
                           ),
                     ),
                   ),
-                  IconButton(
-                    key: (appState.isTutorialActive && task.isTutorialTask)
-                        ? appState.tutorialKeys[8]
-                        : null,
-                    tooltip: '完全削除',
-                    onPressed: () => _physicalDelete(context, task),
-                    icon: const Icon(Icons.delete_outline, color: Colors.red),
+                  AbsorbPointer(
+                    absorbing: appState.isTutorialActive && task.isTutorialTask,
+                    child: IconButton(
+                      key: (appState.isTutorialActive && task.isTutorialTask)
+                          ? appState.tutorialKeys[9]
+                          : null,
+                      tooltip: '完全削除',
+                      onPressed: () => _physicalDelete(context, task),
+                      icon: const Icon(Icons.delete_outline, color: Colors.red),
+                    ),
                   ),
-                  IconButton(
-                    key: (appState.isTutorialActive && task.isTutorialTask)
-                        ? appState.tutorialKeys[7]
-                        : null,
-                    tooltip: '編集',
-                    onPressed: () => showTaskFormSheet(context, task: task),
-                    icon: const Icon(Icons.edit_outlined),
+                  AbsorbPointer(
+                    absorbing: appState.isTutorialActive && task.isTutorialTask,
+                    child: IconButton(
+                      key: (appState.isTutorialActive && task.isTutorialTask)
+                          ? appState.tutorialKeys[8]
+                          : null,
+                      tooltip: '編集',
+                      onPressed: () => showTaskFormSheet(context, task: task),
+                      icon: const Icon(Icons.edit_outlined),
+                    ),
                   ),
                 ],
               ),
@@ -118,35 +127,44 @@ class TaskDetailSheet extends StatelessWidget {
               _StatusAndSize(task: task),
               const SizedBox(height: 16),
               if (!task.isCompleted)
-                TimerPanel(
-                  key: (appState.isTutorialActive && task.isTutorialTask)
-                      ? appState.tutorialKeys[9]
-                      : null,
-                  task: task,
+                AbsorbPointer(
+                  absorbing: appState.isTutorialActive && task.isTutorialTask,
+                  child: TimerPanel(
+                    key: (appState.isTutorialActive && task.isTutorialTask)
+                        ? appState.tutorialKeys[10]
+                        : null,
+                    task: task,
+                  ),
                 ),
               if (!task.isCompleted) const SizedBox(height: 12),
-              OutlinedButton.icon(
-                key: (appState.isTutorialActive && task.isTutorialTask)
-                    ? appState.tutorialKeys[10]
-                    : null,
-                onPressed: () {
-                  if (appState.tutorialStep == 10 && task.isTutorialTask) {
-                    appState.setTutorialStep(11);
-                  }
-                  showManualLogDialog(context, task);
-                },
-                icon: const Icon(Icons.add_alarm_outlined),
-                label: const Text('作業ログを手入力'),
+              AbsorbPointer(
+                absorbing: appState.isTutorialActive && task.isTutorialTask && appState.tutorialStep != 11,
+                child: OutlinedButton.icon(
+                  key: (appState.isTutorialActive && task.isTutorialTask)
+                      ? appState.tutorialKeys[11]
+                      : null,
+                  onPressed: () {
+                    if (appState.tutorialStep == 11 && task.isTutorialTask) {
+                      appState.setTutorialStep(12);
+                    }
+                    showManualLogDialog(context, task);
+                  },
+                  icon: const Icon(Icons.add_alarm_outlined),
+                  label: const Text('作業ログを手入力'),
+                ),
               ),
               const SizedBox(height: 16),
               if (!task.isCompleted) ...[
-                FilledButton.icon(
-                  key: (appState.isTutorialActive && task.isTutorialTask)
-                      ? appState.tutorialKeys[12]
-                      : null,
-                  onPressed: () => _complete(context, task),
-                  icon: const Icon(Icons.check),
-                  label: const Text('提出完了にする'),
+                AbsorbPointer(
+                  absorbing: appState.isTutorialActive && task.isTutorialTask && appState.tutorialStep != 13,
+                  child: FilledButton.icon(
+                    key: (appState.isTutorialActive && task.isTutorialTask)
+                        ? appState.tutorialKeys[13]
+                        : null,
+                    onPressed: () => _complete(context, task),
+                    icon: const Icon(Icons.check),
+                    label: const Text('提出完了にする'),
+                  ),
                 ),
                 const SizedBox(height: 16),
               ],
@@ -220,27 +238,27 @@ class TaskDetailSheet extends StatelessWidget {
   Future<void> _complete(BuildContext context, Task task) async {
     final appState = SyncScaleScope.of(context);
     
-    final isStep12 = appState.tutorialStep == 12 && task.isTutorialTask;
-    if (isStep12) {
-      appState.setTutorialStep(13);
+    final isStep13 = appState.tutorialStep == 13 && task.isTutorialTask;
+    if (isStep13) {
+      appState.setTutorialStep(14);
     }
 
     final result = await showConditionDialog(context);
     if (result == null) {
-      if (isStep12) {
-        appState.setTutorialStep(12);
+      if (isStep13) {
+        appState.setTutorialStep(13);
       }
       return;
     }
 
-    final isStep13 = appState.tutorialStep == 13 && task.isTutorialTask;
+    final isStep14 = appState.tutorialStep == 14 && task.isTutorialTask;
     await appState.completeTask(
       task: task,
       condition: result.condition,
       memo: result.memo,
     );
-    if (isStep13) {
-      appState.setTutorialStep(14);
+    if (isStep14) {
+      appState.setTutorialStep(15);
     }
     if (!context.mounted) return;
     Navigator.of(context).pop();
