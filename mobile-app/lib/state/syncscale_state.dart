@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
 import '../models/condition_log.dart';
@@ -340,6 +341,31 @@ class SyncScaleState extends ChangeNotifier {
     }
     await _cleanupTutorialTasks();
     await _run(() => repository.completeTutorial(user.uid));
+  }
+
+  Future<void> dismissMobilePromo() async {
+    final user = currentUser;
+    if (user == null) {
+      return;
+    }
+    await _run(() => repository.dismissMobilePromo(user.uid));
+  }
+
+  bool get isMobilePromoOpen {
+    if (!kIsWeb) return false;
+    final o = onboarding;
+    if (o == null || !o.completed) return false;
+    if (o.mobileInstalled == true) return false;
+
+    final dismissedAt = o.mobilePromoDismissedAt;
+    if (dismissedAt != null) {
+      final now = DateTime.now();
+      final diff = now.difference(dismissedAt);
+      if (diff.inHours < 24) {
+        return false;
+      }
+    }
+    return true;
   }
 
   Future<void> _run(Future<void> Function() action) async {

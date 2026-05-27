@@ -134,4 +134,10 @@ class SyncScaleRepository {
       'completedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
   }
+
+  Future<void> dismissMobilePromo(String userId) async {
+    await _firestore.collection('onboarding').doc(userId).set({
+      'mobilePromoDismissedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+  }
 }

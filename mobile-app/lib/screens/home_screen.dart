@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../state/syncscale_state.dart';
 import '../widgets/task_form_sheet.dart';
+import '../widgets/mobile_app_promo_dialog.dart';
 import '../widgets/task_size_estimate_dialog.dart';
 import '../widgets/tutorial_guide_overlay.dart';
 import 'analytics_screen.dart';
@@ -20,6 +21,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String? _openEstimateTaskId;
   OverlayEntry? _tutorialOverlayEntry;
   SyncScaleState? _appState;
+  bool _isPromoDialogOpen = false;
 
   @override
   void didChangeDependencies() {
@@ -49,6 +51,22 @@ class _HomeScreenState extends State<HomeScreen> {
       _showOrUpdateTutorialOverlay();
     } else {
       _removeTutorialOverlay();
+    }
+    _checkAndShowMobilePromo();
+  }
+
+  void _checkAndShowMobilePromo() {
+    if (!mounted) return;
+    final state = _appState;
+    if (state == null) return;
+
+    if (state.isMobilePromoOpen && !_isPromoDialogOpen) {
+      _isPromoDialogOpen = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (!mounted) return;
+        await MobileAppPromoDialog.show(context);
+        _isPromoDialogOpen = false;
+      });
     }
   }
 
