@@ -338,18 +338,18 @@ class _TutorialGuideOverlayState extends State<TutorialGuideOverlay> {
         return const _StepDetails(
           title: '2/16. 課題名を入力しましょう ✏️',
           desc: 'タスクフォームの「タスク名」入力欄に、『線形代数のレポート』と入力してみましょう。',
-          showNext: false,
+          showNext: true,
         );
       case 3:
         return const _StepDetails(
           title: '3/16. 締切日時の確認 📅',
-          desc: 'ここで締め切り時間を変更できます。\nチュートリアルでは当日の23:59に固定されています。\n確認したら「次へ進む」を押してください。',
+          desc: 'ここで締め切り時間を変更できます。\nチュートリアルでは当日の23:59に固定されています。',
           showNext: true,
         );
       case 4:
         return const _StepDetails(
           title: '4/16. 規模感を選択しましょう 📊',
-          desc: '課題の規模感（S/M/L）を選択してみましょう。\nご自身の思う基準で結構です！\n選択したら「次へ進む」を押してください。',
+          desc: '課題の規模感（S/M/L）を選択してみましょう。\nご自身の思う基準で結構です！',
           showNext: true,
         );
       case 5:
@@ -367,19 +367,19 @@ class _TutorialGuideOverlayState extends State<TutorialGuideOverlay> {
       case 7:
         return const _StepDetails(
           title: '7/16. 課題の編集機能 ✏️',
-          desc: '詳細画面が開きました！\nこちらの編集ボタン（鉛筆アイコン）から、課題のタイトルや締切、規模感（S/M/L）をいつでも編集できます。\n確認したら「次へ進む」を押してください。',
+          desc: '詳細画面が開きました！\nこちらの編集ボタン（鉛筆アイコン）から、課題のタイトルや締切、規模感（S/M/L）をいつでも編集できます。',
           showNext: true,
         );
       case 8:
         return const _StepDetails(
           title: '8/16. 課題の削除機能 🗑️',
-          desc: 'こちらの完全削除ボタン（ゴミ箱アイコン）から、課題を削除できます。\n予定が変わった時や、誤って登録した時に使用します。\n確認したら「次へ進む」を押してください。',
+          desc: 'こちらの完全削除ボタン（ゴミ箱アイコン）から、課題を削除できます。\n予定が変わった時や、誤って登録した時に使用します。',
           showNext: true,
         );
       case 9:
         return const _StepDetails(
           title: '9/16. タイマーで記録することもできます ⏱️',
-          desc: '作業時間は、こちらのタイマーパネルで実際に測って記録することも可能です。\n今回は「作業ログを手入力」から進めますので、確認したら「次へ進む」を押してください。',
+          desc: '作業時間は、こちらのタイマーパネルで実際に測って記録することも可能です。\n今回は「作業ログを手入力」から進めます。',
           showNext: true,
         );
       case 10:

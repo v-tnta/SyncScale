@@ -99,6 +99,7 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
               border: OutlineInputBorder(),
             ),
             textInputAction: TextInputAction.next,
+            onSubmitted: (_) => _onTitleChanged(),
           ),
           const SizedBox(height: 12),
           OutlinedButton.icon(
