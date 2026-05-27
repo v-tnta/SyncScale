@@ -181,8 +181,10 @@ class MobileAppPromoDialog extends StatelessWidget {
                       ),
                     ),
                     onPressed: () async {
-                      Navigator.of(context).pop();
                       await appState.dismissMobilePromo();
+                      if (context.mounted) {
+                        Navigator.of(context).pop();
+                      }
                     },
                     child: const Text(
                       'あとで通知する',
