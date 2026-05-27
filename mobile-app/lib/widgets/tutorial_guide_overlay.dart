@@ -2,6 +2,122 @@ import 'package:flutter/material.dart';
 
 import '../state/syncscale_state.dart';
 
+class TutorialGuideOverlayWrapper extends StatelessWidget {
+  const TutorialGuideOverlayWrapper({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final appState = SyncScaleScope.of(context);
+    if (!appState.isTutorialActive) {
+      return const SizedBox.shrink();
+    }
+    return const TutorialGuideOverlay();
+  }
+}
+
+class _SwipeArrowAnimator extends StatefulWidget {
+  const _SwipeArrowAnimator();
+
+  @override
+  State<_SwipeArrowAnimator> createState() => _SwipeArrowAnimatorState();
+}
+
+class _SwipeArrowAnimatorState extends State<_SwipeArrowAnimator>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _opacity;
+  late Animation<double> _translateY;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1800),
+    )..repeat();
+
+    _opacity = TweenSequence<double>([
+      TweenSequenceItem(
+        tween: Tween(begin: 0.0, end: 1.0).chain(CurveTween(curve: Curves.easeIn)),
+        weight: 30,
+      ),
+      TweenSequenceItem(
+        tween: ConstantTween(1.0),
+        weight: 40,
+      ),
+      TweenSequenceItem(
+        tween: Tween(begin: 1.0, end: 0.0).chain(CurveTween(curve: Curves.easeOut)),
+        weight: 30,
+      ),
+    ]).animate(_controller);
+
+    _translateY = Tween<double>(begin: -60.0, end: 40.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return Transform.translate(
+          offset: Offset(0, _translateY.value),
+          child: Opacity(
+            opacity: _opacity.value,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.keyboard_double_arrow_down,
+                  size: 90,
+                  color: Colors.blue.shade600,
+                  shadows: [
+                    Shadow(
+                      offset: const Offset(2, 2),
+                      blurRadius: 8.0,
+                      color: Colors.black.withAlpha(50),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade600,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withAlpha(50),
+                        blurRadius: 8,
+                        offset: const Offset(2, 2),
+                      ),
+                    ],
+                  ),
+                  child: const Text(
+                    '下にスワイプ',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
 class TutorialGuideOverlay extends StatefulWidget {
   const TutorialGuideOverlay({super.key});
 
@@ -206,6 +322,12 @@ class _TutorialGuideOverlayState extends State<TutorialGuideOverlay> {
             child: buildMasksAndHighlight(),
           ),
         ),
+        if (step == 16)
+          const Center(
+            child: IgnorePointer(
+              child: _SwipeArrowAnimator(),
+            ),
+          ),
         buildGuideCard(),
       ],
     );
@@ -330,37 +452,37 @@ class _TutorialGuideOverlayState extends State<TutorialGuideOverlay> {
     switch (step) {
       case 1:
         return const _StepDetails(
-          title: '1/16. 登録フォームを開きましょう ➕',
+          title: '1/17. 登録フォームを開きましょう ➕',
           desc: '画面右下にある「タスクを登録」ボタンをタップして、課題の登録フォームを開いてみましょう。',
           showNext: false,
         );
       case 2:
         return const _StepDetails(
-          title: '2/16. 課題名を入力しましょう ✏️',
+          title: '2/17. 課題名を入力しましょう ✏️',
           desc: 'タスクフォームの「タスク名」入力欄に、『線形代数のレポート』と入力してみましょう。',
           showNext: true,
         );
       case 3:
         return const _StepDetails(
-          title: '3/16. 締切日時の確認 📅',
+          title: '3/17. 締切日時の確認 📅',
           desc: 'ここで締め切り時間を変更できます。\nチュートリアルでは当日の23:59に固定されています。',
           showNext: true,
         );
       case 4:
         return const _StepDetails(
-          title: '4/16. 規模感を選択しましょう 📊',
+          title: '4/17. 規模感を選択しましょう 📊',
           desc: '課題の規模感（S/M/L）を選択してみましょう。\nご自身の思う基準で結構です！',
           showNext: true,
         );
       case 5:
         return const _StepDetails(
-          title: '5/16. 課題を登録しましょう 🚀',
+          title: '5/17. 課題を登録しましょう 🚀',
           desc: '入力ができたら、「タスクを登録」ボタンを押して課題を追加しましょう！',
           showNext: false,
         );
       case 6:
         return const _StepDetails(
-          title: '6/16. 課題の詳細を開きましょう 🔍',
+          title: '6/17. 課題の詳細を開きましょう 🔍',
           desc: '課題がリストに追加されました！\n追加された『線形代数のレポート』をクリックして、詳細画面を開いてみましょう。',
           showNext: false,
         );

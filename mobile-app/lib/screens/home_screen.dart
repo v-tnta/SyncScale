@@ -20,7 +20,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _index = 0;
   String? _openEstimateTaskId;
-  OverlayEntry? _tutorialOverlayEntry;
   SyncScaleState? _appState;
   bool _isPromoDialogOpen = false;
 
@@ -41,7 +40,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void dispose() {
     _appState?.removeListener(_handleTutorialStateChanged);
-    _removeTutorialOverlay();
     super.dispose();
   }
 
@@ -49,9 +47,12 @@ class _HomeScreenState extends State<HomeScreen> {
     if (!mounted) return;
     final state = _appState;
     if (state != null && state.isTutorialActive) {
-      _showOrUpdateTutorialOverlay();
-    } else {
-      _removeTutorialOverlay();
+      // チュートリアル中のカレンダー遷移前（Step 17未満）であれば_indexを0に強制する
+      if ((state.tutorialStep ?? 0) < 17 && _index != 0) {
+        setState(() {
+          _index = 0;
+        });
+      }
     }
     _checkAndShowMobilePromo();
   }
@@ -68,25 +69,6 @@ class _HomeScreenState extends State<HomeScreen> {
         await MobileAppPromoDialog.show(context);
         _isPromoDialogOpen = false;
       });
-    }
-  }
-
-  void _showOrUpdateTutorialOverlay() {
-    if (_tutorialOverlayEntry == null) {
-      _tutorialOverlayEntry = OverlayEntry(
-        builder: (context) => const TutorialGuideOverlay(),
-      );
-      // MaterialApp全体のOverlayに挿入
-      Overlay.of(context).insert(_tutorialOverlayEntry!);
-    } else {
-      _tutorialOverlayEntry!.markNeedsBuild();
-    }
-  }
-
-  void _removeTutorialOverlay() {
-    if (_tutorialOverlayEntry != null) {
-      _tutorialOverlayEntry!.remove();
-      _tutorialOverlayEntry = null;
     }
   }
 
@@ -142,8 +124,8 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       body: SafeArea(
-        // チュートリアル中のStep 16（カレンダー選択案内）まではTasksScreenを表示
-        child: pages[(isTutorial && (appState.tutorialStep ?? 0) < 16) ? 0 : _index],
+        // チュートリアル中のStep 17（カレンダー選択案内）まではTasksScreenを表示
+        child: pages[(isTutorial && (appState.tutorialStep ?? 0) < 17) ? 0 : _index],
       ),
       floatingActionButton: (_index == 0 && (!isTutorial || appState.tutorialStep == 1))
           ? FloatingActionButton.extended(
@@ -154,15 +136,15 @@ class _HomeScreenState extends State<HomeScreen> {
             )
           : null,
       bottomNavigationBar: NavigationBar(
-        key: isTutorial ? appState.tutorialKeys[16] : null,
-        // チュートリアル中のStep 16まではタスクタブ（0）を選択状態に固定
-        selectedIndex: (isTutorial && (appState.tutorialStep ?? 0) < 16) ? 0 : _index,
+        key: isTutorial ? appState.tutorialKeys[17] : null,
+        // チュートリアル中のStep 17まではタスクタブ（0）を選択状態に固定
+        selectedIndex: (isTutorial && (appState.tutorialStep ?? 0) < 17) ? 0 : _index,
         onDestinationSelected: (value) {
           if (isTutorial) {
-            // チュートリアル中かつStep 16（カレンダー選択案内）のときのみカレンダーへの遷移を許可
-            if (appState.tutorialStep == 16 && value == 1) {
+            // チュートリアル中かつStep 17（カレンダー選択案内）のときのみカレンダーへの遷移を許可
+            if (appState.tutorialStep == 17 && value == 1) {
               setState(() => _index = value);
-              appState.setTutorialStep(17);
+              appState.setTutorialStep(18);
             }
             return;
           }

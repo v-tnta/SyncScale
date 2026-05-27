@@ -9,6 +9,7 @@ import 'screens/auth_gate.dart';
 import 'services/auth_service.dart';
 import 'services/syncscale_repository.dart';
 import 'state/syncscale_state.dart';
+import 'widgets/tutorial_guide_overlay.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -61,6 +62,14 @@ class SyncScaleApp extends StatelessWidget {
         ),
       ),
       home: const AuthGate(),
+      builder: (context, child) {
+        return Stack(
+          children: [
+            if (child != null) child,
+            const TutorialGuideOverlayWrapper(),
+          ],
+        );
+      },
     );
   }
 }
