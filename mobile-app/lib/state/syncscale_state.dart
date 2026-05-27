@@ -97,9 +97,11 @@ class SyncScaleState extends ChangeNotifier {
     dataLoading = true;
     errorMessage = null;
 
-    repository.markMobileAsInstalled(userId).catchError((e) {
-      debugPrint('Failed to mark mobile as installed: $e');
-    });
+    if (!kIsWeb) {
+      repository.markMobileAsInstalled(userId).catchError((e) {
+        debugPrint('Failed to mark mobile as installed: $e');
+      });
+    }
 
     _onboardingSubscription = repository
         .watchOnboarding(userId)

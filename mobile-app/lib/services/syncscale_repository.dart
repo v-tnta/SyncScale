@@ -139,6 +139,8 @@ class SyncScaleRepository {
     await _firestore.collection('onboarding').doc(userId).set({
       'step4': false,
       'completed': false,
+      'mobileInstalled': false,
+      'mobilePromoDismissedAt': FieldValue.delete(),
     }, SetOptions(merge: true));
   }
 
