@@ -360,6 +360,19 @@ const DynamicTutorialGuide = ({
 
     // ツールチップの配置位置を計算 (対象要素の近くに配置)
     const getTooltipStyle = () => {
+        // step 12 (コンディション入力) と step 14 (振り返り詳細) は
+        // 画面中央に大きなダイアログが表示されるため、被り防止で画面最上部に固定する
+        if (step === 12 || step === 14) {
+            return {
+                position: 'fixed',
+                top: '12px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                width: '360px',
+                zIndex: 100
+            };
+        }
+
         if (!targetRect) {
             // ターゲットなし (最終ステップ等) → 画面中央
             return {

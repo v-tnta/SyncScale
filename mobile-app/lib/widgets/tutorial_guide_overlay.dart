@@ -292,7 +292,7 @@ class _TutorialGuideOverlayState extends State<TutorialGuideOverlay> {
       // 案内カードが被らないよう画面最上部付近に固定配置します。
       if (step == 12 || step == 14) {
         return Positioned(
-          top: MediaQuery.of(context).padding.top + 16.0,
+          top: 12.0,
           left: cardLeft,
           right: cardRight,
           child: _buildCardContent(context, appState, step, details),
