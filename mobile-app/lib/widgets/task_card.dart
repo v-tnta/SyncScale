@@ -60,7 +60,7 @@ class TaskCard extends StatelessWidget {
                         if (task.sizeLabel != null &&
                             task.sizeLabel!.isNotEmpty)
                           _ChipText(label: task.sizeLabel!),
-                        _ChipText(label: task.status.label),
+                        _statusChip(task.status),
                       ],
                     ),
                   ],
@@ -72,6 +72,25 @@ class TaskCard extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _statusChip(TaskStatus status) {
+    Color? textColor;
+    Color? backgroundColor;
+
+    if (status == TaskStatus.doing) {
+      textColor = const Color(0xFFEA580C);
+      backgroundColor = const Color(0xFFFFEDD5);
+    } else if (status == TaskStatus.done) {
+      textColor = const Color(0xFF16A34A);
+      backgroundColor = const Color(0xFFDCFCE7);
+    }
+
+    return _ChipText(
+      label: status.label,
+      textColor: textColor,
+      backgroundColor: backgroundColor,
     );
   }
 
@@ -90,17 +109,24 @@ class TaskCard extends StatelessWidget {
 }
 
 class _ChipText extends StatelessWidget {
-  const _ChipText({required this.label, this.icon, this.danger = false});
+  const _ChipText({
+    required this.label,
+    this.icon,
+    this.danger = false,
+    this.textColor,
+    this.backgroundColor,
+  });
 
   final String label;
   final IconData? icon;
   final bool danger;
+  final Color? textColor;
+  final Color? backgroundColor;
 
   @override
   Widget build(BuildContext context) {
-    final color = danger ? const Color(0xFFB91C1C) : const Color(0xFF334155);
-    final background =
-        danger ? const Color(0xFFFEE2E2) : const Color(0xFFF1F5F9);
+    final color = textColor ?? (danger ? const Color(0xFFB91C1C) : const Color(0xFF334155));
+    final background = backgroundColor ?? (danger ? const Color(0xFFFEE2E2) : const Color(0xFFF1F5F9));
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),

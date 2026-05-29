@@ -11,30 +11,32 @@ const Layout = ({ children, tasks, onTaskClick }) => {
     const [isSettingsOpen, setIsSettingsOpen] = React.useState(false);
     return (
         <div className="flex flex-col min-h-screen md:h-screen bg-gray-50 text-gray-800 md:overflow-hidden transition-colors duration-200">
-            {/* ヘッダーエリア */}
-            <header className="bg-white border-b border-gray-200/50 p-3 sticky top-0 z-10 flex-shrink-0 transition-colors duration-200">
+            {/* ヘッダーエリア (縦幅をスリム化するため、パディングを py-1.5 px-3 に変更) */}
+            <header className="bg-white border-b border-gray-200/50 py-1.5 px-3 sticky top-0 z-10 flex-shrink-0 transition-colors duration-200">
                 <div className="container mx-auto flex justify-between items-center">
                     <div className="flex items-center gap-3">
-                        {/* ロゴ画像 */}
-                        <img src={logo} alt="SyncScale Logo" className="w-10 h-10 object-contain" />
+                        {/* ロゴ画像 (ヘッダーの圧迫感を抑えるため、w-16 h-16 に微調整) */}
+                        <img src={logo} alt="SyncScale Logo" className="w-16 h-16 object-contain" />
                         <div>
                             <h1 className="text-2xl font-black tracking-tight text-gray-900 leading-none">{APP_INFO.NAME}</h1>
                         </div>
                         <p className="text-[15px] font-medium text-gray-400 mt-1 tracking-wider">v{APP_INFO.VERSION}</p>
                     </div>
                     {currentUser && (
-                        <div className="flex items-center gap-3">
-                            <button
-                                onClick={() => setIsSettingsOpen(true)}
-                                className="text-sm bg-gray-100 hover:bg-gray-200 transition-colors p-2 px-3.5 rounded-xl font-medium text-gray-700 flex items-center justify-center border border-gray-200/80 shadow-sm"
-                                title="設定"
-                            >
-                                ⚙️ 設定
-                            </button>
+                        /* 設定とユーザーアバターを統合した横長ボタン */
+                        <button
+                            onClick={() => setIsSettingsOpen(true)}
+                            className="flex items-center gap-2.5 bg-white hover:bg-gray-50 active:bg-gray-100 transition-all py-1.5 px-3.5 rounded-2xl border border-gray-200 shadow-sm text-gray-750 group"
+                            title="アカウント設定を開く"
+                        >
                             {currentUser.photoURL && (
-                                <img src={currentUser.photoURL} alt={currentUser.displayName} className="w-8 h-8 rounded-full shadow-sm" />
+                                <img src={currentUser.photoURL} alt={currentUser.displayName} className="w-7 h-7 rounded-full object-cover border border-gray-200/50 shadow-sm" />
                             )}
-                        </div>
+                            <span className="text-[13.5px] font-bold text-gray-700 max-w-[100px] truncate group-hover:text-gray-900 transition-colors">
+                                {currentUser.displayName || 'ユーザー'}
+                            </span>
+                            <span className="text-[14px] text-gray-400 group-hover:text-gray-600 transition-colors ml-0.5">⚙️</span>
+                        </button>
                     )}
                 </div>
             </header>

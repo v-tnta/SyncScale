@@ -10,8 +10,12 @@ class ConditionResult {
 }
 
 Future<ConditionResult?> showConditionDialog(BuildContext context) {
+  final appState = SyncScaleScope.of(context);
+  final isTutorial = appState.isTutorialActive && appState.tutorialStep == 15;
+
   return showDialog<ConditionResult>(
     context: context,
+    barrierDismissible: !isTutorial,
     builder: (context) => const ConditionDialog(),
   );
 }
@@ -38,7 +42,7 @@ class _ConditionDialogState extends State<ConditionDialog> {
     final appState = SyncScaleScope.of(context);
 
     return AlertDialog(
-      key: appState.isTutorialActive ? appState.tutorialKeys[13] : null,
+      key: appState.isTutorialActive ? appState.tutorialKeys[15] : null,
       title: const Text('提出時のコンディション'),
       content: Column(
         mainAxisSize: MainAxisSize.min,
@@ -76,7 +80,9 @@ class _ConditionDialogState extends State<ConditionDialog> {
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: (appState.isTutorialActive && appState.tutorialStep == 15)
+              ? null
+              : () => Navigator.of(context).pop(),
           child: const Text('キャンセル'),
         ),
         FilledButton(

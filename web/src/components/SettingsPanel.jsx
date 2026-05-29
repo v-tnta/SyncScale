@@ -7,7 +7,7 @@ import { ConsentWithdrawModal } from "./ConsentWithdrawModal";
 import { ConfirmModal } from "./ConfirmModal";
 
 export function SettingsPanel({ isOpen, onClose }) {
-    const { logout } = useAuth();
+    const { currentUser, logout } = useAuth();
     const { withdrawConsent } = useConsent();
     const { resetTutorial } = useOnboarding();
     const navigate = useNavigate();
@@ -86,6 +86,19 @@ export function SettingsPanel({ isOpen, onClose }) {
                                 ✕
                             </button>
                         </div>
+
+                        {/* ログイン中のユーザー情報表示 */}
+                        {currentUser && (
+                            <div className="flex items-center gap-4 bg-gray-50 border border-gray-200 p-4 rounded-2xl">
+                                {currentUser.photoURL && (
+                                    <img src={currentUser.photoURL} alt={currentUser.displayName} className="w-12 h-12 rounded-full object-cover border border-gray-200 shadow-sm" />
+                                )}
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-[15px] font-bold text-gray-800 truncate leading-snug">{currentUser.displayName || "ユーザー"}</p>
+                                    <p className="text-xs text-gray-400 truncate mt-0.5">{currentUser.email || "メールアドレス未設定"}</p>
+                                </div>
+                            </div>
+                        )}
 
                         {/* 設定メニュー */}
                         <div className="space-y-3">

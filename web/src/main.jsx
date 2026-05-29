@@ -1,15 +1,21 @@
 // スマホ判定と双方向リダイレクト処理
 const checkAndRedirect = () => {
-  // 画面幅による不安定な判定を排除し、純粋な userAgent のみで判定
-  const isMobile = /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  // 画面の横幅（768px以下）または ユーザーエージェント からスマホ判定を行う
+  // これにより、PCブラウザでウィンドウサイズを小さくした際にも自動で移行するようになります
+  const isMobileSize = window.innerWidth <= 768; // 一般的なスマホのブレイクポイント
+  const isMobileUA = /Mobi|Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  const isMobile = isMobileSize || isMobileUA;
+
   const isCurrentlyOnMobilePage = window.location.pathname.startsWith('/svc/mobile');
   const isSvcPath = window.location.pathname.startsWith('/svc/');
 
   if (isMobile && !isCurrentlyOnMobilePage && isSvcPath) {
     // スマホ判定かつ /svc/ 配下のPC版ページにいる場合はモバイル版へリダイレクト
-    window.location.href = '/svc/mobile/home.html';
+    // web/vite.config.js のミドルウェア設定により、末尾スラッシュ止めのままでも
+    // 正しく /svc/mobile/index.html がロードされ、SPAフォールバックを防ぐことができます。
+    window.location.href = '/svc/mobile/';
   } else if (!isMobile && isCurrentlyOnMobilePage) {
-    // PC判定かつモバイル版ページにいる場合はPC版へリダイレクト
+    // PC判定かつモバイル版ページにいる場合はPC版のトップへリダイレクト
     window.location.href = '/';
   }
 };

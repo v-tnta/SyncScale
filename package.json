@@ -12,6 +12,7 @@
     "dev": "npm run dev:web & npm run dev:ext",
     "build:web": "npm run build -w web",
     "build:ext": "npm run build -w chrome-extension",
+    "build:mobile-web": "node scripts/build-flutter-web.js",
     "build": "npm run build:web && npm run build:ext"
   }
 }

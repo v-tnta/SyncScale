@@ -278,11 +278,14 @@ class SyncScaleState extends ChangeNotifier {
     10: GlobalKey(debugLabel: 'tutorial_step_10'), // 詳細の「タイマーパネル」
     11: GlobalKey(debugLabel: 'tutorial_step_11'), // 詳細の「作業ログを手入力」ボタン
     12: GlobalKey(debugLabel: 'tutorial_step_12'), // 作業ログダイアログ全体
-    13: GlobalKey(debugLabel: 'tutorial_step_13'), // 詳細の「提出完了にする」ボタン
-    14: GlobalKey(debugLabel: 'tutorial_step_14'), // コンディションダイアログ全体
-    15: GlobalKey(debugLabel: 'tutorial_step_15'), // 完了タスクカード
-    16: GlobalKey(debugLabel: 'tutorial_step_16'), // 詳細のコンディション振り返りパネル
-    17: GlobalKey(debugLabel: 'tutorial_step_17'), // NavigationBar 全体（カレンダータブ案内用）
+    13: GlobalKey(debugLabel: 'tutorial_step_13'), // 詳細の「作業実績」パネル
+    14: GlobalKey(debugLabel: 'tutorial_step_14'), // 詳細の「提出完了にする」ボタン
+    15: GlobalKey(debugLabel: 'tutorial_step_15'), // コンディションダイアログ全体
+    16: GlobalKey(debugLabel: 'tutorial_step_16'), // 完了タスクカード
+    17: GlobalKey(debugLabel: 'tutorial_step_17'), // 詳細の振り返り全体
+    18: GlobalKey(debugLabel: 'tutorial_step_18'), // 詳細を閉じる
+    19: GlobalKey(debugLabel: 'tutorial_step_19'), // NavigationBar 全体（カレンダータブ案内用）
+    20: GlobalKey(debugLabel: 'tutorial_step_20'), // カレンダー全体
   };
 
   GlobalKey? get tutorialTargetKey {
@@ -292,9 +295,21 @@ class SyncScaleState extends ChangeNotifier {
   }
 
   int? tutorialStep;
+  String _currentFormTitle = '';
+  String get currentFormTitle => _currentFormTitle;
+  set currentFormTitle(String value) {
+    if (_currentFormTitle != value) {
+      _currentFormTitle = value;
+      notifyListeners();
+    }
+  }
 
-  bool get isTutorialActive =>
-      onboarding != null && onboarding!.step3 == true && onboarding!.step4 == false;
+  bool get isTutorialActive {
+    if (tutorialStep != null && tutorialStep! >= 1 && tutorialStep! <= 21) {
+      return true;
+    }
+    return onboarding != null && onboarding!.step3 == true && onboarding!.step4 == false;
+  }
 
   void initTutorialIfNeeded() {
     if (isTutorialActive) {
@@ -331,7 +346,7 @@ class SyncScaleState extends ChangeNotifier {
   }
 
   void nextTutorialStep() {
-    if (tutorialStep != null && tutorialStep! < 17) {
+    if (tutorialStep != null && tutorialStep! < 21) {
       tutorialStep = tutorialStep! + 1;
       notifyListeners();
     }
@@ -342,6 +357,8 @@ class SyncScaleState extends ChangeNotifier {
     if (user == null) {
       return;
     }
+    tutorialStep = null;
+    notifyListeners();
     await _cleanupTutorialTasks();
     await _run(() => repository.completeTutorial(user.uid));
   }
@@ -372,6 +389,7 @@ class SyncScaleState extends ChangeNotifier {
 
   bool get isMobilePromoOpen {
     if (!kIsWeb) return false;
+    if (isTutorialActive) return false;
     final o = onboarding;
     if (o == null || !o.completed) return false;
     if (o.mobileInstalled == true) return false;

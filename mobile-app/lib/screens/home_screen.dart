@@ -47,8 +47,8 @@ class _HomeScreenState extends State<HomeScreen> {
     if (!mounted) return;
     final state = _appState;
     if (state != null && state.isTutorialActive) {
-      // チュートリアル中のカレンダー遷移前（Step 17未満）であれば_indexを0に強制する
-      if ((state.tutorialStep ?? 0) < 17 && _index != 0) {
+      // チュートリアル中のカレンダー遷移前（Step 19未満）であれば_indexを0に強制する
+      if ((state.tutorialStep ?? 0) < 19 && _index != 0) {
         setState(() {
           _index = 0;
         });
@@ -90,8 +90,8 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Image.asset(
               'assets/images/logo.png',
-              width: 32,
-              height: 32,
+              width: 56, // 以前の 48 からさらに一回り大きく変更
+              height: 56, // 以前の 48 からさらに一回り大きく変更
               fit: BoxFit.contain,
             ),
             const SizedBox(width: 8),
@@ -104,7 +104,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(width: 6),
             const Text(
-              'v0.3.0',
+              'v0.3.1',
               style: TextStyle(
                 fontSize: 12,
                 color: Colors.grey,
@@ -124,8 +124,8 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
       body: SafeArea(
-        // チュートリアル中のStep 17（カレンダー選択案内）まではTasksScreenを表示
-        child: pages[(isTutorial && (appState.tutorialStep ?? 0) < 17) ? 0 : _index],
+        // チュートリアル中のStep 19（カレンダー選択案内）まではTasksScreenを表示
+        child: pages[(isTutorial && (appState.tutorialStep ?? 0) < 19) ? 0 : _index],
       ),
       floatingActionButton: (_index == 0 && (!isTutorial || appState.tutorialStep == 1))
           ? FloatingActionButton.extended(
@@ -136,15 +136,15 @@ class _HomeScreenState extends State<HomeScreen> {
             )
           : null,
       bottomNavigationBar: NavigationBar(
-        key: isTutorial ? appState.tutorialKeys[17] : null,
-        // チュートリアル中のStep 17まではタスクタブ（0）を選択状態に固定
-        selectedIndex: (isTutorial && (appState.tutorialStep ?? 0) < 17) ? 0 : _index,
+        key: isTutorial ? appState.tutorialKeys[19] : null,
+        // チュートリアル中のStep 19まではタスクタブ（0）を選択状態に固定
+        selectedIndex: (isTutorial && (appState.tutorialStep ?? 0) < 19) ? 0 : _index,
         onDestinationSelected: (value) {
           if (isTutorial) {
-            // チュートリアル中かつStep 17（カレンダー選択案内）のときのみカレンダーへの遷移を許可
-            if (appState.tutorialStep == 17 && value == 1) {
-              setState(() => _index = value);
-              appState.setTutorialStep(18);
+            // チュートリアル中かつStep 19（カレンダー選択案内）のときのみカレンダーへの遷移を許可
+            if (appState.tutorialStep == 19 && value == 1) {
+               setState(() => _index = value);
+               appState.setTutorialStep(20);
             }
             return;
           }

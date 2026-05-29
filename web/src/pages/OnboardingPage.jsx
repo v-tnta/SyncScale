@@ -56,7 +56,11 @@ export function OnboardingPage() {
                 setCurrentStep(stepNum + 1);
             } else {
                 // ステップ4（動的チュートリアル開始）は、ホーム画面に移動して開始
-                navigate("/svc/home", { replace: true });
+                if (isMobile) {
+                    window.location.href = "/svc/mobile/";
+                } else {
+                    navigate("/svc/home", { replace: true });
+                }
             }
         } catch (error) {
             console.error(`ステップ ${stepNum} の完了処理に失敗しました:`, error);
@@ -152,12 +156,6 @@ export function OnboardingPage() {
                             <p className="text-slate-600 text-sm leading-relaxed">
                                 {ONBOARDING_STEPS.step1.description}
                             </p>
-                            {isMobile && (
-                                <div className="p-4 bg-amber-500/10 border border-amber-500/20 text-amber-700 rounded-xl text-xs flex items-center gap-2">
-                                    <span>⚠️</span>
-                                    <span>{ONBOARDING_STEPS.step1.pcOnlyMessage}</span>
-                                </div>
-                            )}
                             <div className="pt-4 flex flex-col sm:flex-row gap-4">
                                 <a
                                     href={prefilledFormUrl}

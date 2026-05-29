@@ -88,12 +88,6 @@ export function InfoPage() {
                             <p className="text-xs text-slate-500 leading-relaxed">
                                 {ONBOARDING_STEPS.step1.description}
                             </p>
-                            {isMobile && (
-                                <div className="p-3 bg-amber-500/10 border border-amber-500/20 text-amber-700 rounded-xl text-[11px] flex items-start gap-1.5 mt-2">
-                                    <span>⚠️</span>
-                                    <span>{ONBOARDING_STEPS.step1.pcOnlyMessage}</span>
-                                </div>
-                            )}
                         </div>
                         <div className="pt-6">
                             <a
@@ -163,7 +157,13 @@ export function InfoPage() {
                 {/* ホームに戻るボタン */}
                 <div className="relative z-10 flex justify-center pt-4 border-t border-slate-200/60">
                     <button
-                        onClick={() => navigate("/svc/home")}
+                        onClick={() => {
+                            if (isMobile) {
+                                window.location.href = "/svc/mobile/";
+                            } else {
+                                navigate("/svc/home");
+                            }
+                        }}
                         className="py-3.5 px-10 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-2xl text-sm transition duration-300 shadow-lg shadow-slate-900/10 flex items-center gap-2 group"
                     >
                         <span>🏠</span>

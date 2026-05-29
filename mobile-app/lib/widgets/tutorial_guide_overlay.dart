@@ -173,7 +173,7 @@ class _TutorialGuideOverlayState extends State<TutorialGuideOverlay> {
     final appState = SyncScaleScope.of(context);
     final step = appState.tutorialStep;
 
-    if (step == null || step < 1 || step > 18) {
+    if (step == null || step < 1 || step > 21) {
       return const SizedBox.shrink();
     }
 
@@ -196,7 +196,7 @@ class _TutorialGuideOverlayState extends State<TutorialGuideOverlay> {
     final maskColor = inflatedRect == null ? Colors.transparent : const Color(0x730F172A); // rgba(15, 23, 42, 0.45)
 
     Widget buildMasksAndHighlight() {
-      if (inflatedRect == null || step == 18) {
+      if (inflatedRect == null || step == 21) {
         return Container(color: maskColor);
       }
 
@@ -267,7 +267,7 @@ class _TutorialGuideOverlayState extends State<TutorialGuideOverlay> {
       const double cardLeft = 16.0;
       const double cardRight = 16.0;
 
-      if (inflatedRect == null || step == 18) {
+      if ((inflatedRect == null && step != 17 && step != 18) || step == 21) {
         return Center(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -299,8 +299,8 @@ class _TutorialGuideOverlayState extends State<TutorialGuideOverlay> {
         );
       }
 
-      final top = inflatedRect.top;
-      final bottom = inflatedRect.bottom;
+      final top = inflatedRect?.top ?? 0.0;
+      final bottom = inflatedRect?.bottom ?? 0.0;
       final spaceAbove = top;
       final spaceBelow = screenSize.height - bottom;
 
@@ -333,7 +333,7 @@ class _TutorialGuideOverlayState extends State<TutorialGuideOverlay> {
             child: buildMasksAndHighlight(),
           ),
         ),
-        if (step == 16)
+        if (step == 18)
           const Center(
             child: IgnorePointer(
               child: _SwipeArrowAnimator(),
@@ -386,7 +386,7 @@ class _TutorialGuideOverlayState extends State<TutorialGuideOverlay> {
                   ),
                 ),
                 Text(
-                  step <= 17 ? '$step / 17' : '完了',
+                  step <= 20 ? '$step / 20' : '完了',
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
@@ -414,7 +414,7 @@ class _TutorialGuideOverlayState extends State<TutorialGuideOverlay> {
                 height: 1.5,
               ),
             ),
-            if (details.showNext || step == 18) ...[
+            if (details.showNext || step == 21) ...[
               const SizedBox(height: 16),
               FilledButton(
                 style: FilledButton.styleFrom(
@@ -425,14 +425,22 @@ class _TutorialGuideOverlayState extends State<TutorialGuideOverlay> {
                   backgroundColor: Colors.blue.shade600,
                 ),
                 onPressed: () async {
-                  if (step == 18) {
+                  if (step == 2) {
+                    if (appState.currentFormTitle.trim().isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('タスク名を入力してください。')),
+                      );
+                      return;
+                    }
+                  }
+                  if (step == 21) {
                     await appState.completeTutorial();
                   } else {
                     appState.nextTutorialStep();
                   }
                 },
                 child: Text(
-                  step == 18 ? 'サービスに戻る' : '次へ進む →',
+                  step == 21 ? 'サービスに戻る' : '次へ進む →',
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
@@ -441,12 +449,12 @@ class _TutorialGuideOverlayState extends State<TutorialGuideOverlay> {
                 ),
               ),
             ],
-            if (step <= 17) ...[
+            if (step <= 20) ...[
               const SizedBox(height: 12),
               ClipRRect(
                 borderRadius: BorderRadius.circular(10),
                 child: LinearProgressIndicator(
-                  value: step / 17,
+                  value: step / 20,
                   minHeight: 4,
                   backgroundColor: Colors.grey.shade100,
                   valueColor: AlwaysStoppedAnimation<Color>(Colors.blue.shade600),
@@ -463,107 +471,125 @@ class _TutorialGuideOverlayState extends State<TutorialGuideOverlay> {
     switch (step) {
       case 1:
         return const _StepDetails(
-          title: '1/17. 登録フォームを開きましょう ➕',
+          title: '1/20. 登録フォームを開きましょう ➕',
           desc: '画面右下にある「タスクを登録」ボタンをタップして、課題の登録フォームを開いてみましょう。',
           showNext: false,
         );
       case 2:
         return const _StepDetails(
-          title: '2/17. 課題名を入力しましょう ✏️',
+          title: '2/20. 課題名を入力しましょう ✏️',
           desc: 'タスクフォームの「タスク名」入力欄に、『線形代数のレポート』と入力してみましょう。',
           showNext: true,
         );
       case 3:
         return const _StepDetails(
-          title: '3/17. 締切日時の確認 📅',
+          title: '3/20. 締切日時の確認 📅',
           desc: 'ここで締め切り時間を変更できます。\nチュートリアルでは当日の23:59に固定されています。',
           showNext: true,
         );
       case 4:
         return const _StepDetails(
-          title: '4/17. 規模感を選択しましょう 📊',
+          title: '4/20. 規模感を選択しましょう 📊',
           desc: '課題の規模感（S/M/L）を選択してみましょう。\nご自身の思う基準で結構です！',
           showNext: true,
         );
       case 5:
         return const _StepDetails(
-          title: '5/17. 課題を登録しましょう 🚀',
+          title: '5/20. 課題を登録しましょう 🚀',
           desc: '入力ができたら、「タスクを登録」ボタンを押して課題を追加しましょう！',
           showNext: false,
         );
       case 6:
         return const _StepDetails(
-          title: '6/17. 課題の詳細を開きましょう 🔍',
+          title: '6/20. 課題の詳細を開きましょう 🔍',
           desc: '課題がリストに追加されました！\n追加された『線形代数のレポート』をクリックして、詳細画面を開いてみましょう。',
           showNext: false,
         );
       case 7:
         return const _StepDetails(
-          title: '7/17. タスク詳細画面です 🔍',
+          title: '7/20. タスク詳細画面です 🔍',
           desc: 'ここがタスク詳細画面です。\n課題の情報の編集や、作業時間の記録、提出完了の操作などをここから行えます。',
           showNext: true,
         );
       case 8:
         return const _StepDetails(
-          title: '8/17. 課題の編集機能 ✏️',
+          title: '8/20. 課題の編集機能 ✏️',
           desc: 'こちらの編集ボタン（鉛筆アイコン）から、課題のタイトルや締切、規模感（S/M/L）をいつでも編集できます。',
           showNext: true,
         );
       case 9:
         return const _StepDetails(
-          title: '9/17. 課題の削除機能 🗑️',
+          title: '9/20. 課題の削除機能 🗑️',
           desc: 'こちらの完全削除ボタン（ゴミ箱アイコン）から、課題を削除できます。\n予定が変わった時や、誤って登録した時に使用します。',
           showNext: true,
         );
       case 10:
         return const _StepDetails(
-          title: '10/17. タイマーで記録することもできます ⏱️',
+          title: '10/20. タイマーで記録することもできます ⏱️',
           desc: '作業時間は、こちらのタイマーパネルで実際に測って記録することも可能です。\n今回は「作業ログを手入力」から進めます。',
           showNext: true,
         );
       case 11:
         return const _StepDetails(
-          title: '11/17. 手動できろくしましょう ⏱️',
+          title: '11/20. 手動できろくしましょう ⏱️',
           desc: '作業時間はタイマーでも計れますが、今回は「作業ログを手入力」をタップして手動で記録してみましょう。',
           showNext: false,
         );
       case 12:
         return const _StepDetails(
-          title: '12/17. 作業時間を記録しましょう 📝',
+          title: '12/20. 作業時間を記録しましょう 📝',
           desc: '作業時間（例: 30分）を入力し、「保存」をクリックして時間を記録してみましょう。',
           showNext: false,
         );
       case 13:
         return const _StepDetails(
-          title: '13/17. 課題を提出完了にしましょう 🏆',
-          desc: '時間の記録が終わりました！詳細画面にある「提出完了にする」ボタンをクリックして、課題を提出してください。',
-          showNext: false,
+          title: '13/20. 作業実績を確認しましょう 📋',
+          desc: '先ほど入力した作業時間が追加されていることを確認しましょう。',
+          showNext: true,
         );
       case 14:
         return const _StepDetails(
-          title: '14/17. 今のコンディションを記録しましょう 😊',
-          desc: '今の気分（良・中・悪）を選択し、ひとことメモ（任意）を入力して「記録して提出完了」をクリックしてください。',
+          title: '14/20. 課題を提出完了にしましょう 🏆',
+          desc: '時間の記録が終わりました！詳細画面にある「提出完了にする」ボタンをクリックして、課題を提出してください。',
           showNext: false,
         );
       case 15:
         return const _StepDetails(
-          title: '15/17. 完了したタスクを確認しましょう 🏆',
-          desc: '課題が完了しました！下にスクロールして「完了したタスク」セクションにある『線形代数のレポート』をタップし、詳細画面を開きましょう。',
+          title: '15/20. 今のコンディションを記録しましょう 😊',
+          desc: '今の気分（良・中・悪）を選択し、ひとことメモ（任意）を入力して「記録して提出完了」をクリックしてください。',
           showNext: false,
         );
       case 16:
         return const _StepDetails(
-          title: '16/17. 振り返りを確認しましょう 📊',
-          desc: '完了した課題のコンディションや作業ログが表示されます。\n\n確認したら、詳細画面を下に向かってスワイプして閉じてください。 ↓',
+          title: '16/20. 完了したタスクを確認しましょう 🏆',
+          desc: '課題が完了しました！下にスクロールして「完了したタスク」セクションにある『線形代数のレポート』をタップし、詳細画面を開きましょう。',
           showNext: false,
         );
       case 17:
         return const _StepDetails(
-          title: '17/17. カレンダーで振り返りを確認しましょう 📅',
+          title: '17/20. 振り返りを確認しましょう 📊',
+          desc: '完了した課題のコンディションや作業実績が表示されます。',
+          showNext: true,
+        );
+      case 18:
+        return const _StepDetails(
+          title: '18/20. 詳細画面を閉じましょう ❌',
+          desc: '詳細画面を下に向かってスワイプして閉じてください。 ↓',
+          showNext: false,
+        );
+      case 19:
+        return const _StepDetails(
+          title: '19/20. カレンダーで振り返りを確認しましょう 📅',
           desc: 'カレンダータブをタップして、完了した課題がどのようにカレンダー上に表示されているか確認しましょう。',
           showNext: false,
         );
-      case 18:
+      case 20:
+        return const _StepDetails(
+          title: '20/20. カレンダー全体を確認しましょう 📅',
+          desc: 'カレンダー画面では、過去に完了したタスクの規模感や締切日を一覧で確認することができます。',
+          showNext: true,
+        );
+      case 21:
         return const _StepDetails(
           title: 'チュートリアル完了！ 🎉',
           desc: 'お疲れ様でした！これで基本的な操作はマスターです。\nSyncScaleには、manabaから課題を自動インポートできる便利なChrome拡張機能も備わっています。\nそれでは実際に使い始めてみましょう！',

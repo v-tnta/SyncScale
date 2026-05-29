@@ -57,4 +57,5 @@ npm run dev
 ## 📄 共通ドキュメント
 
 - [コンセプト](docs/concept.md) — プロジェクト全体の動機・目的・手法
+- [Flutter Web ビルド・統合手順](docs/FLUTTER_WEB_BUILD.md) — モバイル版をWeb版に組み込むための手順
 # SyncScale

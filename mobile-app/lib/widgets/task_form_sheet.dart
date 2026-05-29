@@ -5,9 +5,17 @@ import '../state/syncscale_state.dart';
 import 'formatters.dart';
 
 Future<void> showTaskFormSheet(BuildContext context, {Task? task}) {
+  final appState = SyncScaleScope.of(context);
+  final isTutorialForm = appState.isTutorialActive &&
+      appState.tutorialStep != null &&
+      appState.tutorialStep! >= 1 &&
+      appState.tutorialStep! <= 5;
+
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
+    enableDrag: !isTutorialForm,
+    isDismissible: !isTutorialForm,
     showDragHandle: true,
     builder: (context) => TaskFormSheet(task: task),
   );
@@ -58,11 +66,7 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
     if (!mounted) return;
     try {
       final appState = SyncScaleScope.of(context);
-      if (appState.tutorialStep == 2) {
-        if (_titleController.text.trim().contains('線形代数のレポート')) {
-          appState.setTutorialStep(3);
-        }
-      }
+      appState.currentFormTitle = _titleController.text;
     } catch (_) {}
   }
 
@@ -70,6 +74,10 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
   void dispose() {
     _titleController.removeListener(_onTitleChanged);
     _titleController.dispose();
+    try {
+      final appState = SyncScaleScope.of(context);
+      appState.currentFormTitle = '';
+    } catch (_) {}
     super.dispose();
   }
 
@@ -78,60 +86,76 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
     final appState = SyncScaleScope.of(context);
     final bottom = MediaQuery.of(context).viewInsets.bottom;
 
-    return Padding(
-      padding: EdgeInsets.fromLTRB(20, 0, 20, bottom + 20),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            _isEditing ? 'タスクを編集' : 'タスクを登録',
-            style: Theme.of(
-              context,
-            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            key: appState.isTutorialActive ? appState.tutorialKeys[2] : null,
-            controller: _titleController,
-            decoration: const InputDecoration(
-              labelText: 'タスク名',
-              border: OutlineInputBorder(),
+    final isTutorialForm = appState.isTutorialActive &&
+        appState.tutorialStep != null &&
+        appState.tutorialStep! >= 2 &&
+        appState.tutorialStep! <= 5;
+
+    return PopScope(
+      canPop: !isTutorialForm,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+      },
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(20, 8, 20, bottom + 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              _isEditing ? 'タスクを編集' : 'タスクを登録',
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
             ),
-            textInputAction: TextInputAction.next,
-            onSubmitted: (_) => _onTitleChanged(),
-          ),
-          const SizedBox(height: 12),
-          OutlinedButton.icon(
-            key: appState.isTutorialActive ? appState.tutorialKeys[3] : null,
-            onPressed: appState.isTutorialActive ? () {} : _pickDeadline,
-            icon: const Icon(Icons.event),
-            label: Text('締切: ${formatDateTime(_deadline)}'),
-          ),
-          const SizedBox(height: 12),
-          SegmentedButton<String>(
-            key: appState.isTutorialActive ? appState.tutorialKeys[4] : null,
-            emptySelectionAllowed: true,
-            selected: _sizeLabel == null ? <String>{} : {_sizeLabel!},
-            onSelectionChanged: (selection) {
-              setState(
-                () => _sizeLabel = selection.isEmpty ? null : selection.first,
-              );
-            },
-            segments: const [
-              ButtonSegment(value: 'S', label: Text('S')),
-              ButtonSegment(value: 'M', label: Text('M')),
-              ButtonSegment(value: 'L', label: Text('L')),
-            ],
-          ),
-          const SizedBox(height: 16),
-          FilledButton.icon(
-            key: appState.isTutorialActive ? appState.tutorialKeys[5] : null,
-            onPressed: _save,
-            icon: Icon(_isEditing ? Icons.save : Icons.add),
-            label: Text(_isEditing ? '保存' : 'タスクを登録'),
-          ),
-        ],
+            const SizedBox(height: 16),
+            TextField(
+              key: appState.isTutorialActive ? appState.tutorialKeys[2] : null,
+              controller: _titleController,
+              decoration: const InputDecoration(
+                labelText: 'タスク名',
+                border: OutlineInputBorder(),
+              ),
+              textInputAction: TextInputAction.next,
+              onSubmitted: (_) => _onTitleChanged(),
+            ),
+            const SizedBox(height: 12),
+            OutlinedButton.icon(
+              key: appState.isTutorialActive ? appState.tutorialKeys[3] : null,
+              onPressed: appState.isTutorialActive ? () {} : _pickDeadline,
+              icon: const Icon(Icons.event),
+              label: Text('締切: ${formatDateTime(_deadline)}'),
+            ),
+            const SizedBox(height: 12),
+            SegmentedButton<String>(
+              key: appState.isTutorialActive ? appState.tutorialKeys[4] : null,
+              emptySelectionAllowed: true,
+              selected: _sizeLabel == null ? <String>{} : {_sizeLabel!},
+              onSelectionChanged: (selection) {
+                setState(
+                  () => _sizeLabel = selection.isEmpty ? null : selection.first,
+                );
+              },
+              segments: const [
+                ButtonSegment(value: 'S', label: Text('S')),
+                ButtonSegment(value: 'M', label: Text('M')),
+                ButtonSegment(value: 'L', label: Text('L')),
+              ],
+            ),
+            const SizedBox(height: 16),
+            FilledButton.icon(
+              key: appState.isTutorialActive ? appState.tutorialKeys[5] : null,
+              onPressed: (appState.isTutorialActive &&
+                      appState.tutorialStep != null &&
+                      appState.tutorialStep! >= 2 &&
+                      appState.tutorialStep! <= 4)
+                  ? () {} // 無効化 (色はそのままでタップは無反応)
+                  : _save,
+              icon: Icon(_isEditing ? Icons.save : Icons.add),
+              label: Text(_isEditing ? '保存' : 'タスクを登録'),
+            ),
+          ],
+        ),
       ),
     );
   }

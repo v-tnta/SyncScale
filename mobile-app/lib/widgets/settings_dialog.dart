@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../state/syncscale_state.dart';
 
 class SettingsDialog extends StatefulWidget {
@@ -90,6 +91,71 @@ class _SettingsDialogState extends State<SettingsDialog> {
                     ),
                     const Divider(height: 24, color: Color(0xFFE2E8F0)),
 
+                    if (appState.currentUser != null) ...[
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF8FAFC),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                        ),
+                        child: Row(
+                          children: [
+                            ClipOval(
+                              child: appState.currentUser?.photoURL != null && appState.currentUser!.photoURL!.isNotEmpty
+                                  ? Image.network(
+                                      appState.currentUser!.photoURL!,
+                                      width: 48,
+                                      height: 48,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (context, error, stackTrace) {
+                                        return Container(
+                                          width: 48,
+                                          height: 48,
+                                          color: const Color(0xFFF1F5F9),
+                                          child: const Icon(Icons.person, size: 24, color: Colors.grey),
+                                        );
+                                      },
+                                    )
+                                  : Container(
+                                      width: 48,
+                                      height: 48,
+                                      color: const Color(0xFFF1F5F9),
+                                      child: const Icon(Icons.person, size: 24, color: Colors.grey),
+                                    ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    appState.currentUser!.displayName ?? 'ユーザー',
+                                    style: const TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF0F172A),
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    appState.currentUser!.email ?? 'メールアドレス未設定',
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: Color(0xFF64748B),
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                    ],
+
                     // 設定メニュー
                     ListTile(
                       leading: const Text('🔄', style: TextStyle(fontSize: 22)),
@@ -131,6 +197,32 @@ class _SettingsDialogState extends State<SettingsDialog> {
                           await _runAction('チュートリアルを準備中...', () async {
                             await appState.resetTutorial();
                           });
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 12),
+
+                    // 研究参加オンボーディング (/info への遷移)
+                    ListTile(
+                      leading: const Text('📋', style: TextStyle(fontSize: 22)),
+                      title: const Text(
+                        '研究参加オンボーディング',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                      ),
+                      subtitle: const Text(
+                        'アンケートやリンクを再確認する',
+                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: const BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                      onTap: () async {
+                        final uri = Uri.parse('/info');
+                        try {
+                          await launchUrl(uri, webOnlyWindowName: '_self');
+                        } catch (e) {
+                          debugPrint('Failed to launch /info: $e');
                         }
                       },
                     ),

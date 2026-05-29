@@ -5,8 +5,14 @@ import '../models/time_log.dart';
 import '../state/syncscale_state.dart';
 
 Future<void> showManualLogDialog(BuildContext context, Task task) {
+  final appState = SyncScaleScope.of(context);
+  final isTutorial = appState.isTutorialActive &&
+      appState.tutorialStep == 12 &&
+      task.isTutorialTask;
+
   return showDialog<void>(
     context: context,
+    barrierDismissible: !isTutorial,
     builder: (context) => ManualLogDialog(task: task),
   );
 }
@@ -54,7 +60,11 @@ class _ManualLogDialogState extends State<ManualLogDialog> {
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: (appState.isTutorialActive &&
+                  appState.tutorialStep == 12 &&
+                  widget.task.isTutorialTask)
+              ? null
+              : () => Navigator.of(context).pop(),
           child: const Text('キャンセル'),
         ),
         FilledButton(onPressed: _save, child: const Text('保存')),

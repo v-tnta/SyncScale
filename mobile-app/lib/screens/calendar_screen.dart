@@ -44,6 +44,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final totalCells = daysInMonth + offset;
 
     return ListView(
+      key: (appState.isTutorialActive && appState.tutorialStep == 20)
+          ? appState.tutorialKeys[20]
+          : null,
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
       children: [
         // 月切り替えヘッダー
