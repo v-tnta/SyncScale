@@ -1,4 +1,5 @@
 import React from 'react';
+import appConfig from '@shared/app_config.json';
 
 /**
  * モバイルアプリインストール促進モーダル
@@ -6,6 +7,9 @@ import React from 'react';
  */
 const MobileAppPromoModal = ({ isOpen, onClose, iosUrl, androidUrl }) => {
     if (!isOpen) return null;
+
+    const finalIosUrl = iosUrl || appConfig.iosStoreUrl;
+    const finalAndroidUrl = androidUrl || appConfig.androidStoreUrl;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -40,7 +44,7 @@ const MobileAppPromoModal = ({ isOpen, onClose, iosUrl, androidUrl }) => {
                 {/* ストアリンク */}
                 <div className="grid grid-cols-1 gap-3 pt-2">
                     <a
-                        href={iosUrl || "https://apps.apple.com/app/syncscale"}
+                        href={finalIosUrl}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="py-3.5 px-6 bg-neutral-800 hover:bg-neutral-700 text-white font-bold rounded-2xl text-center transition duration-300 text-sm flex items-center justify-center gap-2.5 shadow-lg shadow-neutral-800/15"
@@ -48,7 +52,7 @@ const MobileAppPromoModal = ({ isOpen, onClose, iosUrl, androidUrl }) => {
                         <span></span> App Store からダウンロード (iOS)
                     </a>
                     <a
-                        href={androidUrl || "https://play.google.com/store/apps/details?id=app.syncscale"}
+                        href={finalAndroidUrl}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="py-3.5 px-6 bg-neutral-800 hover:bg-neutral-700 text-white font-bold rounded-2xl text-center transition duration-300 text-sm flex items-center justify-center gap-2.5 shadow-lg shadow-neutral-800/15"

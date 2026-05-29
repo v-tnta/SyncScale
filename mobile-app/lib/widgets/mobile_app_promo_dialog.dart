@@ -5,6 +5,16 @@ import '../state/syncscale_state.dart';
 class MobileAppPromoDialog extends StatelessWidget {
   const MobileAppPromoDialog({super.key});
 
+  static const String _iosStoreUrl = String.fromEnvironment(
+    'IOS_STORE_URL',
+    defaultValue: 'https://apps.apple.com/app/syncscale',
+  );
+
+  static const String _androidStoreUrl = String.fromEnvironment(
+    'ANDROID_STORE_URL',
+    defaultValue: 'https://play.google.com/store/apps/details?id=app.syncscale',
+  );
+
   static Future<void> show(BuildContext context) {
     return showDialog<void>(
       context: context,
@@ -120,7 +130,7 @@ class MobileAppPromoDialog extends StatelessWidget {
                     ),
                     elevation: 2,
                   ),
-                  onPressed: () => _launchUrl('https://apps.apple.com/app/syncscale'),
+                  onPressed: () => _launchUrl(_iosStoreUrl),
                   child: const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -152,7 +162,7 @@ class MobileAppPromoDialog extends StatelessWidget {
                     ),
                     elevation: 2,
                   ),
-                  onPressed: () => _launchUrl('https://play.google.com/store/apps/details?id=app.syncscale'),
+                  onPressed: () => _launchUrl(_androidStoreUrl),
                   child: const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [

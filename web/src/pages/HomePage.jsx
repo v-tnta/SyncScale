@@ -141,25 +141,33 @@ export function HomePage() {
     if (!onboarding || !onboarding.completed) return false;
     if (onboarding.mobileInstalled) return false;
     if (isExtensionGuideOpen) return false; // 拡張機能ガイド表示中は非表示
+    if (isTutorialActive) return false; // チュートリアル中は非表示
 
     if (onboarding.mobilePromoDismissedAt) {
       let dismissedTime;
       const dismissed = onboarding.mobilePromoDismissedAt;
-      if (dismissed.seconds) {
+      
+      if (dismissed && typeof dismissed.toDate === 'function') {
+        dismissedTime = dismissed.toDate();
+      } else if (dismissed && dismissed.seconds) {
         dismissedTime = new Date(dismissed.seconds * 1000);
       } else {
         dismissedTime = new Date(dismissed);
       }
       
+      if (isNaN(dismissedTime.getTime())) {
+        return true; // パースに失敗した場合は表示する
+      }
+      
       const now = new Date();
       const diffMs = now - dismissedTime;
       const diffHours = diffMs / (1000 * 60 * 60);
-      if (diffHours < 24) {
-        return false; // 24時間以内なら非表示
+      if (diffHours < 24) { // 24時間以内なら非表示
+        return false;
       }
     }
     return true;
-  }, [onboarding, isExtensionGuideOpen]);
+  }, [onboarding, isExtensionGuideOpen, isTutorialActive]);
 
   const handleTutorialComplete = async (tutorialTaskId) => {
     try {
@@ -410,8 +418,6 @@ export function HomePage() {
       <MobileAppPromoModal
         isOpen={isMobilePromoOpen}
         onClose={dismissMobilePromo}
-        iosUrl="https://apps.apple.com/app/syncscale"
-        androidUrl="https://play.google.com/store/apps/details?id=app.syncscale"
       />
 
       {/* Chrome拡張機能解説モーダル */}

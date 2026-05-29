@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/condition_log.dart';
 import '../models/task.dart';
+import '../models/time_log.dart';
 import '../state/syncscale_state.dart';
 import 'condition_dialog.dart';
 import 'formatters.dart';
@@ -12,32 +13,61 @@ import 'timer_panel.dart';
 Future<void> showTaskDetailSheet(BuildContext context, Task task) {
   final appState = SyncScaleScope.of(context);
 
-  // 完了したタスクの詳細を開いた時に Step 15 から Step 16 へ進める
-  if (appState.tutorialStep == 15 && task.isCompleted && task.isTutorialTask) {
-    appState.setTutorialStep(16);
+  // 完了したタスクの詳細を開いた時に Step 16 から Step 17 へ進める
+  if (appState.tutorialStep == 16 && task.isCompleted && task.isTutorialTask) {
+    appState.setTutorialStep(17);
   }
+
+  final isTutorialDetail = appState.isTutorialActive &&
+      task.isTutorialTask &&
+      appState.tutorialStep != null &&
+      ((appState.tutorialStep! >= 6 && appState.tutorialStep! <= 14) ||
+          appState.tutorialStep! == 17 ||
+          appState.tutorialStep! == 16);
 
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
+    enableDrag: !isTutorialDetail, // チュートリアル中（Step 18以外）はドラッグ不可にする
+    isDismissible: !isTutorialDetail,
     showDragHandle: true,
     builder: (context) => TaskDetailSheet(taskId: task.id),
   ).then((_) {
-    if (appState.tutorialStep == 16 && task.isTutorialTask) {
-      appState.setTutorialStep(17);
+    if (appState.tutorialStep == 18 && task.isTutorialTask) {
+      appState.setTutorialStep(19);
     }
   });
 }
 
-class TaskDetailSheet extends StatelessWidget {
+class TaskDetailSheet extends StatefulWidget {
   const TaskDetailSheet({super.key, required this.taskId});
 
   final String taskId;
 
   @override
+  State<TaskDetailSheet> createState() => _TaskDetailSheetState();
+}
+
+class _TaskDetailSheetState extends State<TaskDetailSheet> {
+  int? _lastScrolledStep;
+  late final ScrollController _localController;
+
+  @override
+  void initState() {
+    super.initState();
+    _localController = ScrollController();
+  }
+
+  @override
+  void dispose() {
+    _localController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final appState = SyncScaleScope.of(context);
-    final task = appState.tasks.where((task) => task.id == taskId).firstOrNull;
+    final task = appState.tasks.where((task) => task.id == widget.taskId).firstOrNull;
     if (task == null) {
       return const Padding(
         padding: EdgeInsets.all(24),
@@ -51,186 +81,228 @@ class TaskDetailSheet extends StatelessWidget {
         appState.setTutorialStep(7);
       });
     }
+
+    // ハイライト要素への自動スクロール（ステップ変更時の最初の一回のみ実行）
+    if (appState.isTutorialActive && task.isTutorialTask) {
+      final currentStep = appState.tutorialStep;
+      if (currentStep != null && currentStep != _lastScrolledStep) {
+        _lastScrolledStep = currentStep;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          final targetKey = appState.tutorialKeys[currentStep];
+          if (targetKey != null && targetKey.currentContext != null) {
+            Scrollable.ensureVisible(
+              targetKey.currentContext!,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              alignment: 0.5,
+            );
+          }
+        });
+      }
+    }
     // -------------------------------------
 
     final logs = appState.logsForTask(task.id);
+    final isTutorialDetail = appState.isTutorialActive &&
+        task.isTutorialTask &&
+        appState.tutorialStep != null &&
+        ((appState.tutorialStep! >= 6 && appState.tutorialStep! <= 14) ||
+            appState.tutorialStep! == 17 ||
+            appState.tutorialStep! == 16);
 
-    return SafeArea(
-      child: DraggableScrollableSheet(
-        expand: false,
-        initialChildSize: 0.9,
-        maxChildSize: 0.96,
-        minChildSize: 0.55,
-        builder: (context, controller) {
-          return ListView(
-            key: (appState.isTutorialActive && task.isTutorialTask && appState.tutorialStep == 7)
-                ? appState.tutorialKeys[7]
-                : null,
-            controller: controller,
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
-            children: [
-              // 完了タスクの場合のみ、コンディションを一番上に表示
-              if (task.isCompleted) ...[
-                _ConditionPanel(
-                  key: (appState.isTutorialActive && task.isTutorialTask)
-                      ? appState.tutorialKeys[16]
-                      : null,
-                  taskId: task.id,
-                ),
-                const SizedBox(height: 12),
-              ],
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Text(
-                      task.title,
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.w900,
-                          ),
+    return PopScope(
+      canPop: !isTutorialDetail,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+      },
+      child: SafeArea(
+        child: DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.9,
+          maxChildSize: isTutorialDetail ? 0.9 : 0.96,
+          minChildSize: isTutorialDetail ? 0.9 : 0.55,
+          builder: (context, controller) {
+            return ListView(
+              key: (appState.isTutorialActive &&
+                      task.isTutorialTask &&
+                      (appState.tutorialStep == 7 || appState.tutorialStep == 17))
+                  ? appState.tutorialKeys[appState.tutorialStep]
+                  : null,
+              controller: isTutorialDetail ? _localController : controller,
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        task.title,
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.w900,
+                            ),
+                      ),
                     ),
+                    if (task.isCompleted)
+                      AbsorbPointer(
+                        absorbing: appState.isTutorialActive && task.isTutorialTask,
+                        child: IconButton(
+                          tooltip: '未提出に戻す',
+                          onPressed: () => _revertToIncomplete(context, task),
+                          icon: const Icon(Icons.undo, color: Colors.orange),
+                        ),
+                      ),
+                    AbsorbPointer(
+                      absorbing: appState.isTutorialActive && task.isTutorialTask,
+                      child: IconButton(
+                        key: (appState.isTutorialActive && task.isTutorialTask)
+                            ? appState.tutorialKeys[9]
+                            : null,
+                        tooltip: '完全削除',
+                        onPressed: () => _physicalDelete(context, task),
+                        icon: const Icon(Icons.delete_outline, color: Colors.red),
+                      ),
+                    ),
+                    AbsorbPointer(
+                      absorbing: appState.isTutorialActive && task.isTutorialTask,
+                      child: IconButton(
+                        key: (appState.isTutorialActive && task.isTutorialTask)
+                            ? appState.tutorialKeys[8]
+                            : null,
+                        tooltip: '編集',
+                        onPressed: () => showTaskFormSheet(context, task: task),
+                        icon: const Icon(Icons.edit_outlined),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    Chip(label: Text(task.status.label)),
+                    Chip(label: Text('締切 ${formatDateTime(task.deadline)}')),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                // 完了タスクの場合のみ、コンディションを課題名や締め切りの下に表示
+                if (task.isCompleted) ...[
+                  _ConditionPanel(
+                    taskId: task.id,
                   ),
+                  const SizedBox(height: 12),
+                ],
+                _StatusAndSize(task: task),
+                const SizedBox(height: 16),
+                if (!task.isCompleted)
                   AbsorbPointer(
                     absorbing: appState.isTutorialActive && task.isTutorialTask,
-                    child: IconButton(
+                    child: TimerPanel(
                       key: (appState.isTutorialActive && task.isTutorialTask)
-                          ? appState.tutorialKeys[9]
+                          ? appState.tutorialKeys[10]
                           : null,
-                      tooltip: '完全削除',
-                      onPressed: () => _physicalDelete(context, task),
-                      icon: const Icon(Icons.delete_outline, color: Colors.red),
+                      task: task,
                     ),
                   ),
-                  AbsorbPointer(
-                    absorbing: appState.isTutorialActive && task.isTutorialTask,
-                    child: IconButton(
-                      key: (appState.isTutorialActive && task.isTutorialTask)
-                          ? appState.tutorialKeys[8]
-                          : null,
-                      tooltip: '編集',
-                      onPressed: () => showTaskFormSheet(context, task: task),
-                      icon: const Icon(Icons.edit_outlined),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  Chip(label: Text(task.status.label)),
-                  Chip(label: Text('締切 ${formatDateTime(task.deadline)}')),
-                ],
-              ),
-              const SizedBox(height: 16),
-              _StatusAndSize(task: task),
-              const SizedBox(height: 16),
-              if (!task.isCompleted)
+                if (!task.isCompleted) const SizedBox(height: 12),
                 AbsorbPointer(
-                  absorbing: appState.isTutorialActive && task.isTutorialTask,
-                  child: TimerPanel(
+                  absorbing: appState.isTutorialActive && task.isTutorialTask && appState.tutorialStep != 11,
+                  child: OutlinedButton.icon(
                     key: (appState.isTutorialActive && task.isTutorialTask)
-                        ? appState.tutorialKeys[10]
+                        ? appState.tutorialKeys[11]
                         : null,
-                    task: task,
-                  ),
-                ),
-              if (!task.isCompleted) const SizedBox(height: 12),
-              AbsorbPointer(
-                absorbing: appState.isTutorialActive && task.isTutorialTask && appState.tutorialStep != 11,
-                child: OutlinedButton.icon(
-                  key: (appState.isTutorialActive && task.isTutorialTask)
-                      ? appState.tutorialKeys[11]
-                      : null,
-                  onPressed: () {
-                    if (appState.tutorialStep == 11 && task.isTutorialTask) {
-                      appState.setTutorialStep(12);
-                    }
-                    showManualLogDialog(context, task);
-                  },
-                  icon: const Icon(Icons.add_alarm_outlined),
-                  label: const Text('作業ログを手入力'),
-                ),
-              ),
-              const SizedBox(height: 16),
-              if (!task.isCompleted) ...[
-                AbsorbPointer(
-                  absorbing: appState.isTutorialActive && task.isTutorialTask && appState.tutorialStep != 13,
-                  child: FilledButton.icon(
-                    key: (appState.isTutorialActive && task.isTutorialTask)
-                        ? appState.tutorialKeys[13]
-                        : null,
-                    onPressed: () => _complete(context, task),
-                    icon: const Icon(Icons.check),
-                    label: const Text('提出完了にする'),
+                    onPressed: () {
+                      if (appState.tutorialStep == 11 && task.isTutorialTask) {
+                        appState.setTutorialStep(12);
+                      }
+                      showManualLogDialog(context, task);
+                    },
+                    icon: const Icon(Icons.add_alarm_outlined),
+                    label: const Text('作業ログを手入力'),
                   ),
                 ),
                 const SizedBox(height: 16),
+                if (!task.isCompleted) ...[
+                  AbsorbPointer(
+                    absorbing: appState.isTutorialActive && task.isTutorialTask && appState.tutorialStep != 14,
+                    child: FilledButton.icon(
+                      key: (appState.isTutorialActive && task.isTutorialTask)
+                          ? appState.tutorialKeys[14]
+                          : null,
+                      onPressed: () => _complete(context, task),
+                      icon: const Icon(Icons.check),
+                      label: const Text('提出完了にする'),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+                // 実績ガントの代わりに作業実績を表示
+                _Panel(
+                  key: (appState.isTutorialActive && task.isTutorialTask && appState.tutorialStep == 13)
+                      ? appState.tutorialKeys[13]
+                      : null,
+                  title: '作業実績',
+                  icon: Icons.history_toggle_off_outlined,
+                  child: logs.isEmpty
+                      ? const Text('作業実績はまだありません。')
+                      : Column(
+                          children: logs.map((log) {
+                            return Card(
+                              margin: const EdgeInsets.only(bottom: 8),
+                              elevation: 0,
+                              color: Colors.grey.shade50,
+                              shape: RoundedRectangleBorder(
+                                side: BorderSide(color: Colors.grey.shade200),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 8,
+                                ),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            log.subTaskName.isEmpty
+                                                ? '作業名未入力'
+                                                : log.subTaskName,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            formatDateTime(log.startTime),
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.grey.shade600,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Text(
+                                      formatDurationSeconds(log.durationSeconds),
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.blueAccent,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                ),
               ],
-              // 実績ガントの代わりに作業実績を表示
-              _Panel(
-                title: '作業実績',
-                icon: Icons.history_toggle_off_outlined,
-                child: logs.isEmpty
-                    ? const Text('作業実績はまだありません。')
-                    : Column(
-                        children: logs.map((log) {
-                          return Card(
-                            margin: const EdgeInsets.only(bottom: 8),
-                            elevation: 0,
-                            color: Colors.grey.shade50,
-                            shape: RoundedRectangleBorder(
-                              side: BorderSide(color: Colors.grey.shade200),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 8,
-                              ),
-                              child: Row(
-                                children: [
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          log.subTaskName.isEmpty
-                                              ? '作業名未入力'
-                                              : log.subTaskName,
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          formatDateTime(log.startTime),
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: Colors.grey.shade600,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  Text(
-                                    formatDurationSeconds(log.durationSeconds),
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.blueAccent,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-              ),
-            ],
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
@@ -238,30 +310,70 @@ class TaskDetailSheet extends StatelessWidget {
   Future<void> _complete(BuildContext context, Task task) async {
     final appState = SyncScaleScope.of(context);
     
-    final isStep13 = appState.tutorialStep == 13 && task.isTutorialTask;
-    if (isStep13) {
-      appState.setTutorialStep(14);
+    final isStep14 = appState.tutorialStep == 14 && task.isTutorialTask;
+    if (isStep14) {
+      appState.setTutorialStep(15);
     }
 
     final result = await showConditionDialog(context);
     if (result == null) {
-      if (isStep13) {
-        appState.setTutorialStep(13);
+      if (isStep14) {
+        appState.setTutorialStep(14);
       }
       return;
     }
 
-    final isStep14 = appState.tutorialStep == 14 && task.isTutorialTask;
+    final isStep15 = appState.tutorialStep == 15 && task.isTutorialTask;
     await appState.completeTask(
       task: task,
       condition: result.condition,
       memo: result.memo,
     );
-    if (isStep14) {
-      appState.setTutorialStep(15);
+    if (isStep15) {
+      appState.setTutorialStep(16);
     }
     if (!context.mounted) return;
     Navigator.of(context).pop();
+  }
+
+  Future<void> _revertToIncomplete(BuildContext context, Task task) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('未提出に戻しますか？'),
+            content: Text('タスク「${task.title}」を未提出（これからやる）に戻しますか？'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('キャンセル'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('戻す'),
+              ),
+            ],
+          ),
+    );
+    if (confirmed != true || !context.mounted) {
+      return;
+    }
+
+    final appState = SyncScaleScope.of(context);
+    try {
+      await appState.updateTask(task.id, {
+        'status': TaskStatus.todo.value,
+        'completedAt': null,
+      });
+      if (!context.mounted) return;
+      Navigator.of(context).pop();
+    } catch (err) {
+      debugPrint("Failed to revert task: $err");
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('未提出に戻す処理に失敗しました。')),
+      );
+    }
   }
 
   Future<void> _physicalDelete(BuildContext context, Task task) async {
@@ -395,7 +507,7 @@ class _SizeSelector extends StatelessWidget {
 }
 
 class _ConditionPanel extends StatelessWidget {
-  const _ConditionPanel({super.key, required this.taskId});
+  const _ConditionPanel({required this.taskId});
 
   final String taskId;
 
@@ -469,7 +581,7 @@ class _ConditionPanel extends StatelessWidget {
 }
 
 class _Panel extends StatelessWidget {
-  const _Panel({required this.title, required this.icon, required this.child});
+  const _Panel({super.key, required this.title, required this.icon, required this.child});
 
   final String title;
   final IconData icon;
