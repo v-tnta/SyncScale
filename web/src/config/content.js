@@ -32,8 +32,8 @@ export const AGREEMENT_CONTENT = {
 本研究への参加はいつでも撤回することができます。設定画面より「同意の撤回」を行うと、収集されたすべてのデータ（タスク、ログ、個人情報）は完全に削除され、研究参加は終了します。
 
 5. お問い合わせ
-本研究に関するお問い合わせやご質問は、研究担当者（LINE OpenChatまたは開発者連絡先）までご連絡ください。`,
-  version: "1.0",
+本研究に関するお問い合わせやご質問は、研究責任者（茨城大学 鎌田賢 masaru.kamada.snoopy@vc.ibaraki.ac.jp）または 研究担当者（LINE OpenChatまたは開発者連絡先）までご連絡ください。`,
+  version: "1.1",
   buttonText: "上記の内容に同意し、Googleでログインする",
   buttonTextLoggedIn: "上記の内容に同意して参加する",
 };
