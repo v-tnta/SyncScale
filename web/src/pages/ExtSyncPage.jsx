@@ -8,16 +8,25 @@ export function ExtSyncPage() {
     const { currentUser, login, loading: authLoading } = useAuth();
     const { hasConsented, loading: consentLoading } = useConsent();
     const [loginLoading, setLoginLoading] = useState(false);
+    const [readyToRedirect, setReadyToRedirect] = useState(false);
     const navigate = useNavigate();
 
-    // 拡張機能からの postMessage を待機する
+    // 拡張機能からの postMessage を待機する、およびタイムアウトタイマー
     useEffect(() => {
+        let timer = null;
+        let isDisposed = false;
+
         const handleMessage = (event) => {
+            if (isDisposed) return;
             if (event.data && event.data.type === "SYNC_SCALE_IMPORT_TASKS") {
                 console.log("拡張機能からタスクデータを受信 (ExtSyncPage):", event.data.tasks);
                 sessionStorage.setItem("pendingImportTasks", JSON.stringify(event.data.tasks));
                 // ACKを返信して拡張機能側のストレージをクリアさせる
                 window.postMessage({ type: 'SYNC_SCALE_IMPORT_ACK' }, '*');
+                
+                // タスク受信が完了したら、即座に遷移可能にする
+                setReadyToRedirect(true);
+                if (timer) clearTimeout(timer);
             }
         };
 
@@ -26,12 +35,23 @@ export function ExtSyncPage() {
         // 拡張機能へWebアプリの準備ができたことを知らせる
         window.postMessage({ type: 'SYNC_SCALE_APP_READY' }, '*');
 
-        return () => window.removeEventListener("message", handleMessage);
+        // タスクが受信されなかった場合のタイムアウト (1.2秒)
+        timer = setTimeout(() => {
+            if (!isDisposed) {
+                setReadyToRedirect(true);
+            }
+        }, 1200);
+
+        return () => {
+            isDisposed = true;
+            window.removeEventListener("message", handleMessage);
+            if (timer) clearTimeout(timer);
+        };
     }, []);
 
-    // ログイン状態と同意状態の変化に応じてリダイレクト
+    // ログイン状態と同意状態、およびリダイレクト準備完了フラグの変化に応じてリダイレクト
     useEffect(() => {
-        if (!authLoading && !consentLoading) {
+        if (!authLoading && !consentLoading && readyToRedirect) {
             if (currentUser) {
                 if (hasConsented) {
                     // 同意済みならメインアプリへ
@@ -42,7 +62,7 @@ export function ExtSyncPage() {
                 }
             }
         }
-    }, [currentUser, hasConsented, authLoading, consentLoading, navigate]);
+    }, [currentUser, hasConsented, authLoading, consentLoading, readyToRedirect, navigate]);
 
     const handleLogin = async () => {
         setLoginLoading(true);
@@ -55,10 +75,11 @@ export function ExtSyncPage() {
         }
     };
 
-    if (authLoading || consentLoading) {
+    if (authLoading || consentLoading || (currentUser && hasConsented && !readyToRedirect)) {
         return (
-            <div className="flex h-screen items-center justify-center bg-slate-50 text-slate-800 transition-colors duration-200">
+            <div className="flex h-screen flex-col items-center justify-center bg-slate-50 text-slate-800 gap-4 transition-colors duration-200">
                 <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div>
+                {currentUser && <p className="text-sm font-semibold text-slate-500">拡張機能から課題を同期中...</p>}
             </div>
         );
     }

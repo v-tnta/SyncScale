@@ -259,7 +259,8 @@ export function HomePage() {
 
     for (const task of importedTasks) {
       if (!existingIds.has(task.manabaAssignmentId)) {
-        const deadlineDate = task.deadline ? new Date(task.deadline) : null;
+        const rawDate = task.deadline ? new Date(task.deadline) : null;
+        const deadlineDate = (rawDate && !isNaN(rawDate.getTime())) ? rawDate : null;
         newTasksData.push({
           manabaAssignmentId: task.manabaAssignmentId,
           manabaCourseId: task.manabaCourseId,
