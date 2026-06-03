@@ -149,7 +149,9 @@ const TaskOverlay = ({ isOpen, onClose, task, logs, onUpdate, onDelete, onPhysic
     };
 
     const getBadgeColor = (label) => {
-        switch (label) {
+        if (!label) return 'bg-gray-100 text-gray-500';
+        const upperLabel = label.toUpperCase();
+        switch (upperLabel) {
             case 'S': return 'bg-cyan-50 text-cyan-700 border border-cyan-100';
             case 'M': return 'bg-orange-50 text-orange-700 border border-orange-100';
             case 'L': return 'bg-red-50 text-red-700 border border-red-100';

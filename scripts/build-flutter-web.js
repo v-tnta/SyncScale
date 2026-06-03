@@ -80,6 +80,10 @@ if (fs.existsSync(mobileEnvPath)) {
 }
 
 try {
+  // 0. Flutter キャッシュのクリーン
+  console.log('🧹 Cleaning Flutter build cache...');
+  execSync(`"${flutterCmd}" clean`, { cwd: mobileAppDir, stdio: 'inherit' });
+
   // 1. Flutter 依存関係の取得
   console.log('📦 Fetching Flutter dependencies...');
   execSync(`"${flutterCmd}" pub get`, { cwd: mobileAppDir, stdio: 'inherit' });

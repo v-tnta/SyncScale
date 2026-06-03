@@ -138,7 +138,6 @@ class _TimerPanelState extends State<TimerPanel> {
 
     await appState.updateTask(widget.task.id, {
       'status': TaskStatus.doing.value,
-      if (widget.task.startedAt == null) 'startedAt': now,
     });
 
     setState(() {

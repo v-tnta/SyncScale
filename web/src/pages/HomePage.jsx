@@ -238,7 +238,15 @@ export function HomePage() {
       console.error("コンディションの保存に失敗しました", err);
     }
 
-    await updateTask(targetTaskId, { status: 'DONE', updatedAt: new Date() });
+    // タスクが TODO から直接 DONE になる可能性を考慮し、startedAt が null なら設定する
+    const startedAt = taskToComplete.startedAt || new Date();
+
+    await updateTask(targetTaskId, {
+      status: 'DONE',
+      startedAt: startedAt,
+      completedAt: new Date(),
+      updatedAt: new Date()
+    });
   };
 
   // SML見積もり入力完了時の処理
@@ -315,8 +323,11 @@ export function HomePage() {
         if (!importedTasks || importedTasks.length === 0) return;
 
         console.log("Web App (HomePage): Received tasks from extension", importedTasks);
+        // インポートデータをセッションストレージに保存し、/svc/ext-sync に遷移させる
+        sessionStorage.setItem("pendingImportTasks", JSON.stringify(importedTasks));
         window.postMessage({ type: 'SYNC_SCALE_IMPORT_ACK' }, '*');
-        setPendingImportTasks(importedTasks);
+        // /svc/ext-sync にリダイレクト
+        window.location.href = "/svc/ext-sync";
       }
     };
 

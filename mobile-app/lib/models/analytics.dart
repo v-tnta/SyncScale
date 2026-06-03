@@ -48,12 +48,13 @@ List<LeadTimeSummary> calculateLeadTimes(List<Task> tasks) {
         tasks
             .where((task) {
               return task.sizeLabel == size &&
-                  task.createdAt != null &&
+                  task.deadline != null &&
                   task.startedAt != null;
             })
             .map((task) {
-              final diff = task.startedAt!.difference(task.createdAt!);
-              return diff.inHours / 24;
+              // 締切から何日前に着手されたか (deadline - startedAt)
+              final diff = task.deadline!.difference(task.startedAt!);
+              return diff.inHours / 24.0;
             })
             .toList();
 

@@ -224,7 +224,31 @@ class SyncScaleState extends ChangeNotifier {
       return;
     }
     debugPrint('add timeLog tapped: ${log.taskId}');
-    await _run(() => repository.addTimeLog(user.uid, log));
+    await _run(() async {
+      await repository.addTimeLog(user.uid, log);
+
+      // タスクの状態を自動更新 (TODO -> DOING, startedAtのセット)
+      final taskIndex = tasks.indexWhere((t) => t.id == log.taskId);
+      if (taskIndex != -1) {
+        final task = tasks[taskIndex];
+        final Map<String, dynamic> updates = {};
+
+        if (task.status == TaskStatus.todo) {
+          updates['status'] = TaskStatus.doing.value;
+        }
+
+        if (task.startedAt == null) {
+          updates['startedAt'] = log.startTime;
+        }
+
+        if (updates.isNotEmpty) {
+          await repository.updateTask(task.id, {
+            ...updates,
+            'updatedAt': FieldValue.serverTimestamp(),
+          });
+        }
+      }
+    });
   }
 
   Future<void> completeTask({

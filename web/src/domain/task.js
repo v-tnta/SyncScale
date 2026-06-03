@@ -90,6 +90,8 @@ export class Task {
             createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : (data.createdAt || new Date()),
             deadline: data.deadline?.toDate ? data.deadline.toDate() : (data.deadline ? new Date(data.deadline) : null),
             updatedAt: data.updatedAt?.toDate ? data.updatedAt.toDate() : (data.updatedAt || null),
+            startedAt: data.startedAt?.toDate ? data.startedAt.toDate() : (data.startedAt ? new Date(data.startedAt) : null),
+            completedAt: data.completedAt?.toDate ? data.completedAt.toDate() : (data.completedAt ? new Date(data.completedAt) : null),
 
             // レガシーデータ対応 (明示的にfalseが設定されていればfalse、それ以外(undefined|true)はtrue)
             isVisible: data.isVisible !== false,

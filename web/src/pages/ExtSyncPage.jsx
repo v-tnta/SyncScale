@@ -16,6 +16,13 @@ export function ExtSyncPage() {
         let timer = null;
         let isDisposed = false;
 
+        // すでに sessionStorage に pendingImportTasks がある場合は、
+        // タイムアウトを待たずに即時遷移可能にする
+        const hasPending = sessionStorage.getItem("pendingImportTasks");
+        if (hasPending) {
+            setReadyToRedirect(true);
+        }
+
         const handleMessage = (event) => {
             if (isDisposed) return;
             if (event.data && event.data.type === "SYNC_SCALE_IMPORT_TASKS") {
@@ -36,11 +43,13 @@ export function ExtSyncPage() {
         window.postMessage({ type: 'SYNC_SCALE_APP_READY' }, '*');
 
         // タスクが受信されなかった場合のタイムアウト (1.2秒)
-        timer = setTimeout(() => {
-            if (!isDisposed) {
-                setReadyToRedirect(true);
-            }
-        }, 1200);
+        if (!hasPending) {
+            timer = setTimeout(() => {
+                if (!isDisposed) {
+                    setReadyToRedirect(true);
+                }
+            }, 1200);
+        }
 
         return () => {
             isDisposed = true;

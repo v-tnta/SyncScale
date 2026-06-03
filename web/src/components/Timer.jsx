@@ -55,9 +55,18 @@ const Timer = ({ activeTask, logs, onUpdateTask }) => {
     }, [isActive, startTime, accumulatedSeconds]);
 
     // 開始（再開）ボタン
-    const handleStart = () => {
-        setStartTime(new Date());
+    const handleStart = async () => {
+        const now = new Date();
+        setStartTime(now);
         setIsActive(true);
+
+        // タイマー開始時に、タスクのステータスが TODO であれば DOING に変更する
+        if (activeTask && activeTask.status === 'TODO' && onUpdateTask) {
+            await onUpdateTask(activeTask.id, {
+                status: 'DOING',
+                updatedAt: now
+            });
+        }
     };
 
     // 一時停止ボタン
@@ -97,9 +106,21 @@ const Timer = ({ activeTask, logs, onUpdateTask }) => {
     const saveLog = async (data) => {
         await addTimeLog(data);
 
-        // Auto-Status Logic: TODO -> DOING
-        if (activeTask && activeTask.status === 'TODO' && onUpdateTask) {
-            await onUpdateTask(activeTask.id, { status: 'DOING' });
+        // Auto-Status Logic & startedAt recording
+        if (activeTask && onUpdateTask) {
+            const updates = {};
+            if (activeTask.status === 'TODO') {
+                updates.status = 'DOING';
+            }
+            if (!activeTask.startedAt) {
+                updates.startedAt = data.startTime; // 初めて記録された日時の開始時刻
+            }
+            if (Object.keys(updates).length > 0) {
+                await onUpdateTask(activeTask.id, {
+                    ...updates,
+                    updatedAt: new Date()
+                });
+            }
         }
 
         // リセット
@@ -142,8 +163,21 @@ const Timer = ({ activeTask, logs, onUpdateTask }) => {
 
         await addTimeLog(log);
 
-        if (activeTask && activeTask.status === 'TODO' && onUpdateTask) {
-            await onUpdateTask(activeTask.id, { status: 'DOING' });
+        // 事後報告の保存 & startedAt recording
+        if (activeTask && onUpdateTask) {
+            const updates = {};
+            if (activeTask.status === 'TODO') {
+                updates.status = 'DOING';
+            }
+            if (!activeTask.startedAt) {
+                updates.startedAt = start; // 手動記録の開始時刻を startedAt にセット
+            }
+            if (Object.keys(updates).length > 0) {
+                await onUpdateTask(activeTask.id, {
+                    ...updates,
+                    updatedAt: new Date()
+                });
+            }
         }
 
         setManualData({ durationMinutes: '', subTaskName: '' });

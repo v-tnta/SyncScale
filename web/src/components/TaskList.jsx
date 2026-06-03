@@ -8,7 +8,9 @@ import { TASK_STATUS_LABELS } from '../domain/task';
 const TaskList = ({ tasks, timeLogs, loading, error, onTaskClick, onUpdateTask, onDeleteTask, onCompleteRequest, onOpenCompletedModal, isTutorialActive }) => {
     // サイズに応じたアクセントカラーを取得
     const getSizeColor = (label) => {
-        switch (label) {
+        if (!label) return 'border-l-gray-300 bg-gray-50';
+        const upperLabel = label.toUpperCase();
+        switch (upperLabel) {
             case 'S': return 'border-l-cyan-400';
             case 'M': return 'border-l-orange-400';
             case 'L': return 'border-l-red-500';
@@ -17,7 +19,9 @@ const TaskList = ({ tasks, timeLogs, loading, error, onTaskClick, onUpdateTask, 
     };
 
     const getBadgeColor = (label) => {
-        switch (label) {
+        if (!label) return 'bg-gray-100 text-gray-500';
+        const upperLabel = label.toUpperCase();
+        switch (upperLabel) {
             case 'S': return 'bg-cyan-50 text-cyan-700 border border-cyan-100';
             case 'M': return 'bg-orange-50 text-orange-700 border border-orange-100';
             case 'L': return 'bg-red-50 text-red-700 border border-red-100';
