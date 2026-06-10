@@ -14,6 +14,7 @@ import { useTimeLogs } from '../hooks/useTimeLogs'
 import { useConditionLogs } from '../hooks/useConditionLogs'
 import { useAuth } from '../hooks/useAuth'
 import { useOnboarding } from '../hooks/useOnboarding'
+import { useActivityLog } from '../hooks/useActivityLog'
 import ExtensionGuideModal from '../components/ExtensionGuideModal'
 
 export function HomePage() {
@@ -22,6 +23,7 @@ export function HomePage() {
   const { tasks, addTask, addTasksBatch, updateTask, deleteTask, completelyDeleteTask, loading, error } = useTasks();
   const { timeLogs } = useTimeLogs();
   const { addLog: addConditionLog } = useConditionLogs();
+  const { logEvent } = useActivityLog();
 
   // tasksの最新状態を保持するRef（useEffectの依存配列を減らすため）
   const tasksRef = React.useRef(tasks);
@@ -195,6 +197,7 @@ export function HomePage() {
   const handleTaskClick = (task) => {
     setSelectedTaskId(task.id);
     setIsModalOpen(true);
+    logEvent('task_detail_view', { taskId: task.id });
   };
 
   // モーダルを閉じる処理
@@ -364,7 +367,10 @@ export function HomePage() {
             onUpdateTask={updateTask}
             onDeleteTask={deleteTask}
             onCompleteRequest={handleCompleteRequest}
-            onOpenCompletedModal={() => setIsCompletedModalOpen(true)}
+            onOpenCompletedModal={() => {
+              setIsCompletedModalOpen(true);
+              logEvent('completed_list_view', {});
+            }}
             isTutorialActive={isTutorialActive}
           />
         </div>

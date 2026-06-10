@@ -269,7 +269,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
                           builder: (context) => AlertDialog(
                             title: const Text('⚠️ 同意撤回の確認'),
                             content: const Text(
-                              '研究内容への同意を撤回し、本当にデータをすべて削除しますか？\n\n※この操作を実行すると、あなたのタスク、時間ログ、コンディションログが完全に削除され、復元することはできなくなります。',
+                              '研究内容への同意を撤回し、本当にデータをすべて削除しますか？\n\n※この操作を実行すると、あなたのタスク、時間ログ、コンディションログ、利用状況ログが完全に削除され、復元することはできなくなります。',
                             ),
                             actions: [
                               TextButton(

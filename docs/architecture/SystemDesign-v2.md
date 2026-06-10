@@ -159,6 +159,57 @@ Firebaseを **Single Source of Truth（唯一の情報源）** とします。
 | `condition` | string | 'good' / 'fair' / 'poor' | 心身のコンディション |
 | `memo` | string | 振り返りメモ（任意） | — |
 
+### Collection: `activityLogs` (v0.3.3〜)
+
+ユーザーの利用状況（ログイン状況・機能の使用状況）の行動ログ。**1イベント = 1ドキュメントの追記専用**（カウンタ加算ではなく生イベントを記録し、集計は分析時に行う）。
+Web (React)・モバイル (Flutter)・モバイルWeb (Flutter Web同梱版) の3経路から同一スキーマで書き込まれる。
+
+| Field | Type | Description | 備考 |
+|---|---|---|---|
+| `documentId` | string | 自動生成ID | — |
+| `userId` | string | 所有ユーザーのUID | — |
+| `eventName` | string | イベント名（下表参照） | — |
+| `params` | map | イベント固有の付加情報 | — |
+| `platform` | string | 'web' / 'mobile' / 'mobile_web' | 記録元の識別 |
+| `appVersion` | string | 記録時のアプリバージョン | — |
+| `createdAt` | timestamp | 記録日時 (serverTimestamp) | — |
+
+#### イベント一覧
+
+| eventName | 発生タイミング | 主な params |
+|---|---|---|
+| `session_start` | アプリを開いた（ページロード / 起動ごとに1回） | — |
+| `task_create` | タスクの手動登録 | `source`, `isTutorialTask` |
+| `task_import` | Chrome拡張からの一括インポート | `count`, `source` |
+| `sml_estimate` | SML（規模）見積もりの設定・変更 | `taskId`, `sizeLabel`, `isFirstEstimate` |
+| `task_status_change` | ステータス変更 (TODO/DOING/DONE) | `taskId`, `from`, `to` |
+| `task_delete` | タスクの論理削除 | `taskId` |
+| `timer_start` | タイマー計測の開始 | `taskId` |
+| `time_log_add` | 作業ログの保存 | `taskId`, `durationSeconds`, `method` ('timer'/'manual') |
+| `condition_submit` | 提出時コンディションの入力 | `taskId`, `condition` |
+| `task_detail_view` | タスク詳細の閲覧 | `taskId` |
+| `completed_list_view` | 完了タスク一覧の閲覧 (Webのみ) | — |
+| `screen_view` | 画面タブの切り替え (モバイルのみ) | `screen` ('tasks'/'calendar'/'analytics') |
+
+- 未ログイン・未同意（同意書バージョン不一致を含む）の間は記録されない（クライアント側ガード + Firestoreルールの二重ガード）。
+- 記録は fire-and-forget（失敗してもアプリの動作を妨げない）。
+- 滞在時間はハートビート等で直接計測せず、イベントのタイムスタンプ列から分析時に推定する方針。
+
+### Collection: `consents`
+
+研究参加への同意記録。documentId = userId。
+
+| Field | Type | Description | 備考 |
+|---|---|---|---|
+| `agreedAt` | timestamp | 同意日時 | 再同意時は上書き |
+| `version` | string | 同意した同意書のバージョン | 現行バージョンと不一致の場合は再同意が必要 |
+| `withdrawnAt` | timestamp | 撤回日時 | 撤回時のみ。研究記録として残る |
+| `previousConsents` | array | 旧バージョンへの同意履歴 `{version, agreedAt}` | 同意書改訂時の再同意で追記 |
+
+#### 同意撤回時のデータ削除（チャンク分割）
+
+Firestoreの `writeBatch` は1コミット500操作までの制限があるため、撤回時の全データ削除（tasks / timeLogs / conditionLogs / activityLogs / onboarding）は**450件ずつのチャンクに分割して順次コミット**する。最後に `withdrawnAt` を記録する。
+
 ---
 
 ## 4. PCのWebアプリ — 詳細設計

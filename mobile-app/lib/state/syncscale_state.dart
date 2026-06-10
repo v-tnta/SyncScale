@@ -31,6 +31,18 @@ class SyncScaleState extends ChangeNotifier {
   StreamSubscription<List<TimeLog>>? _timeLogSubscription;
   StreamSubscription<Onboarding?>? _onboardingSubscription;
 
+  // アプリ起動ごとに1回だけ session_start を記録するためのフラグ
+  bool _sessionStartLogged = false;
+
+  /// 行動ログを fire-and-forget で記録する（失敗してもアプリの動作を妨げない）
+  void logActivity(String eventName, [Map<String, dynamic> params = const {}]) {
+    final user = currentUser;
+    if (user == null) {
+      return;
+    }
+    repository.logActivity(user.uid, eventName, params);
+  }
+
   bool get isAuthenticated {
     return currentUser != null && currentUser!.isAnonymous == false;
   }
@@ -101,6 +113,15 @@ class SyncScaleState extends ChangeNotifier {
       repository.markMobileAsInstalled(userId).catchError((e) {
         debugPrint('Failed to mark mobile as installed: $e');
       });
+    }
+
+    // セッション開始（アプリを開いた）を記録。
+    // Firebase Auth はセッションを永続化するため「ログインイベント」はほぼ発生しない。
+    // そのため利用状況の把握には、起動ごとの session_start を記録する。
+    // ※未同意ユーザーの書き込みは Firestore セキュリティルール側で拒否される
+    if (!_sessionStartLogged) {
+      _sessionStartLogged = true;
+      repository.logActivity(userId, 'session_start');
     }
 
     _onboardingSubscription = repository
@@ -193,6 +214,10 @@ class SyncScaleState extends ChangeNotifier {
     }
     debugPrint('add task tapped: ${task.title}');
     await _run(() => repository.addTask(user.uid, task));
+    logActivity('task_create', {
+      'source': 'manual',
+      'isTutorialTask': task.isTutorialTask,
+    });
   }
 
   Future<void> updateTask(String taskId, Map<String, dynamic> updates) async {
@@ -201,12 +226,40 @@ class SyncScaleState extends ChangeNotifier {
       'updatedAt': FieldValue.serverTimestamp(),
     };
     debugPrint('update task tapped: $taskId');
+
+    // 行動ログ用に更新前の状態を取得（SML評価・ステータス変更の検出）
+    Task? prevTask;
+    for (final t in tasks) {
+      if (t.id == taskId) {
+        prevTask = t;
+        break;
+      }
+    }
+
     await _run(() => repository.updateTask(taskId, payload));
+
+    final newSizeLabel = updates['sizeLabel'];
+    if (newSizeLabel is String && newSizeLabel != prevTask?.sizeLabel) {
+      logActivity('sml_estimate', {
+        'taskId': taskId,
+        'sizeLabel': newSizeLabel,
+        'isFirstEstimate': prevTask?.sizeLabel == null || prevTask!.sizeLabel!.isEmpty,
+      });
+    }
+    final newStatus = updates['status'];
+    if (newStatus is String && newStatus != prevTask?.status.value) {
+      logActivity('task_status_change', {
+        'taskId': taskId,
+        'from': prevTask?.status.value,
+        'to': newStatus,
+      });
+    }
   }
 
   Future<void> softDeleteTask(String taskId) async {
     debugPrint('soft delete task tapped: $taskId');
     await _run(() => repository.softDeleteTask(taskId));
+    logActivity('task_delete', {'taskId': taskId});
   }
 
   Future<void> deleteTaskCompletely(String taskId) async {
@@ -218,7 +271,8 @@ class SyncScaleState extends ChangeNotifier {
     await _run(() => repository.deleteTaskCompletely(user.uid, taskId));
   }
 
-  Future<void> addTimeLog(TimeLog log) async {
+  /// [method] は行動ログ用の記録方法: 'timer'（タイマー計測）/ 'manual'（手入力）
+  Future<void> addTimeLog(TimeLog log, {String method = 'timer'}) async {
     final user = currentUser;
     if (user == null) {
       return;
@@ -249,6 +303,11 @@ class SyncScaleState extends ChangeNotifier {
         }
       }
     });
+    logActivity('time_log_add', {
+      'taskId': log.taskId,
+      'durationSeconds': log.durationSeconds,
+      'method': method,
+    });
   }
 
   Future<void> completeTask({
@@ -273,6 +332,15 @@ class SyncScaleState extends ChangeNotifier {
         'completedAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
       });
+    });
+    logActivity('condition_submit', {
+      'taskId': task.id,
+      'condition': condition,
+    });
+    logActivity('task_status_change', {
+      'taskId': task.id,
+      'from': task.status.value,
+      'to': TaskStatus.done.value,
     });
   }
 

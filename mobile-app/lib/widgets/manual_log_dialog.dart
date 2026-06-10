@@ -93,6 +93,7 @@ class _ManualLogDialogState extends State<ManualLogDialog> {
         endTime: end,
         durationSeconds: minutes * 60,
       ),
+      method: 'manual',
     );
 
     if (isTutorial) {

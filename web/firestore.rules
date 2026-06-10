@@ -14,14 +14,15 @@ service cloud.firestore {
         && !('withdrawnAt' in consent.data);
     }
 
-    // 同意書（撤回時のみ withdrawnAt を追記可能）
+    // 同意書（撤回時の withdrawnAt 追記と、同意書改訂時の再同意のみ更新可能）
     match /consents/{userId} {
       allow read: if isOwner(userId);
       allow create: if isOwner(userId)
         && request.resource.data.keys().hasAll(['agreedAt', 'version'])
         && !('withdrawnAt' in request.resource.data);
       allow update: if isOwner(userId)
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['withdrawnAt']);
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['agreedAt', 'version', 'withdrawnAt', 'previousConsents']);
       allow delete: if false;
     }
 
@@ -51,6 +52,13 @@ service cloud.firestore {
       allow read, delete: if isOwner(resource.data.userId);
       allow update: if isOwner(resource.data.userId) && hasConsented(request.auth.uid);
       allow create: if isOwner(request.resource.data.userId) && hasConsented(request.auth.uid);
+    }
+
+    // 行動ログ（追記専用。read/delete は同意撤回時の全削除のために許可）
+    match /activityLogs/{logId} {
+      allow read, delete: if isOwner(resource.data.userId);
+      allow create: if isOwner(request.resource.data.userId) && hasConsented(request.auth.uid);
+      allow update: if false;
     }
   }
 }

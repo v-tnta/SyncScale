@@ -13,6 +13,8 @@ import 'timer_panel.dart';
 Future<void> showTaskDetailSheet(BuildContext context, Task task) {
   final appState = SyncScaleScope.of(context);
 
+  appState.logActivity('task_detail_view', {'taskId': task.id});
+
   // 完了したタスクの詳細を開いた時に Step 16 から Step 17 へ進める
   if (appState.tutorialStep == 16 && task.isCompleted && task.isTutorialTask) {
     appState.setTutorialStep(17);

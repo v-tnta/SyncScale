@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import * as taskService from '../services/taskService';
 import { useAuth } from './useAuth';
+import { useActivityLog } from './useActivityLog';
 
 /**
  * タスク管理のカスタムフック (Application Layer)
@@ -9,6 +10,7 @@ import { useAuth } from './useAuth';
  */
 export const useTasks = () => {
     const { currentUser } = useAuth();
+    const { logEvent } = useActivityLog();
     const [tasks, setTasks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -51,6 +53,10 @@ export const useTasks = () => {
         try {
             await taskService.addTask(currentUser.uid, task);
             console.log("タスク追加成功");
+            logEvent('task_create', {
+                source: task.source || 'manual',
+                isTutorialTask: !!task.isTutorialTask
+            });
         } catch (err) {
             console.error("タスク追加エラー:", err);
             alert("タスクの追加に失敗しました");
@@ -61,9 +67,26 @@ export const useTasks = () => {
      * タスクを更新
      */
     const updateTask = async (taskId, updates) => {
+        // 行動ログ用に更新前の状態を取得（SML評価・ステータス変更の検出）
+        const prevTask = tasks.find(t => t.id === taskId);
         try {
             await taskService.updateTask(taskId, updates);
             console.log("タスク更新成功");
+
+            if (updates.sizeLabel && updates.sizeLabel !== prevTask?.sizeLabel) {
+                logEvent('sml_estimate', {
+                    taskId,
+                    sizeLabel: updates.sizeLabel,
+                    isFirstEstimate: !prevTask?.sizeLabel
+                });
+            }
+            if (updates.status && updates.status !== prevTask?.status) {
+                logEvent('task_status_change', {
+                    taskId,
+                    from: prevTask?.status || null,
+                    to: updates.status
+                });
+            }
         } catch (err) {
             console.error("タスク更新エラー:", err);
             alert("タスクの更新に失敗しました");
@@ -79,6 +102,7 @@ export const useTasks = () => {
         try {
             await taskService.softDeleteTask(taskId);
             console.log("タスク論理削除成功");
+            logEvent('task_delete', { taskId });
         } catch (err) {
             console.error("タスク削除エラー:", err);
             alert("タスクの削除に失敗しました");
@@ -105,6 +129,10 @@ export const useTasks = () => {
         try {
             await taskService.addTasksBatch(currentUser.uid, tasksData);
             console.log(`${tasksData.length}件のタスク一括追加成功`);
+            logEvent('task_import', {
+                count: tasksData.length,
+                source: 'chrome_ext'
+            });
         } catch (err) {
             console.error("一括追加エラー:", err);
             alert("タスクの一括追加に失敗しました");

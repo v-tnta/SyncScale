@@ -136,6 +136,8 @@ class _TimerPanelState extends State<TimerPanel> {
     final appState = SyncScaleScope.of(context);
     final now = DateTime.now();
 
+    appState.logActivity('timer_start', {'taskId': widget.task.id});
+
     await appState.updateTask(widget.task.id, {
       'status': TaskStatus.doing.value,
     });

@@ -175,7 +175,7 @@ export function SettingsPanel({ isOpen, onClose }) {
                         研究内容への同意を撤回し、本当にデータをすべて削除しますか？
                     </p>
                     <p className="text-xs text-slate-500 leading-relaxed">
-                        ※ この操作を実行すると、あなたのタスク、時間ログ、コンディションログ、および設定が完全に削除され、復元することはできなくなります。
+                        ※ この操作を実行すると、あなたのタスク、時間ログ、コンディションログ、利用状況ログ、および設定が完全に削除され、復元することはできなくなります。
                     </p>
                 </div>
             </ConfirmModal>

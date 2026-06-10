@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart' show debugPrint, kIsWeb;
 
+import '../constants/app_info.dart';
 import '../models/condition_log.dart';
 import '../models/onboarding.dart';
 import '../models/task.dart';
@@ -150,44 +152,70 @@ class SyncScaleRepository {
     }, SetOptions(merge: true));
   }
 
+  /// 行動ログ（機能の使用状況）を1イベント=1ドキュメントとして追記する。
+  /// 記録の失敗がアプリの動作を妨げないよう、例外は握りつぶしてログ出力のみ行う。
+  Future<void> logActivity(
+    String userId,
+    String eventName, [
+    Map<String, dynamic> params = const {},
+  ]) async {
+    try {
+      await _firestore.collection('activityLogs').add({
+        'userId': userId,
+        'eventName': eventName,
+        'params': params,
+        'platform': kIsWeb ? 'mobile_web' : 'mobile',
+        'appVersion': kAppVersion,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      debugPrint('ActivityLog Error ($eventName): $e');
+    }
+  }
+
+  // Firestoreのバッチは1コミット500操作まで。上限を超えても削除が失敗しないよう、
+  // 余裕を持たせたサイズに分割（チャンク）して順次コミットする
+  static const int _batchChunkSize = 450;
+
+  Future<void> _deleteRefsInChunks(List<DocumentReference> refs) async {
+    for (var i = 0; i < refs.length; i += _batchChunkSize) {
+      final batch = _firestore.batch();
+      final end =
+          (i + _batchChunkSize < refs.length) ? i + _batchChunkSize : refs.length;
+      for (final ref in refs.sublist(i, end)) {
+        batch.delete(ref);
+      }
+      await batch.commit();
+    }
+  }
+
   Future<void> withdrawConsent(String userId) async {
-    final batch = _firestore.batch();
-
-    final tasksSnap = await _firestore
-        .collection('tasks')
-        .where('userId', isEqualTo: userId)
-        .get();
-    for (var doc in tasksSnap.docs) {
-      batch.delete(doc.reference);
-    }
-
-    final timeLogsSnap = await _firestore
-        .collection('timeLogs')
-        .where('userId', isEqualTo: userId)
-        .get();
-    for (var doc in timeLogsSnap.docs) {
-      batch.delete(doc.reference);
-    }
-
-    final conditionLogsSnap = await _firestore
-        .collection('conditionLogs')
-        .where('userId', isEqualTo: userId)
-        .get();
-    for (var doc in conditionLogsSnap.docs) {
-      batch.delete(doc.reference);
+    // 1. 削除対象の参照をすべて収集
+    final refsToDelete = <DocumentReference>[];
+    const collections = ['tasks', 'timeLogs', 'conditionLogs', 'activityLogs'];
+    for (final name in collections) {
+      final snap = await _firestore
+          .collection(name)
+          .where('userId', isEqualTo: userId)
+          .get();
+      for (final doc in snap.docs) {
+        refsToDelete.add(doc.reference);
+      }
     }
 
     final onboardingRef = _firestore.collection('onboarding').doc(userId);
     final onboardingSnap = await onboardingRef.get();
     if (onboardingSnap.exists) {
-      batch.delete(onboardingRef);
+      refsToDelete.add(onboardingRef);
     }
 
+    // 2. チャンク分割しながら全データを削除
+    await _deleteRefsInChunks(refsToDelete);
+
+    // 3. 最後に consents/{userId} に withdrawnAt を記録（研究記録として残す）
     final consentRef = _firestore.collection('consents').doc(userId);
-    batch.update(consentRef, {
+    await consentRef.update({
       'withdrawnAt': FieldValue.serverTimestamp(),
     });
-
-    await batch.commit();
   }
 }

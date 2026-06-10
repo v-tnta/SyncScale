@@ -148,6 +148,10 @@ class _HomeScreenState extends State<HomeScreen> {
             }
             return;
           }
+          if (_index != value) {
+            const screenNames = ['tasks', 'calendar', 'analytics'];
+            appState.logActivity('screen_view', {'screen': screenNames[value]});
+          }
           setState(() => _index = value);
         },
         destinations: const [

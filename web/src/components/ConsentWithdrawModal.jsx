@@ -35,7 +35,7 @@ export function ConsentWithdrawModal({ isOpen, onClose, onConfirm }) {
                 <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl text-xs space-y-2">
                     <p className="font-bold">🚨 重要な注意点：</p>
                     <ul className="list-disc list-inside space-y-1">
-                        <li>あなたの全データ（タスク、作業記録、コンディションログ等）は、復元不可能な形で完全に削除されます。</li>
+                        <li>あなたの全データ（タスク、作業記録、コンディションログ、利用状況ログ等）は、復元不可能な形で完全に削除されます。</li>
                         <li>アンケートの進捗情報や、オンボーディング進捗も同時にクリアされます。</li>
                         <li>同意撤回の記録（倫理的エビデンスとしてのログ）のみが残り、研究から即座に離脱します。</li>
                     </ul>

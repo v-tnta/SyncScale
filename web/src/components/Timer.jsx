@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useTimeLogs } from '../hooks/useTimeLogs'
+import { useActivityLog } from '../hooks/useActivityLog'
 
 /**
  * Timerコンポーネント (Inline版)
@@ -8,6 +9,7 @@ import { useTimeLogs } from '../hooks/useTimeLogs'
  */
 const Timer = ({ activeTask, logs, onUpdateTask }) => {
     const { addTimeLog } = useTimeLogs();
+    const { logEvent } = useActivityLog();
 
     // タイマー用ステート
     const [subTaskName, setSubTaskName] = useState('');
@@ -57,6 +59,10 @@ const Timer = ({ activeTask, logs, onUpdateTask }) => {
     // 開始（再開）ボタン
     const handleStart = async () => {
         const now = new Date();
+        // 累積0からの開始のみを「タイマー開始」として記録（一時停止からの再開は除外）
+        if (accumulatedSeconds === 0) {
+            logEvent('timer_start', { taskId: activeTask.id });
+        }
         setStartTime(now);
         setIsActive(true);
 
@@ -104,7 +110,7 @@ const Timer = ({ activeTask, logs, onUpdateTask }) => {
     };
 
     const saveLog = async (data) => {
-        await addTimeLog(data);
+        await addTimeLog(data, { method: 'timer' });
 
         // Auto-Status Logic & startedAt recording
         if (activeTask && onUpdateTask) {
@@ -161,7 +167,7 @@ const Timer = ({ activeTask, logs, onUpdateTask }) => {
             durationSeconds: durationSec
         };
 
-        await addTimeLog(log);
+        await addTimeLog(log, { method: 'manual' });
 
         // 事後報告の保存 & startedAt recording
         if (activeTask && onUpdateTask) {

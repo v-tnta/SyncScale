@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import * as conditionLogService from '../services/conditionLogService';
 import { useAuth } from './useAuth';
+import { useActivityLog } from './useActivityLog';
 
 export const useConditionLogs = () => {
     const { currentUser } = useAuth();
+    const { logEvent } = useActivityLog();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
@@ -13,6 +15,10 @@ export const useConditionLogs = () => {
         setError(null);
         try {
             await conditionLogService.addConditionLog(currentUser.uid, taskId, logData);
+            logEvent('condition_submit', {
+                taskId,
+                condition: logData.condition
+            });
         } catch (err) {
             console.error("Condition Log Add Error:", err);
             setError(err);

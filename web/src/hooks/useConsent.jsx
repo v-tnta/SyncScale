@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { doc, getDoc, setDoc, updateDoc, deleteField, serverTimestamp, collection, query, where, getDocs, writeBatch, onSnapshot } from "firebase/firestore";
+import { doc, getDoc, setDoc, updateDoc, deleteField, arrayUnion, serverTimestamp, collection, query, where, getDocs, writeBatch, onSnapshot } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { useAuth } from "./useAuth";
 import { AGREEMENT_CONTENT } from "../config/content";
@@ -51,14 +51,25 @@ export function ConsentProvider({ children }) {
         const uid = uidToUse || (currentUser ? currentUser.uid : null);
         if (!uid) return;
         const docRef = doc(db, "consents", uid);
-        
+
         try {
             const docSnap = await getDoc(docRef);
-            if (docSnap.exists() && docSnap.data().withdrawnAt) {
-                // 撤回済みの場合は、withdrawnAt フィールドを削除して再同意とする
-                await updateDoc(docRef, {
+            if (docSnap.exists()) {
+                // 再同意（撤回後の復帰、または同意書バージョン更新後の再同意）
+                const prev = docSnap.data();
+                const updates = {
+                    agreedAt: serverTimestamp(),
+                    version: AGREEMENT_CONTENT.version,
                     withdrawnAt: deleteField()
-                });
+                };
+                // 旧バージョンへの同意記録は研究記録として履歴に残す
+                if (prev.version !== AGREEMENT_CONTENT.version && prev.agreedAt) {
+                    updates.previousConsents = arrayUnion({
+                        version: prev.version,
+                        agreedAt: prev.agreedAt
+                    });
+                }
+                await updateDoc(docRef, updates);
             } else {
                 // 新規同意
                 await setDoc(docRef, {
@@ -66,16 +77,27 @@ export function ConsentProvider({ children }) {
                     version: AGREEMENT_CONTENT.version
                 });
             }
-            
+
             // onSnapshotの初回発火までの隙間を埋めるため、手動でもstateを更新
             const updatedSnap = await getDoc(docRef);
             setConsent(updatedSnap.data());
-            
+
             // UID変更による同期リセットで上書きされないよう、lastUidも更新
             setLastUid(uid);
         } catch (error) {
             console.error("同意の記録に失敗しました:", error);
             throw error;
+        }
+    };
+
+    // Firestoreのバッチは1コミット500操作まで。上限を超えても削除が失敗しないよう、
+    // 余裕を持たせたサイズに分割（チャンク）して順次コミットする
+    const BATCH_CHUNK_SIZE = 450;
+    const deleteRefsInChunks = async (refs) => {
+        for (let i = 0; i < refs.length; i += BATCH_CHUNK_SIZE) {
+            const batch = writeBatch(db);
+            refs.slice(i, i + BATCH_CHUNK_SIZE).forEach((ref) => batch.delete(ref));
+            await batch.commit();
         }
     };
 
@@ -86,35 +108,27 @@ export function ConsentProvider({ children }) {
         const docRef = doc(db, "consents", userId);
 
         try {
-            const batch = writeBatch(db);
-            
-            // 1. 関連データを取得 (この時点では同意状態なので読み取り可能)
-            // tasks の削除
-            const tasksSnap = await getDocs(query(collection(db, "tasks"), where("userId", "==", userId)));
-            tasksSnap.forEach((doc) => batch.delete(doc.ref));
+            // 1. 削除対象の参照をすべて収集 (この時点では同意状態なので読み取り可能)
+            const refsToDelete = [];
+            const collections = ["tasks", "timeLogs", "conditionLogs", "activityLogs"];
+            for (const name of collections) {
+                const snap = await getDocs(query(collection(db, name), where("userId", "==", userId)));
+                snap.forEach((doc) => refsToDelete.push(doc.ref));
+            }
 
-            // timeLogs の削除
-            const timeLogsSnap = await getDocs(query(collection(db, "timeLogs"), where("userId", "==", userId)));
-            timeLogsSnap.forEach((doc) => batch.delete(doc.ref));
-
-            // conditionLogs の削除
-            const conditionLogsSnap = await getDocs(query(collection(db, "conditionLogs"), where("userId", "==", userId)));
-            conditionLogsSnap.forEach((doc) => batch.delete(doc.ref));
-
-            // onboarding の削除
             const onboardingRef = doc(db, "onboarding", userId);
             const onboardingSnap = await getDoc(onboardingRef);
             if (onboardingSnap.exists()) {
-                batch.delete(onboardingRef);
+                refsToDelete.push(onboardingRef);
             }
 
-            // 2. consents/{userId} に withdrawnAt を記録（研究記録として残す）
-            batch.update(docRef, {
+            // 2. チャンク分割しながら全データを削除
+            await deleteRefsInChunks(refsToDelete);
+
+            // 3. 最後に consents/{userId} に withdrawnAt を記録（研究記録として残す）
+            await updateDoc(docRef, {
                 withdrawnAt: serverTimestamp()
             });
-
-            // 3. バッチをコミットして全データを一度に削除・更新
-            await batch.commit();
 
             setConsent(prev => ({ ...prev, withdrawnAt: new Date() }));
         } catch (error) {
@@ -123,7 +137,9 @@ export function ConsentProvider({ children }) {
         }
     };
 
-    const hasConsented = consent !== null && !consent.withdrawnAt;
+    // 同意済み かつ 撤回していない かつ 現行バージョンの同意書に同意している
+    // （同意書が改訂された場合、既存ユーザーは再同意するまで未同意扱いになる）
+    const hasConsented = consent !== null && !consent.withdrawnAt && consent.version === AGREEMENT_CONTENT.version;
 
     const value = {
         consent,

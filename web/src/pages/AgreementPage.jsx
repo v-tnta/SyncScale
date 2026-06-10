@@ -142,7 +142,7 @@ export function AgreementPage() {
                             ) : (
                                 <>
                                     <span>✓</span>
-                                    <span>研究内容に同意する</span>
+                                    <span>{AGREEMENT_CONTENT.buttonText}</span>
                                 </>
                             )}
                         </button>
