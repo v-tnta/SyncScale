@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../constants/app_info.dart';
 import '../state/syncscale_state.dart';
 import '../widgets/task_form_sheet.dart';
 import '../widgets/mobile_app_promo_dialog.dart';
@@ -104,7 +105,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(width: 6),
             const Text(
-              'v0.3.1',
+              'v$kAppVersion',
               style: TextStyle(
                 fontSize: 12,
                 color: Colors.grey,

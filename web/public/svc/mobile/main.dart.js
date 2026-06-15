@@ -93081,7 +93081,7 @@ s=q}while(true)switch(s){case 0:q=3
 m=o.a.dH("activityLogs")
 l=$.jR().iH()
 s=6
-return A.v(m.D(0,A.a7(["userId",a,"eventName",b,"params",c,"platform","mobile_web","appVersion","0.3.3","createdAt",new A.eF(l,l)],t.N,t.z)),$async$wp)
+return A.v(m.D(0,A.a7(["userId",a,"eventName",b,"params",c,"platform","mobile_web","appVersion","0.3.4","createdAt",new A.eF(l,l)],t.N,t.z)),$async$wp)
 case 6:q=1
 s=5
 break
@@ -100935,7 +100935,7 @@ B.B1=new A.l(!0,null,null,null,null,null,22,null,null,null,null,null,null,null,n
 B.YE=new A.aK("\ud83d\udccb",null,B.B1,null,null,null,null,null,null,null)
 B.YF=new A.aK("\u8ab2\u984c\u306e\u898f\u6a21\u611f",null,B.lL,null,null,null,null,null,null,null)
 B.Ub=new A.l(!0,B.fk,null,null,null,null,12,B.ab,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null)
-B.YG=new A.aK("v0.3.1",null,B.Ub,null,null,null,null,null,null,null)
+B.YG=new A.aK("v0.3.4",null,B.Ub,null,null,null,null,null,null,null)
 B.YI=new A.aK("\u3053\u306e\u307e\u307e\u8a18\u9332",null,null,null,null,null,null,null,null,null)
 B.YJ=new A.aK("\u5b8c\u4e86\u306b\u3059\u308b",null,null,null,null,null,null,null,null,null)
 B.XJ=new A.l(!0,B.N,null,null,null,null,12,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null)
