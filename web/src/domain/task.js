@@ -16,7 +16,6 @@ export class Task {
         id,
         title,
         status = 'TODO',
-        estimatedMinutes = 0,
         deadline = null, // Date object or null
         isVisible = true,
         sizeLabel = null,
@@ -35,8 +34,6 @@ export class Task {
         this.id = id;
         this.title = title;
         this.status = status;
-        // 数値であることを保証
-        this.estimatedMinutes = Number(estimatedMinutes) || 0;
         this.deadline = deadline;
         this.isVisible = isVisible;
         this.sizeLabel = sizeLabel;
@@ -105,7 +102,6 @@ export class Task {
         return {
             title: this.title,
             status: this.status,
-            estimatedMinutes: this.estimatedMinutes,
             deadline: this.deadline,
             isVisible: this.isVisible,
             sizeLabel: this.sizeLabel,

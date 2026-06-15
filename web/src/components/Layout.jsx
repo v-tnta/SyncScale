@@ -7,7 +7,7 @@ import { AnalyticsPanel } from './AnalyticsPanel'
 import { APP_INFO } from '../constants/appInfo'
 import logo from '../assets/logo.png'
 
-const Layout = ({ children, tasks, onTaskClick }) => {
+const Layout = ({ children, tasks, onTaskClick, timeLogs = [], conditionLogs = [] }) => {
     const { currentUser } = useAuth();
     const [isSettingsOpen, setIsSettingsOpen] = React.useState(false);
     const [isAnalyticsOpen, setIsAnalyticsOpen] = React.useState(false);
@@ -84,6 +84,8 @@ const Layout = ({ children, tasks, onTaskClick }) => {
                 isOpen={isAnalyticsOpen}
                 onClose={() => setIsAnalyticsOpen(false)}
                 tasks={tasks}
+                timeLogs={timeLogs}
+                conditionLogs={conditionLogs}
             />
 
             {/* フッターエリア */}

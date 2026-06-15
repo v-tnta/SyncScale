@@ -195,7 +195,6 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
       if (_isEditing) {
         await appState.updateTask(widget.task!.id, {
           'title': title,
-          'estimatedMinutes': 0,
           'deadline': _deadline,
           'sizeLabel': _sizeLabel,
           'isNew': false,
@@ -207,7 +206,6 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
             id: '',
             title: title,
             status: TaskStatus.todo,
-            estimatedMinutes: 0,
             deadline: _deadline,
             isVisible: true,
             sizeLabel: _sizeLabel,

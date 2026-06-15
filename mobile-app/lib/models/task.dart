@@ -23,7 +23,6 @@ class Task {
     required this.id,
     required this.title,
     required this.status,
-    required this.estimatedMinutes,
     required this.deadline,
     required this.isVisible,
     this.sizeLabel,
@@ -43,7 +42,6 @@ class Task {
   final String id;
   final String title;
   final TaskStatus status;
-  final int estimatedMinutes;
   final DateTime? deadline;
   final bool isVisible;
   final String? sizeLabel;
@@ -74,7 +72,6 @@ class Task {
       id: snapshot.id,
       title: (data['title'] ?? '無題のタスク').toString(),
       status: TaskStatus.fromValue(data['status']?.toString()),
-      estimatedMinutes: (data['estimatedMinutes'] as num?)?.toInt() ?? 0,
       deadline: _toDate(data['deadline']),
       isVisible: data['isVisible'] != false,
       sizeLabel: data['sizeLabel']?.toString(),
@@ -97,7 +94,6 @@ class Task {
       'userId': userId,
       'title': title,
       'status': status.value,
-      'estimatedMinutes': estimatedMinutes,
       'deadline': deadline,
       'isVisible': true,
       'sizeLabel': sizeLabel,

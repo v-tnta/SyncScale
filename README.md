@@ -11,23 +11,22 @@ SyncScalePJ/
 ├── web/                  # PCのWebアプリ (React + Vite + Firebase)
 ├── chrome-extension/     # Chrome拡張機能 (Manifest V3)
 ├── mobile-app/           # スマートフォンアプリ (Flutter)
-└── docs/                 # 共通ドキュメント (concept.md)
+└── docs/                 # 共通ドキュメント (systemdesign-v3.md)
 ```
+
+> **設計書**: 全プロダクトの設計は [docs/systemdesign-v3.md](docs/systemdesign-v3.md) に統合されています（唯一の正典）。
 
 ### 🌐 web/ — PCのWebアプリ
 - **技術**: React, Vite, Tailwind CSS, Firebase (Firestore + Auth)
-- **役割**: タスク管理、時間負債ダッシュボード、着手リードタイム分析、積み上げ式ガントチャート
-- **設計書**: [web/docs/SystemDesign-v2.md](web/docs/SystemDesign-v2.md)
+- **役割**: タスク管理、相対見積もり（S/M/L）、着手リードタイム分析、積み上げ式ガントチャート
 
 ### 🔌 chrome-extension/ — Chrome拡張機能
-- **技術**: Chrome Extension Manifest V3, Firebase
-- **役割**: LMS（manaba等）から課題・〆切を自動取得し、Firestoreへ登録
-- **設計書**: [chrome-extension/docs/SystemDesign.md](chrome-extension/docs/SystemDesign.md)
+- **技術**: Chrome Extension Manifest V3
+- **役割**: LMS（manaba等）から課題・〆切を自動取得し、Webアプリ経由でFirestoreへ登録
 
 ### 📱 mobile-app/ — スマートフォンアプリ
 - **技術**: Flutter (Dart), Firebase
-- **役割**: 相対見積もり（S/M/L）、タイマー計測、コンディション入力
-- **設計書**: [mobile-app/docs/SystemDesign.md](mobile-app/docs/SystemDesign.md)
+- **役割**: 相対見積もり（S/M/L）、タイマー計測、コンディション入力、着手リードタイム分析
 
 ## 🔗 システム連携
 
@@ -36,9 +35,9 @@ SyncScalePJ/
 | Step | 手法 | 担当 |
 |------|------|------|
 | 1. 自動収集 | LMSから課題・〆切を自動取得 | Chrome拡張機能 |
-| 2. 相対見積もり | S/M/L ラベリング | スマートフォンアプリ |
-| 3. 計測と振り返り | タイマー計測・コンディション入力 | スマートフォンアプリ |
-| 4. データの可視化 | ダッシュボードで分析 | PCのWebアプリ |
+| 2. 相対見積もり | S/M/L ラベリング | Webアプリ / スマートフォンアプリ |
+| 3. 計測と振り返り | タイマー計測・コンディション入力 | Webアプリ / スマートフォンアプリ |
+| 4. データの可視化 | 着手リードタイム・実績ガントで分析 | Webアプリ / スマートフォンアプリ |
 
 ## ⚙️ Webアプリの環境構築
 
@@ -56,6 +55,6 @@ npm run dev
 
 ## 📄 共通ドキュメント
 
-- [コンセプト](docs/concept.md) — プロジェクト全体の動機・目的・手法
+- [システム設計書 v3](docs/systemdesign-v3.md) — コンセプト・全体設計・データ構造・セキュリティの正典
 - [Flutter Web ビルド・統合手順](docs/FLUTTER_WEB_BUILD.md) — モバイル版をWeb版に組み込むための手順
 # SyncScale

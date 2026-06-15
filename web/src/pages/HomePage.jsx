@@ -22,7 +22,7 @@ export function HomePage() {
   const { onboarding, completeStep, dismissMobilePromo, viewExtensionGuide } = useOnboarding();
   const { tasks, addTask, addTasksBatch, updateTask, deleteTask, completelyDeleteTask, loading, error } = useTasks();
   const { timeLogs } = useTimeLogs();
-  const { addLog: addConditionLog } = useConditionLogs();
+  const { addLog: addConditionLog, conditionLogs } = useConditionLogs({ subscribe: true });
   const { logEvent } = useActivityLog();
 
   // tasksの最新状態を保持するRef（useEffectの依存配列を減らすため）
@@ -279,7 +279,6 @@ export function HomePage() {
           title: task.title,
           type: task.type,
           deadline: deadlineDate,
-          estimatedMinutes: 0,
           isNew: true,
           source: 'chrome_ext',
           startedAt: null,
@@ -349,7 +348,7 @@ export function HomePage() {
   }, [loading, pendingImportTasks]);
 
   return (
-    <Layout tasks={filteredTasks} onTaskClick={handleTaskClick}>
+    <Layout tasks={filteredTasks} onTaskClick={handleTaskClick} timeLogs={timeLogs} conditionLogs={conditionLogs}>
       <div className="flex flex-col gap-8">
         {/* 上部: 新規タスク追加 */}
         <div>

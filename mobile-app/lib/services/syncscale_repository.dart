@@ -38,6 +38,18 @@ class SyncScaleRepository {
     });
   }
 
+  /// ログイン中ユーザーの全コンディションログをリアルタイム監視する（分析タブ用）。
+  /// 複合インデックスを避けるため orderBy はクエリに含めない。
+  Stream<List<ConditionLog>> watchConditionLogs(String userId) {
+    final query = _firestore
+        .collection('conditionLogs')
+        .where('userId', isEqualTo: userId);
+
+    return query.snapshots().map((snapshot) {
+      return snapshot.docs.map(ConditionLog.fromFirestore).toList();
+    });
+  }
+
   Future<void> addTask(String userId, Task task) async {
     await _firestore.collection('tasks').add(task.toCreateMap(userId));
   }

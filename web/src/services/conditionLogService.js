@@ -4,12 +4,36 @@ import {
     query,
     where,
     getDocs,
-    serverTimestamp,
-    orderBy
+    onSnapshot,
+    serverTimestamp
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 
 const COLLECTION_NAME = 'conditionLogs';
+
+/**
+ * ログイン中ユーザーの全コンディションログをリアルタイム監視する（分析タブ用）。
+ * 複合インデックスを避けるため orderBy はクエリに含めず、createdAt は Date に正規化して返す。
+ * @param {string} userId
+ */
+export const subscribeToConditionLogs = (userId, onUpdate, onError) => {
+    const logsCollection = collection(db, COLLECTION_NAME);
+    const q = query(logsCollection, where('userId', '==', userId));
+
+    return onSnapshot(q, (snapshot) => {
+        const logs = snapshot.docs.map((doc) => {
+            const data = doc.data();
+            return {
+                id: doc.id,
+                taskId: data.taskId,
+                condition: data.condition,
+                memo: data.memo || '',
+                createdAt: data.createdAt?.toDate ? data.createdAt.toDate() : (data.createdAt || null)
+            };
+        });
+        onUpdate(logs);
+    }, onError);
+};
 
 /**
  * コンディションログを追加する

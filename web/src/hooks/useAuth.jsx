@@ -43,8 +43,11 @@ export function AuthProvider({ children }) {
     };
 
     // コンテキスト経由で提供する値
+    // loading も公開する（RootRedirect / ConsentGuard / ExtSyncPage が
+    // `loading: authLoading` で参照しているため、API と利用側を一致させる）
     const value = {
         currentUser,
+        loading,
         login,
         logout,
     };

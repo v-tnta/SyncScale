@@ -24,11 +24,13 @@ class SyncScaleState extends ChangeNotifier {
   String? errorMessage;
   List<Task> tasks = const [];
   List<TimeLog> timeLogs = const [];
+  List<ConditionLog> conditionLogs = const [];
   Onboarding? onboarding;
 
   StreamSubscription<User?>? _authSubscription;
   StreamSubscription<List<Task>>? _taskSubscription;
   StreamSubscription<List<TimeLog>>? _timeLogSubscription;
+  StreamSubscription<List<ConditionLog>>? _conditionLogSubscription;
   StreamSubscription<Onboarding?>? _onboardingSubscription;
 
   // アプリ起動ごとに1回だけ session_start を記録するためのフラグ
@@ -93,10 +95,13 @@ class SyncScaleState extends ChangeNotifier {
     _taskSubscription = null;
     _timeLogSubscription?.cancel();
     _timeLogSubscription = null;
+    _conditionLogSubscription?.cancel();
+    _conditionLogSubscription = null;
     _onboardingSubscription?.cancel();
     _onboardingSubscription = null;
     tasks = const [];
     timeLogs = const [];
+    conditionLogs = const [];
     onboarding = null;
     errorMessage = null;
   }
@@ -104,6 +109,7 @@ class SyncScaleState extends ChangeNotifier {
   void _bindUserData(String userId) {
     _taskSubscription?.cancel();
     _timeLogSubscription?.cancel();
+    _conditionLogSubscription?.cancel();
     _onboardingSubscription?.cancel();
 
     dataLoading = true;
@@ -174,6 +180,22 @@ class SyncScaleState extends ChangeNotifier {
             notifyListeners();
           },
         );
+
+    _conditionLogSubscription = repository
+        .watchConditionLogs(userId)
+        .listen(
+          (newLogs) {
+            debugPrint('conditionLogs fetched: ${newLogs.length}');
+            conditionLogs = newLogs;
+            notifyListeners();
+          },
+          onError: (Object error, StackTrace stackTrace) {
+            debugPrint('ERROR: コンディションログ取得失敗: $error');
+            debugPrint('STACKTRACE: $stackTrace');
+            errorMessage = 'コンディションログの取得に失敗しました: $error';
+            notifyListeners();
+          },
+        );
   }
 
   Future<void> login() async {
@@ -204,6 +226,7 @@ class SyncScaleState extends ChangeNotifier {
       await authService.logout();
       tasks = const [];
       timeLogs = const [];
+      conditionLogs = const [];
     });
   }
 
@@ -514,6 +537,7 @@ class SyncScaleState extends ChangeNotifier {
     _authSubscription?.cancel();
     _taskSubscription?.cancel();
     _timeLogSubscription?.cancel();
+    _conditionLogSubscription?.cancel();
     _onboardingSubscription?.cancel();
     super.dispose();
   }

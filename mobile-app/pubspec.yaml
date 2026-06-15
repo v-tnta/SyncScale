@@ -65,6 +65,9 @@ flutter:
 
   assets:
     - assets/images/logo.png
+    # flutter_dotenv はネイティブ(iOS/Android)実行時に .env をアセットとして読み込むため必須。
+    # （Web ビルドは build-flutter-web.js の --dart-define で値を埋め込むため .env は使用しない）
+    - .env
 
 flutter_launcher_icons:
   android: true
