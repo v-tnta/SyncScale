@@ -263,18 +263,32 @@ const DynamicTutorialGuide = ({
     }, [tasks, step]);
 
     // Step 5: 対象のタスク詳細が開かれたかを検知
+    // タイトル文字列の完全一致だけに依存すると、日本語IMEの確定タイミング等で
+    // title が一致せず先に進めないことがある。チュートリアル用タスク
+    // (isTutorialTask) か、ステップ4で記録した tutorialTaskId でも判定する。
     useEffect(() => {
-        if (step === 5 && selectedTask && selectedTask.title.includes('線形代数のレポート')) {
+        if (step !== 5 || !selectedTask) return;
+        const isTutorialTaskDetail =
+            selectedTask.isTutorialTask === true ||
+            (tutorialTaskId && selectedTask.id === tutorialTaskId) ||
+            (typeof selectedTask.title === 'string' && selectedTask.title.includes('線形代数のレポート'));
+        if (isTutorialTaskDetail) {
             setStep(6);
         }
-    }, [selectedTask, step]);
+    }, [selectedTask, step, tutorialTaskId]);
 
     // Step 11: 提出完了モーダルが開いたかを検知
+    // Step 5 と同様、タイトル一致だけに頼らず isTutorialTask / tutorialTaskId でも判定する。
     useEffect(() => {
-        if (step === 11 && taskToComplete && taskToComplete.title.includes('線形代数のレポート')) {
+        if (step !== 11 || !taskToComplete) return;
+        const isTutorialTaskCompleting =
+            taskToComplete.isTutorialTask === true ||
+            (tutorialTaskId && taskToComplete.id === tutorialTaskId) ||
+            (typeof taskToComplete.title === 'string' && taskToComplete.title.includes('線形代数のレポート'));
+        if (isTutorialTaskCompleting) {
             setStep(12);
         }
-    }, [taskToComplete, step]);
+    }, [taskToComplete, step, tutorialTaskId]);
 
     // Step 12: 「記録して提出完了」ボタンのクリックを直接検知して次へ進む
     useEffect(() => {
