@@ -118,6 +118,23 @@ class _SettingsDialogState extends State<SettingsDialog> {
               ),
             ),
           ],
+          // Web版では実際の通知が届かないため、その旨を明記する
+          if (kIsWeb) ...[
+            const Divider(height: 1, color: Color(0xFFE2E8F0)),
+            Container(
+              width: double.infinity,
+              color: const Color(0xFFFFFBEB),
+              padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+              child: const Text(
+                '📱 通知はスマートフォンアプリ（インストール版）でのみ届きます。こちらでは設定の保存のみ行えます。',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Color(0xFFB45309),
+                  height: 1.4,
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -297,11 +314,10 @@ class _SettingsDialogState extends State<SettingsDialog> {
                       const SizedBox(height: 20),
                     ],
 
-                    // 締切前通知（ネイティブのみ。Web はローカル通知非対応のため非表示）
-                    if (!kIsWeb) ...[
-                      _buildNotificationSection(appState),
-                      const SizedBox(height: 12),
-                    ],
+                    // 締切前通知（設定は web/ネイティブ共通で保存。
+                    // 実際の通知はスマホアプリでのみ配信されるため、Web では注記を表示）
+                    _buildNotificationSection(appState),
+                    const SizedBox(height: 12),
 
                     // 設定メニュー
                     ListTile(

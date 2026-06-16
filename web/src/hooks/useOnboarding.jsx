@@ -123,6 +123,27 @@ export function OnboardingProvider({ children }) {
         }
     };
 
+    // 締切前通知の設定を更新する（userSettings ドキュメントに保存）。
+    // 実際の通知配信はスマホアプリのローカル通知のみ。Web は設定値の保存のみ行う。
+    const updateNotificationSettings = async ({ enabled, minutesBefore } = {}) => {
+        if (!currentUser || !hasConsented) return;
+        const docRef = doc(db, "userSettings", currentUser.uid);
+
+        const data = {};
+        if (typeof enabled === "boolean") data.notificationEnabled = enabled;
+        if (typeof minutesBefore === "number") data.notificationMinutesBefore = minutesBefore;
+        if (Object.keys(data).length === 0) return;
+
+        try {
+            await setDoc(docRef, data, { merge: true });
+            const updatedSnap = await getDoc(docRef);
+            setUserSettings(updatedSnap.data());
+        } catch (error) {
+            console.error("通知設定の保存に失敗しました:", error);
+            throw error;
+        }
+    };
+
     // 拡張機能ガイドを表示したことを記録する
     const viewExtensionGuide = async () => {
         if (!currentUser || !hasConsented) return;
@@ -147,6 +168,7 @@ export function OnboardingProvider({ children }) {
         completeStep,
         resetTutorial,
         dismissMobilePromo,
+        updateNotificationSettings,
         viewExtensionGuide
     };
 

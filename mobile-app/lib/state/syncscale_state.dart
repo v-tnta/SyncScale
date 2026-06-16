@@ -572,8 +572,10 @@ class SyncScaleState extends ChangeNotifier {
       return false;
     }
 
+    // Web ではローカル通知に対応しないため OS 権限の要求は行わない。
+    // 設定値の保存のみ行い、実際の通知はスマホアプリ側で配信される。
     var permissionGranted = true;
-    if (enabled == true) {
+    if (enabled == true && !kIsWeb) {
       permissionGranted = await notificationService.requestPermissions();
     }
 

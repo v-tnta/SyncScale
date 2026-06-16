@@ -6,15 +6,52 @@ import { useOnboarding } from "../hooks/useOnboarding";
 import { ConsentWithdrawModal } from "./ConsentWithdrawModal";
 import { ConfirmModal } from "./ConfirmModal";
 
+// 「締切の何分前」のプリセット（分）
+const NOTIF_PRESETS = [10, 30, 60, 180, 1440];
+
+// 分を「10分 / 1時間 / 1日」のように整形する（Flutter版 formatMinutesBefore と揃える）
+const formatMinutesBefore = (minutes) => {
+    if (minutes <= 0) return "0分";
+    if (minutes % 1440 === 0) return `${minutes / 1440}日`;
+    if (minutes % 60 === 0) return `${minutes / 60}時間`;
+    return `${minutes}分`;
+};
+
 export function SettingsPanel({ isOpen, onClose }) {
     const { currentUser, logout } = useAuth();
     const { withdrawConsent } = useConsent();
-    const { resetTutorial } = useOnboarding();
+    const { resetTutorial, userSettings, updateNotificationSettings } = useOnboarding();
     const navigate = useNavigate();
     const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
     const [isSecondWithdrawOpen, setIsSecondWithdrawOpen] = useState(false);
     const [isTransitioning, setIsTransitioning] = useState(false);
     const [loadingText, setLoadingText] = useState("");
+    const [notifSaving, setNotifSaving] = useState(false);
+
+    const notifEnabled = userSettings?.notificationEnabled ?? false;
+    const notifMinutes = userSettings?.notificationMinutesBefore ?? 30;
+
+    const handleToggleNotif = async (value) => {
+        setNotifSaving(true);
+        try {
+            await updateNotificationSettings({ enabled: value });
+        } catch {
+            alert("通知設定の保存に失敗しました。");
+        } finally {
+            setNotifSaving(false);
+        }
+    };
+
+    const handleSelectNotifMinutes = async (minutes) => {
+        setNotifSaving(true);
+        try {
+            await updateNotificationSettings({ minutesBefore: minutes });
+        } catch {
+            alert("通知設定の保存に失敗しました。");
+        } finally {
+            setNotifSaving(false);
+        }
+    };
 
     if (!isOpen) return null;
 
@@ -99,6 +136,58 @@ export function SettingsPanel({ isOpen, onClose }) {
                                 </div>
                             </div>
                         )}
+
+                        {/* 締切前通知設定 */}
+                        <div className="rounded-2xl border border-gray-200 overflow-hidden">
+                            <div className="flex items-center justify-between p-3.5 gap-3">
+                                <div className="flex items-center gap-3 min-w-0">
+                                    <span className="text-lg">🔔</span>
+                                    <div className="min-w-0">
+                                        <p className="font-bold text-sm text-gray-800">締切前に通知</p>
+                                        <p className="text-xs text-gray-500 mt-0.5">
+                                            {notifEnabled
+                                                ? `締切の${formatMinutesBefore(notifMinutes)}前にお知らせします`
+                                                : "タスクの締切前にお知らせします"}
+                                        </p>
+                                    </div>
+                                </div>
+                                <button
+                                    type="button"
+                                    role="switch"
+                                    aria-checked={notifEnabled}
+                                    disabled={notifSaving}
+                                    onClick={() => handleToggleNotif(!notifEnabled)}
+                                    className={`relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition disabled:opacity-50 ${notifEnabled ? "bg-blue-600" : "bg-gray-300"}`}
+                                >
+                                    <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition ${notifEnabled ? "translate-x-5" : "translate-x-0.5"}`} />
+                                </button>
+                            </div>
+
+                            {notifEnabled && (
+                                <div className="px-3.5 pb-3 border-t border-gray-100 pt-3">
+                                    <p className="text-xs font-bold text-gray-600 mb-2">何分前に通知するか</p>
+                                    <div className="flex flex-wrap gap-2">
+                                        {NOTIF_PRESETS.map((preset) => (
+                                            <button
+                                                key={preset}
+                                                type="button"
+                                                disabled={notifSaving}
+                                                onClick={() => handleSelectNotifMinutes(preset)}
+                                                className={`px-3 py-1.5 rounded-full text-xs font-bold border transition disabled:opacity-50 ${notifMinutes === preset ? "bg-blue-600 text-white border-blue-600" : "bg-white text-gray-600 border-gray-200 hover:border-blue-300"}`}
+                                            >
+                                                {formatMinutesBefore(preset)}前
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="bg-amber-50 border-t border-amber-100 px-3.5 py-2.5">
+                                <p className="text-[11px] text-amber-700 leading-relaxed">
+                                    📱 通知はスマートフォンアプリ（インストール版）でのみ届きます。Web版では設定の保存のみ行えます。
+                                </p>
+                            </div>
+                        </div>
 
                         {/* 設定メニュー */}
                         <div className="space-y-3">
