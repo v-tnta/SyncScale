@@ -161,6 +161,20 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
   }
 
   Future<void> _pickDeadline() async {
+    final date = await showDatePicker(
+      context: context,
+      initialDate: _deadline,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+    if (date == null) {
+      return;
+    }
+
+    if (!mounted) {
+      return;
+    }
+
     final time = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.fromDateTime(_deadline),
@@ -171,9 +185,9 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
 
     setState(() {
       _deadline = DateTime(
-        _deadline.year,
-        _deadline.month,
-        _deadline.day,
+        date.year,
+        date.month,
+        date.day,
         time.hour,
         time.minute,
       );
