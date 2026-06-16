@@ -102,6 +102,36 @@ class NotificationService {
     return true;
   }
 
+  /// 現在の通知権限が許可済みかどうかを返す（権限要求は行わない）。
+  ///
+  /// チュートリアル完了時に「すでに許可済みなら許可モーダルを出さない」判定に使う。
+  /// Android 12 以下は実行時権限が不要なため通常 true を返す。
+  Future<bool> hasPermission() async {
+    if (kIsWeb) {
+      return false;
+    }
+    if (!_initialized) {
+      await init();
+    }
+
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      final android = _plugin.resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>();
+      final enabled = await android?.areNotificationsEnabled();
+      return enabled ?? false;
+    }
+
+    if (defaultTargetPlatform == TargetPlatform.iOS ||
+        defaultTargetPlatform == TargetPlatform.macOS) {
+      final ios = _plugin.resolvePlatformSpecificImplementation<
+          IOSFlutterLocalNotificationsPlugin>();
+      final options = await ios?.checkPermissions();
+      return options?.isEnabled ?? false;
+    }
+
+    return false;
+  }
+
   /// タスク一覧と設定からリマインダーを同期する。
   ///
   /// 予約済み通知を全消去してから、対象タスク（締切あり・未完了・非チュートリアル・

@@ -4,6 +4,7 @@ import '../constants/app_info.dart';
 import '../state/syncscale_state.dart';
 import '../widgets/task_form_sheet.dart';
 import '../widgets/mobile_app_promo_dialog.dart';
+import '../widgets/notification_permission_dialog.dart';
 import '../widgets/task_size_estimate_dialog.dart';
 import '../widgets/tutorial_guide_overlay.dart';
 import 'analytics_screen.dart';
@@ -23,6 +24,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String? _openEstimateTaskId;
   SyncScaleState? _appState;
   bool _isPromoDialogOpen = false;
+  bool _isNotificationDialogOpen = false;
 
   @override
   void didChangeDependencies() {
@@ -56,6 +58,27 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
     _checkAndShowMobilePromo();
+    _checkAndShowNotificationPrompt();
+  }
+
+  void _checkAndShowNotificationPrompt() {
+    if (!mounted) return;
+    final state = _appState;
+    if (state == null) return;
+
+    if (state.shouldPromptNotificationPermission && !_isNotificationDialogOpen) {
+      _isNotificationDialogOpen = true;
+      // 二重表示を防ぐため、要求は即時に消費する
+      state.consumeNotificationPermissionPrompt();
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (!mounted) {
+          _isNotificationDialogOpen = false;
+          return;
+        }
+        await NotificationPermissionDialog.show(context);
+        _isNotificationDialogOpen = false;
+      });
+    }
   }
 
   void _checkAndShowMobilePromo() {

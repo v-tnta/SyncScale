@@ -500,6 +500,16 @@ class SyncScaleState extends ChangeNotifier {
     }
   }
 
+  /// チュートリアル完了直後に通知許可モーダルを出すべきか。
+  /// ネイティブかつ未許可のときのみ true になる。
+  bool _promptNotificationPermission = false;
+  bool get shouldPromptNotificationPermission => _promptNotificationPermission;
+
+  /// 通知許可モーダルの表示要求を消費する（二重表示防止）。
+  void consumeNotificationPermissionPrompt() {
+    _promptNotificationPermission = false;
+  }
+
   Future<void> completeTutorial() async {
     final user = currentUser;
     if (user == null) {
@@ -509,6 +519,20 @@ class SyncScaleState extends ChangeNotifier {
     notifyListeners();
     await _cleanupTutorialTasks();
     await _run(() => repository.completeTutorial(user.uid));
+
+    // ネイティブで、まだ通知が許可されていない場合のみ、許可を促すモーダルを出す。
+    // すでに許可済みなら何もしない。権限チェックの失敗で完了処理を妨げないよう握りつぶす。
+    if (!kIsWeb) {
+      try {
+        final granted = await notificationService.hasPermission();
+        if (!granted) {
+          _promptNotificationPermission = true;
+          notifyListeners();
+        }
+      } catch (e) {
+        debugPrint('通知許可状態の確認に失敗しました: $e');
+      }
+    }
   }
 
   Future<void> resetTutorial() async {
