@@ -95287,7 +95287,7 @@ s=q}while(true)switch(s){case 0:q=3
 m=o.a.dM("activityLogs")
 l=$.k3().iP()
 s=6
-return A.v(m.D(0,A.a9(["userId",a,"eventName",b,"params",c,"platform","mobile_web","appVersion","0.3.4","createdAt",new A.eL(l,l)],t.N,t.z)),$async$wW)
+return A.v(m.D(0,A.a9(["userId",a,"eventName",b,"params",c,"platform","mobile_web","appVersion","0.3.5","createdAt",new A.eL(l,l)],t.N,t.z)),$async$wW)
 case 6:q=1
 s=5
 break
@@ -103230,7 +103230,7 @@ B.Bf=new A.l(!0,null,null,null,null,null,22,null,null,null,null,null,null,null,n
 B.Zm=new A.aL("\ud83d\udccb",null,B.Bf,null,null,null,null,null,null,null)
 B.Zn=new A.aL("\u8ab2\u984c\u306e\u898f\u6a21\u611f",null,B.lZ,null,null,null,null,null,null,null)
 B.UU=new A.l(!0,B.fv,null,null,null,null,12,B.ad,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null)
-B.Zo=new A.aL("v0.3.4",null,B.UU,null,null,null,null,null,null,null)
+B.Zo=new A.aL("v0.3.5",null,B.UU,null,null,null,null,null,null,null)
 B.Zq=new A.aL("\u3053\u306e\u307e\u307e\u8a18\u9332",null,null,null,null,null,null,null,null,null)
 B.Zr=new A.aL("\u5b8c\u4e86\u306b\u3059\u308b",null,null,null,null,null,null,null,null,null)
 B.Yr=new A.l(!0,B.P,null,null,null,null,12,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null)

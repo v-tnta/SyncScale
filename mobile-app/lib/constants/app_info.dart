@@ -2,4 +2,4 @@
 ///
 /// リリース時はモノレポ全体のバージョン（web/package.json の version）と
 /// 揃えて更新すること。
-const String kAppVersion = '0.3.4';
+const String kAppVersion = '0.3.5';

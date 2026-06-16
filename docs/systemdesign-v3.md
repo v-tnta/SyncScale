@@ -347,6 +347,19 @@ mobile-app/lib/
 
 ---
 
+## 11. 変更履歴（Changelog）
+
+> リリース単位の変更概要。詳細な開発ログは `docs/logs/devTrails.md`（ローカル）を参照。バージョンは `web/package.json` の `version` と `mobile-app/lib/constants/app_info.dart` の `kAppVersion` を揃えて管理する。
+
+| バージョン | 日付 | 概要 |
+|---|---|---|
+| `0.3.5` | 2026/06/16 | **Flutter 締切ピッカーの日付変更バグ修正。** タスク登録・編集画面の締切ボタンが `showTimePicker`（時刻のみ）しか出さず日付を変更できなかったため、`showDatePicker`→`showTimePicker` の 2 段階に変更（`task_form_sheet.dart`）。Flutter Web ミラー（`/svc/mobile/`）を再ビルドし Web 版（`sync-scale`）へデプロイ。 |
+| `0.3.4` | 2026/06/15 | web/Flutter のバージョン表記を統一。Flutter のバージョン表示を `kAppVersion` 参照に変更。分析4機能を Flutter Web ミラーに反映。 |
+| `0.3.3` | — | 研究利用状況の行動ログ収集・同意書 v1.1・撤回処理のチャンク分割。 |
+| `0.3.2` | — | 分析 UI・着手ロジック改修。 |
+
+---
+
 ## 付録: 旧文書の扱い
 本書の作成に伴い、以下は本書へ統合・廃止した。
 - `docs/concept.md`
