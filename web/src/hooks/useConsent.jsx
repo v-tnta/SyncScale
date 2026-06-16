@@ -122,6 +122,12 @@ export function ConsentProvider({ children }) {
                 refsToDelete.push(onboardingRef);
             }
 
+            const userSettingsRef = doc(db, "userSettings", userId);
+            const userSettingsSnap = await getDoc(userSettingsRef);
+            if (userSettingsSnap.exists()) {
+                refsToDelete.push(userSettingsRef);
+            }
+
             // 2. チャンク分割しながら全データを削除
             await deleteRefsInChunks(refsToDelete);
 

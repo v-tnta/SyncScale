@@ -19,7 +19,7 @@ import ExtensionGuideModal from '../components/ExtensionGuideModal'
 
 export function HomePage() {
   const { currentUser } = useAuth();
-  const { onboarding, completeStep, dismissMobilePromo, viewExtensionGuide } = useOnboarding();
+  const { onboarding, userSettings, completeStep, dismissMobilePromo, viewExtensionGuide } = useOnboarding();
   const { tasks, addTask, addTasksBatch, updateTask, deleteTask, completelyDeleteTask, loading, error } = useTasks();
   const { timeLogs } = useTimeLogs();
   const { addLog: addConditionLog, conditionLogs } = useConditionLogs({ subscribe: true });
@@ -145,9 +145,9 @@ export function HomePage() {
     if (isExtensionGuideOpen) return false; // 拡張機能ガイド表示中は非表示
     if (isTutorialActive) return false; // チュートリアル中は非表示
 
-    if (onboarding.mobilePromoDismissedAt) {
+    if (userSettings?.mobilePromoDismissedAt) {
       let dismissedTime;
-      const dismissed = onboarding.mobilePromoDismissedAt;
+      const dismissed = userSettings.mobilePromoDismissedAt;
       
       if (dismissed && typeof dismissed.toDate === 'function') {
         dismissedTime = dismissed.toDate();
@@ -169,7 +169,7 @@ export function HomePage() {
       }
     }
     return true;
-  }, [onboarding, isExtensionGuideOpen, isTutorialActive]);
+  }, [onboarding, userSettings, isExtensionGuideOpen, isTutorialActive]);
 
   const handleTutorialComplete = async (tutorialTaskId) => {
     try {

@@ -39,6 +39,10 @@ dependencies:
   google_sign_in: ^7.2.0
   intl: ^0.20.2
   url_launcher: ^6.3.2
+  # 締切前のローカル通知（ネイティブ iOS/Android のみ。Web では非対応）
+  flutter_local_notifications: ^18.0.1
+  timezone: ^0.9.4
+  flutter_timezone: ^3.0.1
 
 
 dev_dependencies:

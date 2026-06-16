@@ -18,6 +18,7 @@ export function OnboardingProvider({ children }) {
     const { currentUser } = useAuth();
     const { hasConsented } = useConsent();
     const [onboarding, setOnboarding] = useState(null);
+    const [userSettings, setUserSettings] = useState(null);
     const [loading, setLoading] = useState(true);
     const [lastUidAndConsent, setLastUidAndConsent] = useState({ uid: undefined, consented: undefined });
 
@@ -25,13 +26,9 @@ export function OnboardingProvider({ children }) {
     const currentUid = currentUser ? currentUser.uid : null;
     if (currentUid !== lastUidAndConsent.uid || hasConsented !== lastUidAndConsent.consented) {
         setLastUidAndConsent({ uid: currentUid, consented: hasConsented });
-        if (currentUid && hasConsented) {
-            setLoading(true);
-            setOnboarding(null);
-        } else {
-            setLoading(false);
-            setOnboarding(null);
-        }
+        setOnboarding(null);
+        setUserSettings(null);
+        setLoading(Boolean(currentUid && hasConsented));
     }
 
     useEffect(() => {
@@ -49,6 +46,11 @@ export function OnboardingProvider({ children }) {
                     // ドキュメントが存在しない場合はデフォルト値を設定
                     setOnboarding(initialOnboardingState);
                 }
+
+                // ユーザー設定（モバイルプロモ非表示など）は別ドキュメントに分離
+                const settingsRef = doc(db, "userSettings", currentUser.uid);
+                const settingsSnap = await getDoc(settingsRef);
+                setUserSettings(settingsSnap.exists() ? settingsSnap.data() : {});
             } catch (error) {
                 console.error("オンボーディング進捗の取得に失敗しました:", error);
             } finally {
@@ -104,17 +106,17 @@ export function OnboardingProvider({ children }) {
         }
     };
 
-    // モバイルアプリ案内の「あとで通知する」処理
+    // モバイルアプリ案内の「あとで通知する」処理（userSettings ドキュメントに保存）
     const dismissMobilePromo = async () => {
         if (!currentUser || !hasConsented) return;
-        const docRef = doc(db, "onboarding", currentUser.uid);
-        
+        const docRef = doc(db, "userSettings", currentUser.uid);
+
         try {
             await setDoc(docRef, { mobilePromoDismissedAt: serverTimestamp() }, { merge: true });
-            
+
             // 最新の状態を取得して更新
             const updatedSnap = await getDoc(docRef);
-            setOnboarding(updatedSnap.data());
+            setUserSettings(updatedSnap.data());
         } catch (error) {
             console.error("モバイルプロモの非表示処理に失敗しました:", error);
             throw error;
@@ -140,6 +142,7 @@ export function OnboardingProvider({ children }) {
 
     const value = {
         onboarding,
+        userSettings,
         loading,
         completeStep,
         resetTutorial,

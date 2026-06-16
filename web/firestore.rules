@@ -33,6 +33,13 @@ service cloud.firestore {
       allow delete: if isOwner(userId); // 撤回時に削除
     }
 
+    // ユーザー設定（通知設定・モバイルプロモ非表示など）
+    match /userSettings/{userId} {
+      allow read: if isOwner(userId);
+      allow create, update: if isOwner(userId) && hasConsented(userId);
+      allow delete: if isOwner(userId); // 撤回時に削除
+    }
+
     // タスク
     match /tasks/{taskId} {
       allow read, delete: if isOwner(resource.data.userId);

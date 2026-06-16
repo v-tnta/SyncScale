@@ -14,6 +14,8 @@ android {
     ndkVersion = "28.1.13356709"
 
     compileOptions {
+        // flutter_local_notifications が必要とする core library desugaring を有効化
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
@@ -44,4 +46,9 @@ android {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    // flutter_local_notifications の core library desugaring 用
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }

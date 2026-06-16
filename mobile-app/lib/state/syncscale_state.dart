@@ -9,14 +9,21 @@ import '../models/condition_log.dart';
 import '../models/onboarding.dart';
 import '../models/task.dart';
 import '../models/time_log.dart';
+import '../models/user_settings.dart';
 import '../services/auth_service.dart';
+import '../services/notification_service.dart';
 import '../services/syncscale_repository.dart';
 
 class SyncScaleState extends ChangeNotifier {
-  SyncScaleState({required this.authService, required this.repository});
+  SyncScaleState({
+    required this.authService,
+    required this.repository,
+    required this.notificationService,
+  });
 
   final AuthService authService;
   final SyncScaleRepository repository;
+  final NotificationService notificationService;
 
   User? currentUser;
   bool authLoading = true;
@@ -26,12 +33,14 @@ class SyncScaleState extends ChangeNotifier {
   List<TimeLog> timeLogs = const [];
   List<ConditionLog> conditionLogs = const [];
   Onboarding? onboarding;
+  UserSettings? userSettings;
 
   StreamSubscription<User?>? _authSubscription;
   StreamSubscription<List<Task>>? _taskSubscription;
   StreamSubscription<List<TimeLog>>? _timeLogSubscription;
   StreamSubscription<List<ConditionLog>>? _conditionLogSubscription;
   StreamSubscription<Onboarding?>? _onboardingSubscription;
+  StreamSubscription<UserSettings?>? _userSettingsSubscription;
 
   // アプリ起動ごとに1回だけ session_start を記録するためのフラグ
   bool _sessionStartLogged = false;
@@ -99,10 +108,13 @@ class SyncScaleState extends ChangeNotifier {
     _conditionLogSubscription = null;
     _onboardingSubscription?.cancel();
     _onboardingSubscription = null;
+    _userSettingsSubscription?.cancel();
+    _userSettingsSubscription = null;
     tasks = const [];
     timeLogs = const [];
     conditionLogs = const [];
     onboarding = null;
+    userSettings = null;
     errorMessage = null;
   }
 
@@ -111,6 +123,7 @@ class SyncScaleState extends ChangeNotifier {
     _timeLogSubscription?.cancel();
     _conditionLogSubscription?.cancel();
     _onboardingSubscription?.cancel();
+    _userSettingsSubscription?.cancel();
 
     dataLoading = true;
     errorMessage = null;
@@ -144,6 +157,21 @@ class SyncScaleState extends ChangeNotifier {
           },
         );
 
+    _userSettingsSubscription = repository
+        .watchUserSettings(userId)
+        .listen(
+          (newSettings) {
+            debugPrint(
+                'userSettings fetched: enabled=${newSettings?.notificationEnabled}');
+            userSettings = newSettings;
+            _syncReminders(); // 通知設定が変わった可能性があるため再スケジュール
+            notifyListeners();
+          },
+          onError: (Object error) {
+            debugPrint('ERROR: ユーザー設定取得失敗: $error');
+          },
+        );
+
     // Firestore は更新のたびに Stream が流れるため、UI側で再取得ボタンを
     // 押さなくても webApp と同じリアルタイム同期になります。
     _taskSubscription = repository
@@ -154,6 +182,7 @@ class SyncScaleState extends ChangeNotifier {
             tasks = newTasks;
             dataLoading = false;
             errorMessage = null;
+            _syncReminders(); // タスクの追加/編集/削除を通知予約へ反映
             notifyListeners();
           },
           onError: (Object error, StackTrace stackTrace) {
@@ -509,7 +538,7 @@ class SyncScaleState extends ChangeNotifier {
     if (o == null || !o.completed) return false;
     if (o.mobileInstalled == true) return false;
 
-    final dismissedAt = o.mobilePromoDismissedAt;
+    final dismissedAt = userSettings?.mobilePromoDismissedAt;
     if (dismissedAt != null) {
       final now = DateTime.now();
       final diff = now.difference(dismissedAt);
@@ -518,6 +547,66 @@ class SyncScaleState extends ChangeNotifier {
       }
     }
     return true;
+  }
+
+  // ===== 締切前通知 =====
+
+  /// 締切前通知が有効か（未設定時は false）
+  bool get notificationEnabled => userSettings?.notificationEnabled ?? false;
+
+  /// 締切の何分前に通知するか（未設定時は 30 分）
+  int get notificationMinutesBefore =>
+      userSettings?.notificationMinutesBefore ?? 30;
+
+  /// 締切前通知の設定を更新する。
+  ///
+  /// 有効化（enabled=true）への切り替え時は OS の通知権限を要求する。
+  /// 主要な権限が拒否された場合は false を返す（設定値自体は保存する）。
+  Future<bool> setNotificationSettings({bool? enabled, int? minutesBefore}) async {
+    final user = currentUser;
+    if (user == null) {
+      return false;
+    }
+
+    var permissionGranted = true;
+    if (enabled == true) {
+      permissionGranted = await notificationService.requestPermissions();
+    }
+
+    await _run(() => repository.updateNotificationSettings(
+          user.uid,
+          enabled: enabled,
+          minutesBefore: minutesBefore,
+        ));
+
+    // Firestore の onboarding ストリーム経由でも再同期されるが、即時反映のため
+    // 楽観的に新しい値でスケジュールし直す。
+    if (!kIsWeb) {
+      notificationService.syncTaskReminders(
+        enabled: enabled ?? notificationEnabled,
+        minutesBefore: minutesBefore ?? notificationMinutesBefore,
+        tasks: tasks,
+      );
+    }
+
+    logActivity('notification_settings_update', {
+      if (enabled != null) 'enabled': enabled,
+      if (minutesBefore != null) 'minutesBefore': minutesBefore,
+    });
+
+    return permissionGranted;
+  }
+
+  /// 現在の設定とタスク一覧から通知予約を同期する（fire-and-forget）。
+  void _syncReminders() {
+    if (kIsWeb) {
+      return;
+    }
+    notificationService.syncTaskReminders(
+      enabled: notificationEnabled,
+      minutesBefore: notificationMinutesBefore,
+      tasks: tasks,
+    );
   }
 
   Future<void> _run(Future<void> Function() action) async {
@@ -539,6 +628,7 @@ class SyncScaleState extends ChangeNotifier {
     _timeLogSubscription?.cancel();
     _conditionLogSubscription?.cancel();
     _onboardingSubscription?.cancel();
+    _userSettingsSubscription?.cancel();
     super.dispose();
   }
 }

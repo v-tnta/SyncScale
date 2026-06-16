@@ -1,6 +1,8 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../state/syncscale_state.dart';
+import 'formatters.dart';
 
 class SettingsDialog extends StatefulWidget {
   const SettingsDialog({super.key});
@@ -40,6 +42,145 @@ class _SettingsDialogState extends State<SettingsDialog> {
           _isTransitioning = false;
         });
       }
+    }
+  }
+
+  /// 「締切の何分前」のプリセット（分）
+  static const List<int> _minutePresets = [10, 30, 60, 180, 1440];
+
+  Widget _buildNotificationSection(SyncScaleState appState) {
+    final enabled = appState.notificationEnabled;
+    final minutesBefore = appState.notificationMinutesBefore;
+    final isCustom = enabled && !_minutePresets.contains(minutesBefore);
+
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SwitchListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+            secondary: const Text('🔔', style: TextStyle(fontSize: 22)),
+            title: const Text(
+              '締切前に通知',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            ),
+            subtitle: Text(
+              enabled
+                  ? '締切の${formatMinutesBefore(minutesBefore)}前にお知らせします'
+                  : 'タスクの締切前にお知らせします',
+              style: const TextStyle(fontSize: 12, color: Colors.grey),
+            ),
+            value: enabled,
+            onChanged: (value) => _toggleNotification(appState, value),
+          ),
+          if (enabled) ...[
+            const Divider(height: 1, color: Color(0xFFE2E8F0)),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    '何分前に通知するか',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF475569),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      for (final preset in _minutePresets)
+                        ChoiceChip(
+                          label: Text(formatMinutesBefore(preset)),
+                          selected: !isCustom && minutesBefore == preset,
+                          onSelected: (_) => _selectMinutes(appState, preset),
+                        ),
+                      ChoiceChip(
+                        label: Text(
+                          isCustom
+                              ? 'カスタム (${formatMinutesBefore(minutesBefore)})'
+                              : 'カスタム',
+                        ),
+                        selected: isCustom,
+                        onSelected: (_) => _pickCustomMinutes(appState),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Future<void> _toggleNotification(SyncScaleState appState, bool value) async {
+    final granted = await appState.setNotificationSettings(enabled: value);
+    if (!mounted) return;
+    if (value && !granted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('通知の許可が必要です。端末の設定から通知を許可してください。'),
+        ),
+      );
+    }
+  }
+
+  Future<void> _selectMinutes(SyncScaleState appState, int minutes) async {
+    await appState.setNotificationSettings(minutesBefore: minutes);
+  }
+
+  Future<void> _pickCustomMinutes(SyncScaleState appState) async {
+    final controller = TextEditingController(
+      text: appState.notificationMinutesBefore.toString(),
+    );
+    final result = await showDialog<int>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('何分前に通知するか'),
+          content: TextField(
+            controller: controller,
+            autofocus: true,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+              suffixText: '分前',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('キャンセル'),
+            ),
+            FilledButton(
+              onPressed: () {
+                final value = int.tryParse(controller.text.trim());
+                if (value == null || value <= 0) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('1以上の数値を入力してください。')),
+                  );
+                  return;
+                }
+                Navigator.of(context).pop(value);
+              },
+              child: const Text('決定'),
+            ),
+          ],
+        );
+      },
+    );
+    if (result != null) {
+      await appState.setNotificationSettings(minutesBefore: result);
     }
   }
 
@@ -154,6 +295,12 @@ class _SettingsDialogState extends State<SettingsDialog> {
                         ),
                       ),
                       const SizedBox(height: 20),
+                    ],
+
+                    // 締切前通知（ネイティブのみ。Web はローカル通知非対応のため非表示）
+                    if (!kIsWeb) ...[
+                      _buildNotificationSection(appState),
+                      const SizedBox(height: 12),
                     ],
 
                     // 設定メニュー

@@ -6,6 +6,7 @@ import '../models/condition_log.dart';
 import '../models/onboarding.dart';
 import '../models/task.dart';
 import '../models/time_log.dart';
+import '../models/user_settings.dart';
 
 class SyncScaleRepository {
   SyncScaleRepository({FirebaseFirestore? firestore})
@@ -141,6 +142,20 @@ class SyncScaleRepository {
     });
   }
 
+  /// ユーザー設定（通知設定・モバイルプロモ非表示）を監視する。
+  Stream<UserSettings?> watchUserSettings(String userId) {
+    return _firestore
+        .collection('userSettings')
+        .doc(userId)
+        .snapshots()
+        .map((snapshot) {
+      if (!snapshot.exists || snapshot.data() == null) {
+        return null;
+      }
+      return UserSettings.fromMap(snapshot.data()!);
+    });
+  }
+
   Future<void> completeTutorial(String userId) async {
     await _firestore.collection('onboarding').doc(userId).set({
       'step4': true,
@@ -154,14 +169,40 @@ class SyncScaleRepository {
       'step4': false,
       'completed': false,
       'mobileInstalled': false,
+    }, SetOptions(merge: true));
+    // モバイルプロモの非表示状態は userSettings に分離したため、そちらをリセットする
+    await _firestore.collection('userSettings').doc(userId).set({
       'mobilePromoDismissedAt': FieldValue.delete(),
     }, SetOptions(merge: true));
   }
 
   Future<void> dismissMobilePromo(String userId) async {
-    await _firestore.collection('onboarding').doc(userId).set({
+    await _firestore.collection('userSettings').doc(userId).set({
       'mobilePromoDismissedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
+  }
+
+  /// 締切前通知の設定（ON/OFF・何分前）を userSettings ドキュメントに保存する。
+  /// 端末ローカル通知の設定だが、ユーザー単位で同期するため Firestore に保持する。
+  Future<void> updateNotificationSettings(
+    String userId, {
+    bool? enabled,
+    int? minutesBefore,
+  }) async {
+    final data = <String, dynamic>{};
+    if (enabled != null) {
+      data['notificationEnabled'] = enabled;
+    }
+    if (minutesBefore != null) {
+      data['notificationMinutesBefore'] = minutesBefore;
+    }
+    if (data.isEmpty) {
+      return;
+    }
+    await _firestore
+        .collection('userSettings')
+        .doc(userId)
+        .set(data, SetOptions(merge: true));
   }
 
   /// 行動ログ（機能の使用状況）を1イベント=1ドキュメントとして追記する。
@@ -219,6 +260,12 @@ class SyncScaleRepository {
     final onboardingSnap = await onboardingRef.get();
     if (onboardingSnap.exists) {
       refsToDelete.add(onboardingRef);
+    }
+
+    final userSettingsRef = _firestore.collection('userSettings').doc(userId);
+    final userSettingsSnap = await userSettingsRef.get();
+    if (userSettingsSnap.exists) {
+      refsToDelete.add(userSettingsRef);
     }
 
     // 2. チャンク分割しながら全データを削除

@@ -6,7 +6,9 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-dotenv.config({ path: path.resolve(__dirname, '../.env') });
+// quiet: true で dotenv 17.4.x の宣伝ログ（"// tip: ⌁ auth for agents [vestauth.com]"）を抑制する。
+// 害は無いがビルドログのノイズになるため。
+dotenv.config({ path: path.resolve(__dirname, '../.env'), quiet: true });
 
 export default defineManifest({
   "manifest_version": 3,
