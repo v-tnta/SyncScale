@@ -127,25 +127,26 @@ class AnalyticsScreen extends StatelessWidget {
 
   // ── 1. 見積もり精度：SML × 実働時間 ────────────────
   Widget _estimationCard(List<EstimationSummary> estimation) {
+    final validCount = estimation.where((e) => e.count > 0).length;
     final consistent = isEstimationConsistent(estimation);
-    final allEmpty = estimation.every((e) => e.count == 0);
 
-    String message;
-    Color messageColor;
-    if (allEmpty) {
-      message = '💡 作業ログを記録すると、サイズ感と実時間のズレが見えてきます。';
-      messageColor = Colors.blueGrey;
-    } else if (consistent) {
-      message = '✅ サイズが大きいほど作業時間も長く、見積もりの感覚が一貫しています。';
-      messageColor = const Color(0xFF059669);
-    } else {
-      message = '⚠️ サイズの大小と実際の作業時間が逆転しています。ラベルの付け方を見直すヒントになります。';
-      messageColor = const Color(0xFFB45309);
+    // 実績のあるサイズ（count>0）が2つ以上あるときだけ、一貫性/逆転のコメントを出す。
+    // 1つ以下では比較できないため、コメントは表示しない。
+    String? message;
+    Color messageColor = const Color(0xFF059669);
+    if (validCount >= 2) {
+      if (consistent) {
+        message = '✅ サイズが大きいほど作業時間も長く、見積もりの感覚が一貫しています。';
+        messageColor = const Color(0xFF059669);
+      } else {
+        message = '⚠️ サイズの大小と実際の作業時間が逆転しています。ラベルの付け方を見直すヒントになります。';
+        messageColor = const Color(0xFFB45309);
+      }
     }
 
     return _card(
       icon: Icons.track_changes_outlined,
-      title: '見積もり精度（SML × 実働時間）',
+      title: 'タスク見積もりの精度',
       description: 'S/M/L ごとの平均作業時間。S→M→L で増えていれば見積もりの感覚が一貫しています。',
       child: Column(
         children: [
@@ -185,8 +186,10 @@ class AnalyticsScreen extends StatelessWidget {
                 ),
             ],
           ),
-          const SizedBox(height: 14),
-          _noteBox(message, messageColor),
+          if (message != null) ...[
+            const SizedBox(height: 14),
+            _noteBox(message, messageColor),
+          ],
         ],
       ),
     );

@@ -144,7 +144,7 @@ export function AnalyticsPanel({ isOpen, onClose, tasks = [], timeLogs = [], con
                         {/* ── 1. 見積もり精度：SML × 実働時間 ──────────── */}
                         <Section
                             icon="🎯"
-                            title="見積もり精度（SML × 実働時間）"
+                            title="タスク見積もりの精度"
                             description="S/M/L ごとに、実際にかかった作業時間の平均です。S→M→L で増えていれば見積もりの感覚が一貫しています。"
                         >
                             <div className="grid grid-cols-3 gap-2">
@@ -173,15 +173,16 @@ export function AnalyticsPanel({ isOpen, onClose, tasks = [], timeLogs = [], con
                                     );
                                 })}
                             </div>
-                            <div className={`p-3 rounded-2xl text-center border ${estimationConsistent ? 'bg-emerald-50 border-emerald-200/60' : 'bg-amber-50 border-amber-200/60'}`}>
-                                <p className={`text-xs font-bold leading-relaxed ${estimationConsistent ? 'text-emerald-700' : 'text-amber-700'}`}>
-                                    {estimation.every(e => e.count === 0)
-                                        ? "💡 作業ログを記録すると、サイズ感と実時間のズレが見えてきます。"
-                                        : estimationConsistent
+                            {/* 実績のあるサイズ（count>0）が2つ以上あるときだけ、一貫性/逆転のコメントを表示する */}
+                            {estimation.filter(e => e.count > 0).length >= 2 && (
+                                <div className={`p-3 rounded-2xl text-center border ${estimationConsistent ? 'bg-emerald-50 border-emerald-200/60' : 'bg-amber-50 border-amber-200/60'}`}>
+                                    <p className={`text-xs font-bold leading-relaxed ${estimationConsistent ? 'text-emerald-700' : 'text-amber-700'}`}>
+                                        {estimationConsistent
                                             ? "✅ サイズが大きいほど作業時間も長く、見積もりの感覚が一貫しています。"
                                             : "⚠️ サイズの大小と実際の作業時間が逆転しています。ラベルの付け方を見直すヒントになります。"}
-                                </p>
-                            </div>
+                                    </p>
+                                </div>
+                            )}
                         </Section>
 
                         <hr className="border-gray-100" />
