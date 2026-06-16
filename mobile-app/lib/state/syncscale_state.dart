@@ -430,6 +430,10 @@ class SyncScaleState extends ChangeNotifier {
     18: GlobalKey(debugLabel: 'tutorial_step_18'), // 詳細を閉じる
     19: GlobalKey(debugLabel: 'tutorial_step_19'), // NavigationBar 全体（カレンダータブ案内用）
     20: GlobalKey(debugLabel: 'tutorial_step_20'), // カレンダー全体
+    21: GlobalKey(debugLabel: 'tutorial_step_21'), // NavigationBar 全体（分析タブ案内用）
+    22: GlobalKey(debugLabel: 'tutorial_step_22'), // 分析タブ全体
+    23: GlobalKey(debugLabel: 'tutorial_step_23'), // 設定ボタン（締切前通知の入口）
+    // 24: チュートリアル完了画面（ハイライト対象なし）
   };
 
   GlobalKey? get tutorialTargetKey {
@@ -449,7 +453,7 @@ class SyncScaleState extends ChangeNotifier {
   }
 
   bool get isTutorialActive {
-    if (tutorialStep != null && tutorialStep! >= 1 && tutorialStep! <= 21) {
+    if (tutorialStep != null && tutorialStep! >= 1 && tutorialStep! <= 24) {
       return true;
     }
     return onboarding != null && onboarding!.step3 == true && onboarding!.step4 == false;
@@ -490,7 +494,7 @@ class SyncScaleState extends ChangeNotifier {
   }
 
   void nextTutorialStep() {
-    if (tutorialStep != null && tutorialStep! < 21) {
+    if (tutorialStep != null && tutorialStep! < 24) {
       tutorialStep = tutorialStep! + 1;
       notifyListeners();
     }

@@ -173,7 +173,7 @@ class _TutorialGuideOverlayState extends State<TutorialGuideOverlay> {
     final appState = SyncScaleScope.of(context);
     final step = appState.tutorialStep;
 
-    if (step == null || step < 1 || step > 21) {
+    if (step == null || step < 1 || step > 24) {
       return const SizedBox.shrink();
     }
 
@@ -196,7 +196,7 @@ class _TutorialGuideOverlayState extends State<TutorialGuideOverlay> {
     final maskColor = inflatedRect == null ? Colors.transparent : const Color(0x730F172A); // rgba(15, 23, 42, 0.45)
 
     Widget buildMasksAndHighlight() {
-      if (inflatedRect == null || step == 21) {
+      if (inflatedRect == null || step == 24) {
         return Container(color: maskColor);
       }
 
@@ -267,7 +267,7 @@ class _TutorialGuideOverlayState extends State<TutorialGuideOverlay> {
       const double cardLeft = 16.0;
       const double cardRight = 16.0;
 
-      if ((inflatedRect == null && step != 17 && step != 18) || step == 21) {
+      if ((inflatedRect == null && step != 17 && step != 18) || step == 24) {
         return Center(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -386,7 +386,7 @@ class _TutorialGuideOverlayState extends State<TutorialGuideOverlay> {
                   ),
                 ),
                 Text(
-                  step <= 20 ? '$step / 20' : '完了',
+                  step <= 23 ? '$step / 23' : '完了',
                   style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
@@ -414,7 +414,7 @@ class _TutorialGuideOverlayState extends State<TutorialGuideOverlay> {
                 height: 1.5,
               ),
             ),
-            if (details.showNext || step == 21) ...[
+            if (details.showNext || step == 24) ...[
               const SizedBox(height: 16),
               FilledButton(
                 style: FilledButton.styleFrom(
@@ -433,14 +433,14 @@ class _TutorialGuideOverlayState extends State<TutorialGuideOverlay> {
                       return;
                     }
                   }
-                  if (step == 21) {
+                  if (step == 24) {
                     await appState.completeTutorial();
                   } else {
                     appState.nextTutorialStep();
                   }
                 },
                 child: Text(
-                  step == 21 ? 'サービスに戻る' : '次へ進む →',
+                  step == 24 ? 'サービスに戻る' : '次へ進む →',
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
@@ -449,12 +449,12 @@ class _TutorialGuideOverlayState extends State<TutorialGuideOverlay> {
                 ),
               ),
             ],
-            if (step <= 20) ...[
+            if (step <= 23) ...[
               const SizedBox(height: 12),
               ClipRRect(
                 borderRadius: BorderRadius.circular(10),
                 child: LinearProgressIndicator(
-                  value: step / 20,
+                  value: step / 23,
                   minHeight: 4,
                   backgroundColor: Colors.grey.shade100,
                   valueColor: AlwaysStoppedAnimation<Color>(Colors.blue.shade600),
@@ -579,17 +579,35 @@ class _TutorialGuideOverlayState extends State<TutorialGuideOverlay> {
         );
       case 19:
         return const _StepDetails(
-          title: '19/20. カレンダーで振り返りを確認しましょう 📅',
+          title: '19/23. カレンダーで振り返りを確認しましょう 📅',
           desc: 'カレンダータブをタップして、完了した課題がどのようにカレンダー上に表示されているか確認しましょう。',
           showNext: false,
         );
       case 20:
         return const _StepDetails(
-          title: '20/20. カレンダー全体を確認しましょう 📅',
+          title: '20/23. カレンダー全体を確認しましょう 📅',
           desc: 'カレンダー画面では、過去に完了したタスクの規模感や締切日を一覧で確認することができます。',
           showNext: true,
         );
       case 21:
+        return const _StepDetails(
+          title: '21/23. 分析タブを開いてみましょう 📊',
+          desc: 'ボトムメニューの「分析」タブをタップして、これまでの取り組みを分析する画面を開いてみましょう。',
+          showNext: false,
+        );
+      case 22:
+        return const _StepDetails(
+          title: '22/23. 分析タブで学習を振り返りましょう 📊',
+          desc: '分析タブでは、着手リードタイムや見積もり精度、一夜漬け度、時間帯ごとのコンディションなど、あなたの段取りの癖をまとめて可視化します。データが貯まるほど精度が上がります。',
+          showNext: true,
+        );
+      case 23:
+        return const _StepDetails(
+          title: '23/23. 締切前の通知でうっかり防止 🔔',
+          desc: '右上の設定（⚙️）から「締切前に通知」をオンにすると、各タスクの締切が近づいたときにスマホへ通知が届きます。提出忘れを防ぎましょう。',
+          showNext: true,
+        );
+      case 24:
         return const _StepDetails(
           title: 'チュートリアル完了！ 🎉',
           desc: 'お疲れ様でした！これで基本的な操作はマスターです。\nSyncScaleには、manabaから課題を自動インポートできる便利なChrome拡張機能も備わっています。\nそれでは実際に使い始めてみましょう！',

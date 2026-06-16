@@ -29,6 +29,9 @@ class AnalyticsScreen extends StatelessWidget {
     final stalledTasks = detectStalledTasks(tasks, timeLogs);
 
     return ListView(
+      key: (appState.isTutorialActive && appState.tutorialStep == 22)
+          ? appState.tutorialKeys[22]
+          : null,
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
       children: [
         _leadTimeCard(leadTimes),

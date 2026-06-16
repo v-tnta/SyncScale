@@ -116,6 +116,9 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         actions: [
           IconButton(
+            key: (isTutorial && appState.tutorialStep == 23)
+                ? appState.tutorialKeys[23]
+                : null,
             tooltip: '設定',
             onPressed: () {
               SettingsDialog.show(context);
@@ -137,7 +140,12 @@ class _HomeScreenState extends State<HomeScreen> {
             )
           : null,
       bottomNavigationBar: NavigationBar(
-        key: isTutorial ? appState.tutorialKeys[19] : null,
+        // Step 21（分析タブ選択案内）では分析タブ用のキーでハイライトする
+        key: isTutorial
+            ? (appState.tutorialStep == 21
+                ? appState.tutorialKeys[21]
+                : appState.tutorialKeys[19])
+            : null,
         // チュートリアル中のStep 19まではタスクタブ（0）を選択状態に固定
         selectedIndex: (isTutorial && (appState.tutorialStep ?? 0) < 19) ? 0 : _index,
         onDestinationSelected: (value) {
@@ -146,6 +154,11 @@ class _HomeScreenState extends State<HomeScreen> {
             if (appState.tutorialStep == 19 && value == 1) {
                setState(() => _index = value);
                appState.setTutorialStep(20);
+            }
+            // Step 21（分析タブ選択案内）のときのみ分析タブへの遷移を許可
+            if (appState.tutorialStep == 21 && value == 2) {
+               setState(() => _index = value);
+               appState.setTutorialStep(22);
             }
             return;
           }

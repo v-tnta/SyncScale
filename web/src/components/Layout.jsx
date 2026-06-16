@@ -28,6 +28,7 @@ const Layout = ({ children, tasks, onTaskClick, timeLogs = [], conditionLogs = [
                         <div className="flex items-center gap-2">
                             {/* 分析ボタン */}
                             <button
+                                id="tutorial-analytics-button"
                                 onClick={() => setIsAnalyticsOpen(true)}
                                 className="flex items-center gap-1.5 bg-white hover:bg-gray-50 active:bg-gray-100 transition-all py-1.5 px-3.5 rounded-2xl border border-gray-200 shadow-sm text-gray-700 hover:text-gray-950 font-bold text-[13.5px]"
                                 title="分析画面を開く"
