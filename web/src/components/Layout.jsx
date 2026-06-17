@@ -63,7 +63,7 @@ const Layout = ({ children, tasks, onTaskClick, timeLogs = [], conditionLogs = [
                             {children}
                         </div>
                         <div className="w-full md:w-4/5 flex flex-col min-h-0 overflow-y-auto">
-                            <Calendar tasks={tasks} onEventClick={onTaskClick} />
+                            <Calendar tasks={tasks} onEventClick={onTaskClick} timeLogs={timeLogs} />
                         </div>
                     </div>
                 ) : (

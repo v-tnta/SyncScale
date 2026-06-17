@@ -9,10 +9,63 @@ moment.locale('ja')
 
 const localizer = momentLocalizer(moment)
 
-const Calendar = ({ tasks, onEventClick }) => {
+const Calendar = ({ tasks, onEventClick, timeLogs = [] }) => {
     // 制御用ステート (ナビゲーションを正しく機能させるため)
     const [view, setView] = useState('month');
     const [date, setDate] = useState(new Date());
+
+    // 「作業を行った日」ごとの作業ログ件数（GitHubの草風インジケータ用）
+    const dayKey = (d) => `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+    const activityCountByDay = React.useMemo(() => {
+        const map = new Map();
+        for (const log of timeLogs) {
+            const raw = log.startTime || log.endTime || log.createdAt;
+            if (!raw) continue;
+            const d = raw instanceof Date ? raw : (raw?.toDate ? raw.toDate() : new Date(raw));
+            if (isNaN(d.getTime())) continue;
+            const key = dayKey(d);
+            map.set(key, (map.get(key) || 0) + 1);
+        }
+        return map;
+    }, [timeLogs]);
+
+    // 日付セルの下部に、その日の作業件数ぶん（最大3つ）緑のマスを表示する
+    const components = React.useMemo(() => ({
+        dateCellWrapper: ({ children, value }) => {
+            const count = activityCountByDay.get(dayKey(value)) || 0;
+            if (count <= 0) return children;
+            const dotCount = Math.min(count, 3);
+            const dots = (
+                <div
+                    key="activity-dots"
+                    style={{
+                        position: 'absolute',
+                        bottom: 3,
+                        left: 0,
+                        right: 0,
+                        display: 'flex',
+                        justifyContent: 'center',
+                        gap: '2px',
+                        pointerEvents: 'none',
+                        zIndex: 1,
+                    }}
+                >
+                    {Array.from({ length: dotCount }).map((_, i) => (
+                        <span
+                            key={i}
+                            style={{ width: '8px', height: '8px', borderRadius: '2px', backgroundColor: '#22c55e' }}
+                        />
+                    ))}
+                </div>
+            );
+            return React.cloneElement(
+                children,
+                { style: { ...(children.props.style || {}), position: 'relative' } },
+                children.props.children,
+                dots
+            );
+        },
+    }), [activityCountByDay]);
 
     // 完了したタスクを除外し、カレンダーイベント形式に変換
     const activeTasks = tasks.filter(t => t.status !== 'DONE');
@@ -103,6 +156,7 @@ const Calendar = ({ tasks, onEventClick }) => {
                 views={['month', 'week']}
                 onSelectEvent={(event) => onEventClick(event.resource)}
                 eventPropGetter={eventPropGetter}
+                components={components}
                 messages={{
                     next: "次へ",
                     previous: "前へ",

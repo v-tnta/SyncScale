@@ -168,6 +168,15 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
             final isToday = DateUtils.isSameDay(cellDate, DateTime.now());
 
+            // その日に行った作業ログ（タイマー/手入力）の件数。
+            // GitHub の草風に、最大3つまで緑のマスを表示する（4件以上は増やさない）。
+            final activityCount = appState.timeLogs.where((log) {
+              final when = log.startTime ?? log.endTime ?? log.createdAt;
+              if (when == null) return false;
+              return DateUtils.isSameDay(DateUtils.dateOnly(when), cellDate);
+            }).length;
+            final activityDots = activityCount > 3 ? 3 : activityCount;
+
             return Container(
               decoration: BoxDecoration(
                 color: isToday ? Colors.blue.shade50 : Colors.white,
@@ -234,6 +243,26 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       }).toList(),
                     ),
                   ),
+                  // 作業を行った日のインジケータ（GitHubの草風・最大3つ）
+                  if (activityDots > 0)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(4, 2, 4, 4),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(
+                          activityDots,
+                          (_) => Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 1.5),
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF22C55E),
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                 ],
               ),
             );
