@@ -3,29 +3,60 @@ import 'package:flutter/material.dart';
 import '../models/analytics.dart';
 import '../state/syncscale_state.dart';
 
-// コンディションの色
-const _goodColor = Color(0xFF34D399);
-const _fairColor = Color(0xFFFBBF24);
+// 一夜漬け度ゲージ・直前集中タスクの色
 const _poorColor = Color(0xFFFB7185);
+// 作業時間の帯の色（緑：GitHubの草と同系色）
+const _workColor = Color(0xFF34D399);
 
-class AnalyticsScreen extends StatelessWidget {
+class AnalyticsScreen extends StatefulWidget {
   const AnalyticsScreen({super.key});
+
+  @override
+  State<AnalyticsScreen> createState() => _AnalyticsScreenState();
+}
+
+class _AnalyticsScreenState extends State<AnalyticsScreen> {
+  // 集計期間（'all' = 全期間 / 'month' = 今月）
+  String _period = 'all';
 
   @override
   Widget build(BuildContext context) {
     final appState = SyncScaleScope.of(context);
     final tasks = appState.tasks;
     final timeLogs = appState.timeLogs;
-    final conditionLogs = appState.conditionLogs;
 
-    final leadTimes = calculateLeadTimes(tasks);
-    final estimation = calculateEstimationAccuracy(tasks, timeLogs);
-    final cramming = calculateCrammingScores(tasks, timeLogs);
-    final conditionByTime = calculateConditionByTimeOfDay(
-      tasks,
-      timeLogs,
-      conditionLogs,
-    );
+    // 今月の範囲 [start, end)。全期間のときは null。
+    DateTime? rangeStart;
+    DateTime? rangeEnd;
+    if (_period == 'month') {
+      final now = DateTime.now();
+      rangeStart = DateTime(now.year, now.month, 1);
+      rangeEnd = DateTime(now.year, now.month + 1, 1);
+    }
+
+    bool inRange(DateTime? d) {
+      if (d == null) return false;
+      if (rangeStart == null || rangeEnd == null) return true;
+      return !d.isBefore(rangeStart) && d.isBefore(rangeEnd);
+    }
+
+    // 選択期間で作業ログを絞り込む（基準は startTime → endTime → createdAt）
+    final scopedTimeLogs = _period == 'all'
+        ? timeLogs
+        : timeLogs
+              .where((l) => inRange(l.startTime ?? l.endTime ?? l.createdAt))
+              .toList();
+
+    // 着手リードタイムは「その期間に着手したタスク」を対象にする
+    final scopedTasksForLead = _period == 'all'
+        ? tasks
+        : tasks.where((t) => inRange(t.startedAt)).toList();
+
+    final leadTimes = calculateLeadTimes(scopedTasksForLead);
+    final estimation = calculateEstimationAccuracy(tasks, scopedTimeLogs);
+    final cramming = calculateCrammingScores(tasks, scopedTimeLogs);
+    final workByTime = calculateWorkTimeByTimeOfDay(tasks, scopedTimeLogs);
+    // 放置タスクは「今まさに止まっているか」を示すため、期間に関わらず常に最新で判定する
     final stalledTasks = detectStalledTasks(tasks, timeLogs);
 
     return ListView(
@@ -34,16 +65,71 @@ class AnalyticsScreen extends StatelessWidget {
           : null,
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
       children: [
+        _periodToggle(),
+        const SizedBox(height: 12),
         _leadTimeCard(leadTimes),
         const SizedBox(height: 12),
         _estimationCard(estimation),
         const SizedBox(height: 12),
         _crammingCard(cramming),
         const SizedBox(height: 12),
-        _conditionByTimeCard(conditionByTime),
+        _workTimeByTimeCard(workByTime),
         const SizedBox(height: 12),
         _stalledCard(stalledTasks),
       ],
+    );
+  }
+
+  // ── 集計期間の切り替え（今月／全期間） ────────────────
+  Widget _periodToggle() {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Container(
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF1F5F9),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _periodButton('month', '今月'),
+            _periodButton('all', '全期間'),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _periodButton(String key, String label) {
+    final selected = _period == key;
+    return GestureDetector(
+      onTap: () => setState(() => _period = key),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+        decoration: BoxDecoration(
+          color: selected ? Colors.white : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: selected
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.06),
+                    blurRadius: 4,
+                    offset: const Offset(0, 1),
+                  ),
+                ]
+              : null,
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+            color: selected ? Colors.black87 : Colors.black45,
+          ),
+        ),
+      ),
     );
   }
 
@@ -136,7 +222,7 @@ class AnalyticsScreen extends StatelessWidget {
     Color messageColor = const Color(0xFF059669);
     if (validCount >= 2) {
       if (consistent) {
-        message = '✅ サイズが大きいほど作業時間も長く、見積もりの感覚が一貫しています。';
+        message = '✅ サイズが大きいほど作業時間も長く、サイズ感が実態と合っています。';
         messageColor = const Color(0xFF059669);
       } else {
         message = '⚠️ サイズの大小と実際の作業時間が逆転しています。ラベルの付け方を見直すヒントになります。';
@@ -146,8 +232,8 @@ class AnalyticsScreen extends StatelessWidget {
 
     return _card(
       icon: Icons.track_changes_outlined,
-      title: 'タスク見積もりの精度',
-      description: 'S/M/L ごとの平均作業時間。S→M→L で増えていれば見積もりの感覚が一貫しています。',
+      title: 'サイズ別の平均作業時間',
+      description: 'S/M/L ごとに、実際にかかった作業時間の平均です。S→M→L で増えていれば、サイズ感が実態と合っています。',
       child: Column(
         children: [
           Row(
@@ -330,8 +416,8 @@ class AnalyticsScreen extends StatelessWidget {
     );
   }
 
-  // ── 3. 時間帯 × コンディション ─────────────────────
-  Widget _conditionByTimeCard(List<TimeBandCondition> bands) {
+  // ── 3. よく作業する時間帯（コンディション比較なし） ──
+  Widget _workTimeByTimeCard(List<TimeBandWork> bands) {
     final maxTotal = bands.fold<double>(
       1,
       (m, b) => b.total > m ? b.total : m,
@@ -340,56 +426,30 @@ class AnalyticsScreen extends StatelessWidget {
 
     Widget body;
     if (allEmpty) {
-      body = _emptyBox('作業ログとコンディションが揃うと、時間帯ごとの傾向が見えてきます。');
+      body = _emptyBox('作業ログがたまると、よく作業する時間帯が見えてきます。');
     } else {
       body = Column(
         children: [
           for (final band in bands) ...[
-            _bandRow(band, maxTotal),
+            _workBandRow(band, maxTotal),
             const SizedBox(height: 8),
           ],
-          const SizedBox(height: 4),
-          // 凡例
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: const [
-              _LegendDot(color: _goodColor, label: '良い'),
-              SizedBox(width: 12),
-              _LegendDot(color: _fairColor, label: '普通'),
-              SizedBox(width: 12),
-              _LegendDot(color: _poorColor, label: 'しんどい'),
-            ],
-          ),
         ],
       );
     }
 
     return _card(
       icon: Icons.access_time,
-      title: '時間帯 × コンディション',
-      description: 'どの時間帯に作業したタスクが、提出時にどんな手応えだったかを作業時間で集計しています。',
+      title: 'よく作業する時間帯',
+      description: 'どの時間帯にどれくらい作業しているかを、作業時間で集計しています。',
       child: body,
     );
   }
 
-  Widget _bandRow(TimeBandCondition band, double maxTotal) {
+  Widget _workBandRow(TimeBandWork band, double maxTotal) {
     final hasData = band.total > 0;
     final widthFactor =
-        hasData ? (band.total / maxTotal).clamp(0.08, 1.0) : 0.08;
-
-    final segments = <Widget>[];
-    if (hasData) {
-      void addSeg(double value, Color color) {
-        if (value <= 0) return;
-        // 微小セグメントでも flex が 0 にならないよう最低 1 を確保（Expanded は flex>0 必須）
-        final flex = (value * 100).round().clamp(1, 1 << 30);
-        segments.add(Expanded(flex: flex, child: Container(color: color)));
-      }
-
-      addSeg(band.good, _goodColor);
-      addSeg(band.fair, _fairColor);
-      addSeg(band.poor, _poorColor);
-    }
+        hasData ? (band.total / maxTotal).clamp(0.08, 1.0) : 0.0;
 
     return Row(
       children: [
@@ -414,19 +474,20 @@ class AnalyticsScreen extends StatelessWidget {
         ),
         const SizedBox(width: 8),
         Expanded(
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: FractionallySizedBox(
-              widthFactor: widthFactor.toDouble(),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(5),
-                child: SizedBox(
-                  height: 22,
-                  child: hasData
-                      ? Row(children: segments)
-                      : Container(color: const Color(0xFFF1F5F9)),
-                ),
-              ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(5),
+            child: Container(
+              height: 22,
+              color: const Color(0xFFF1F5F9),
+              child: hasData
+                  ? Align(
+                      alignment: Alignment.centerLeft,
+                      child: FractionallySizedBox(
+                        widthFactor: widthFactor.toDouble(),
+                        child: Container(color: _workColor),
+                      ),
+                    )
+                  : null,
             ),
           ),
         ),
@@ -603,38 +664,5 @@ class AnalyticsScreen extends StatelessWidget {
       default:
         return Colors.blue;
     }
-  }
-}
-
-class _LegendDot extends StatelessWidget {
-  const _LegendDot({required this.color, required this.label});
-
-  final Color color;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 10,
-          height: 10,
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(3),
-          ),
-        ),
-        const SizedBox(width: 4),
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.bold,
-            color: Colors.black54,
-          ),
-        ),
-      ],
-    );
   }
 }

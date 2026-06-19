@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { useConsent } from "../hooks/useConsent";
-import { EXT_SYNC_CONTENT } from "../config/content";
+import { EXT_SYNC_CONTENT } from "../content";
 
 export function ExtSyncPage() {
     const { currentUser, login, loading: authLoading } = useAuth();

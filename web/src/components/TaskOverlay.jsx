@@ -5,6 +5,7 @@ import SizeLabelSelector from './SizeLabelSelector'
 import DateTimePicker from './DateTimePicker'
 import { TASK_STATUS_LABELS } from '../domain/task'
 import { useConditionLogs } from '../hooks/useConditionLogs'
+import { TASK_OVERLAY } from '../content'
 
 /**
  * TaskOverlay コンポーネント
@@ -67,7 +68,7 @@ const TaskOverlay = ({ isOpen, onClose, task, logs, onUpdate, onDelete, onPhysic
     if (!isOpen || !task) return null;
 
     const handleSave = async () => {
-        if (!editForm.title.trim()) return alert("タイトルは必須です");
+        if (!editForm.title.trim()) return alert(TASK_OVERLAY.titleRequiredAlert);
 
         // 更新処理
         await onUpdate(task.id, {
@@ -81,7 +82,7 @@ const TaskOverlay = ({ isOpen, onClose, task, logs, onUpdate, onDelete, onPhysic
 
     // 未提出に戻す（TODOに戻す）処理
     const handleRevertToIncomplete = async () => {
-        if (window.confirm(`タスク「${task.title}」を未提出（これからやる）に戻しますか？`)) {
+        if (window.confirm(TASK_OVERLAY.revertConfirm(task.title))) {
             try {
                 await onUpdate(task.id, {
                     status: 'TODO',
@@ -90,7 +91,7 @@ const TaskOverlay = ({ isOpen, onClose, task, logs, onUpdate, onDelete, onPhysic
                 })
             } catch (err) {
                 console.error("Failed to revert task status:", err)
-                alert("未提出に戻す処理に失敗しました。")
+                alert(TASK_OVERLAY.revertFailedAlert)
             }
         }
     }
@@ -102,7 +103,7 @@ const TaskOverlay = ({ isOpen, onClose, task, logs, onUpdate, onDelete, onPhysic
 
     // 物理削除
     const handlePhysicalDelete = async () => {
-        const confirmMessage = `タスク「${task.title}」を完全に削除しますか？\n\n※この操作は取り消せません。\n※関連する作業ログも全て削除されます。`;
+        const confirmMessage = TASK_OVERLAY.physicalDeleteConfirm(task.title);
         if (window.confirm(confirmMessage)) {
             await onPhysicalDelete(task.id);
             onClose();
@@ -131,14 +132,14 @@ const TaskOverlay = ({ isOpen, onClose, task, logs, onUpdate, onDelete, onPhysic
 
     // 表示用の日付フォーマット関数
     const formatDate = (dateVal) => {
-        if (!dateVal) return '未設定';
+        if (!dateVal) return TASK_OVERLAY.unsetDate;
         let d = dateVal;
         if (dateVal.seconds) {
             d = new Date(dateVal.seconds * 1000);
         } else if (!(dateVal instanceof Date)) {
             d = new Date(dateVal);
         }
-        if (isNaN(d.getTime())) return '未設定';
+        if (isNaN(d.getTime())) return TASK_OVERLAY.unsetDate;
         
         const year = d.getFullYear();
         const month = d.getMonth() + 1;
@@ -185,7 +186,7 @@ const TaskOverlay = ({ isOpen, onClose, task, logs, onUpdate, onDelete, onPhysic
                                             className="w-full text-3xl font-bold text-gray-800 border-b-2 border-blue-500 focus:outline-none bg-blue-50/50 px-2 py-1 rounded-t-sm"
                                             value={editForm.title}
                                             onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
-                                            placeholder="タスク名"
+                                            placeholder={TASK_OVERLAY.titlePlaceholder}
                                             autoFocus
                                         />
                                     ) : (
@@ -214,7 +215,7 @@ const TaskOverlay = ({ isOpen, onClose, task, logs, onUpdate, onDelete, onPhysic
                                             <span className={`inline-block px-3 py-1 text-sm font-bold rounded-md ${task.status === 'DONE' ? 'bg-green-100 text-green-700' :
                                                 task.status === 'DOING' ? 'bg-yellow-100 text-yellow-700 border border-yellow-300' : 'bg-gray-100 text-gray-500'
                                                 }`}>
-                                                {TASK_STATUS_LABELS[task.status] || 'これからやる'}
+                                                {TASK_STATUS_LABELS[task.status] || TASK_OVERLAY.statusFallback}
                                             </span>
                                         </>
                                     )}
@@ -225,25 +226,25 @@ const TaskOverlay = ({ isOpen, onClose, task, logs, onUpdate, onDelete, onPhysic
                                                 <button
                                                     onClick={() => setIsEditing(false)}
                                                     className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition"
-                                                    title="キャンセル"
+                                                    title={TASK_OVERLAY.buttons.cancel}
                                                 >
                                                     <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                                                     </svg>
                                                 </button>
-                                                <span className="text-[10px] font-bold text-gray-500">キャンセル</span>
+                                                <span className="text-[10px] font-bold text-gray-500">{TASK_OVERLAY.buttons.cancel}</span>
                                             </div>
                                             <div className="flex flex-col items-center gap-1">
                                                 <button
                                                     onClick={handleSave}
                                                     className="w-12 h-12 flex items-center justify-center rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 transition shadow-sm"
-                                                    title="保存"
+                                                    title={TASK_OVERLAY.buttons.save}
                                                 >
                                                     <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                                                     </svg>
                                                 </button>
-                                                <span className="text-xs font-bold text-blue-700">保存</span>
+                                                <span className="text-xs font-bold text-blue-700">{TASK_OVERLAY.buttons.save}</span>
                                             </div>
                                         </>
                                     ) : (
@@ -254,13 +255,13 @@ const TaskOverlay = ({ isOpen, onClose, task, logs, onUpdate, onDelete, onPhysic
                                                     <button
                                                         onClick={handleRevertToIncomplete}
                                                         className="w-10 h-10 flex items-center justify-center rounded-full bg-yellow-50 text-yellow-600 hover:bg-yellow-100 transition"
-                                                        title="未提出に戻す"
+                                                        title={TASK_OVERLAY.buttons.revert}
                                                     >
                                                         <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                                                             <path strokeLinecap="round" strokeLinejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
                                                         </svg>
                                                     </button>
-                                                    <span className="text-[10px] font-bold text-gray-500">未提出に戻す</span>
+                                                    <span className="text-[10px] font-bold text-gray-500">{TASK_OVERLAY.buttons.revert}</span>
                                                 </div>
                                             )}
 
@@ -268,7 +269,7 @@ const TaskOverlay = ({ isOpen, onClose, task, logs, onUpdate, onDelete, onPhysic
                                                 <button
                                                     onClick={handlePhysicalDelete}
                                                     className="w-10 h-10 flex items-center justify-center rounded-full bg-red-50 text-red-600 hover:bg-red-100 transition"
-                                                    title="削除"
+                                                    title={TASK_OVERLAY.buttons.delete}
                                                     id="tutorial-delete-button"
                                                     style={isTutorialActive ? { pointerEvents: 'none', cursor: 'default' } : undefined}
                                                 >
@@ -276,13 +277,13 @@ const TaskOverlay = ({ isOpen, onClose, task, logs, onUpdate, onDelete, onPhysic
                                                         <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                                     </svg>
                                                 </button>
-                                                <span className="text-[10px] font-bold text-gray-500">削除</span>
+                                                <span className="text-[10px] font-bold text-gray-500">{TASK_OVERLAY.buttons.delete}</span>
                                             </div>
                                             <div className="flex flex-col items-center gap-1">
                                                 <button
                                                     onClick={() => setIsEditing(true)}
                                                     className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition"
-                                                    title="編集"
+                                                    title={TASK_OVERLAY.buttons.edit}
                                                     id="tutorial-edit-button"
                                                     style={isTutorialActive ? { pointerEvents: 'none', cursor: 'default' } : undefined}
                                                 >
@@ -290,7 +291,7 @@ const TaskOverlay = ({ isOpen, onClose, task, logs, onUpdate, onDelete, onPhysic
                                                         <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                                                     </svg>
                                                 </button>
-                                                <span className="text-[10px] font-bold text-gray-500">編集</span>
+                                                <span className="text-[10px] font-bold text-gray-500">{TASK_OVERLAY.buttons.edit}</span>
                                             </div>
                                             {task.status !== 'DONE' && (
                                                 <div className="flex flex-col items-center gap-1 ml-2">
@@ -298,14 +299,14 @@ const TaskOverlay = ({ isOpen, onClose, task, logs, onUpdate, onDelete, onPhysic
                                                         id="tutorial-complete-button"
                                                         onClick={handleComplete}
                                                         className="w-12 h-12 flex items-center justify-center rounded-full bg-green-50 text-green-600 hover:bg-green-100 transition shadow-sm"
-                                                        title="提出完了"
+                                                        title={TASK_OVERLAY.buttons.complete}
                                                         style={isTutorialActive && tutorialStep !== 11 ? { pointerEvents: 'none', cursor: 'default' } : undefined}
                                                     >
                                                         <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                                                             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                                                         </svg>
                                                     </button>
-                                                    <span className="text-xs font-bold text-gray-800">提出完了</span>
+                                                    <span className="text-xs font-bold text-gray-800">{TASK_OVERLAY.buttons.complete}</span>
                                                 </div>
                                             )}
                                         </>
@@ -315,7 +316,7 @@ const TaskOverlay = ({ isOpen, onClose, task, logs, onUpdate, onDelete, onPhysic
 
                             {/* Row 2: 〆切 */}
                             <div className="flex items-center gap-3">
-                                <span className="text-lg font-bold text-gray-600">〆切:</span>
+                                <span className="text-lg font-bold text-gray-600">{TASK_OVERLAY.deadlineLabel}</span>
                                 {isEditing ? (
                                     <div className="w-[300px]">
                                         <DateTimePicker
@@ -338,12 +339,12 @@ const TaskOverlay = ({ isOpen, onClose, task, logs, onUpdate, onDelete, onPhysic
                         <div className="border-t border-gray-200 my-4"></div>
                         {/* Timer Component または コンディション表示 */}
                         <h3 className="text-xl font-bold text-gray-800">
-                            {task.status === 'DONE' ? 'コンディション' : 'タイマー'}
+                            {task.status === 'DONE' ? TASK_OVERLAY.sectionCondition : TASK_OVERLAY.sectionTimer}
                         </h3>
                         <div className="bg-gray-100 rounded-2xl p-4 flex justify-center items-center w-full min-h-[120px] mt-4">
                             {task.status === 'DONE' ? (
                                 loadingCondition ? (
-                                    <div className="text-gray-500 text-sm">コンディションを読み込み中...</div>
+                                    <div className="text-gray-500 text-sm">{TASK_OVERLAY.conditionLoading}</div>
                                 ) : conditionLog ? (
                                     <div className="flex flex-col md:flex-row items-center gap-6 justify-center w-full max-w-xl">
                                         {/* 気分表示 */}
@@ -353,20 +354,20 @@ const TaskOverlay = ({ isOpen, onClose, task, logs, onUpdate, onDelete, onPhysic
                                                  conditionLog.condition === 'fair' ? '🙂' : '😥'}
                                             </span>
                                             <span className="text-xs font-bold text-gray-800 mt-1">
-                                                {conditionLog.condition === 'good' ? '良い' :
-                                                 conditionLog.condition === 'fair' ? '普通' : '悪い'}
+                                                {conditionLog.condition === 'good' ? TASK_OVERLAY.moodLabels.good :
+                                                 conditionLog.condition === 'fair' ? TASK_OVERLAY.moodLabels.fair : TASK_OVERLAY.moodLabels.poor}
                                             </span>
                                         </div>
                                         {/* メモ表示 */}
                                         <div className="flex-1 bg-white p-4 rounded-xl shadow-sm border border-gray-200 w-full min-h-[80px] flex flex-col">
-                                            <span className="text-xs font-bold text-gray-800 block mb-1">提出時のふりかえり</span>
+                                            <span className="text-xs font-bold text-gray-800 block mb-1">{TASK_OVERLAY.reflectionLabel}</span>
                                             <p className="text-sm text-gray-800 leading-relaxed font-medium whitespace-pre-wrap flex-1">
-                                                {conditionLog.memo || '（メモはありません）'}
+                                                {conditionLog.memo || TASK_OVERLAY.noMemo}
                                             </p>
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="text-gray-400 text-sm">コンディションの記録はありません。</div>
+                                    <div className="text-gray-400 text-sm">{TASK_OVERLAY.noConditionRecord}</div>
                                 )
                             ) : (
                                 <Timer activeTask={task} onUpdateTask={onUpdate} logs={logs} />
@@ -385,7 +386,7 @@ const TaskOverlay = ({ isOpen, onClose, task, logs, onUpdate, onDelete, onPhysic
                             className="w-full flex items-center justify-between text-left"
                         >
                             <h3 className="text-xl font-bold text-gray-800">
-                                実績チャート
+                                {TASK_OVERLAY.chartSection}
                             </h3>
                             <div className={`transform transition-transform text-gray-400 ${isChartExpanded ? 'rotate-180' : ''}`}>
                                 ▼

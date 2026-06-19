@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
-import { ONBOARDING_STEPS } from "../config/content";
+import { ONBOARDING_STEPS } from "../content";
 
 export function InfoPage() {
     const { currentUser } = useAuth();

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { TASK_SIZE_ESTIMATE_MODAL } from '../content';
 
 const TaskSizeEstimateModal = ({ isOpen, task, currentIndex, totalCount, onSubmit }) => {
     const [sizeLabel, setSizeLabel] = useState('');
@@ -32,7 +33,7 @@ const TaskSizeEstimateModal = ({ isOpen, task, currentIndex, totalCount, onSubmi
                         )}
                     </div>
                     <h2 className="text-xl font-bold text-gray-800">
-                        {isMultiple ? '複数の新しい課題があります！' : '新しい課題が見つかりました！'}
+                        {isMultiple ? TASK_SIZE_ESTIMATE_MODAL.titleMultiple : TASK_SIZE_ESTIMATE_MODAL.titleSingle}
                     </h2>
                     <p className="text-sm text-gray-500 mt-2 line-clamp-2 border-b border-gray-100 pb-2 px-2">
                         {task.title}
@@ -42,14 +43,10 @@ const TaskSizeEstimateModal = ({ isOpen, task, currentIndex, totalCount, onSubmi
                 <div className="space-y-6">
                     <div>
                         <label className="block text-sm font-bold text-gray-700 mb-3 text-center">
-                            この課題の規模（S/M/L）はどれくらいですか？
+                            {TASK_SIZE_ESTIMATE_MODAL.question}
                         </label>
                         <div className="flex justify-center gap-4">
-                            {[
-                                { value: 'S', color: 'bg-cyan-100 text-cyan-700 hover:bg-cyan-200 border-cyan-300', desc: 'すぐ終わる' },
-                                { value: 'M', color: 'bg-orange-100 text-orange-700 hover:bg-orange-200 border-orange-300', desc: '半日〜1日' },
-                                { value: 'L', color: 'bg-red-100 text-red-700 hover:bg-red-200 border-red-300', desc: '数日かかる' }
-                            ].map(opt => (
+                            {TASK_SIZE_ESTIMATE_MODAL.sizeOptions.map(opt => (
                                 <button
                                     key={opt.value}
                                     onClick={() => setSizeLabel(opt.value)}
@@ -72,7 +69,7 @@ const TaskSizeEstimateModal = ({ isOpen, task, currentIndex, totalCount, onSubmi
                             disabled={!sizeLabel}
                             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-blue-200 transition disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            決定して次へ
+                            {TASK_SIZE_ESTIMATE_MODAL.submitButtonText}
                         </button>
                     </div>
                 </div>

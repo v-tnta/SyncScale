@@ -1,11 +1,12 @@
 import React from 'react';
+import { CONFIRM_MODAL } from '../content';
 
 export function ConfirmModal({
     isOpen,
     title,
     children,
-    confirmText = "OK",
-    cancelText = "キャンセル",
+    confirmText = CONFIRM_MODAL.defaultConfirmText,
+    cancelText = CONFIRM_MODAL.defaultCancelText,
     onConfirm,
     onCancel,
     confirmButtonClass = "text-white bg-blue-600 hover:bg-blue-700 shadow-sm",

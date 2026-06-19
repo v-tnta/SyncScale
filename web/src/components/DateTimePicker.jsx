@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Picker from 'react-mobile-picker';
+import { DATETIME_PICKER } from '../content';
 
 const DateTimePicker = ({ id, value, onChange, disabled, isTutorialActive }) => {
     // 選択可能な値の生成
@@ -72,7 +73,7 @@ const DateTimePicker = ({ id, value, onChange, disabled, isTutorialActive }) => 
     };
 
     const formatDisplay = () => {
-        if (!value) return "日時を選択";
+        if (!value) return DATETIME_PICKER.placeholder;
         const y = value.getFullYear();
         const m = value.getMonth() + 1;
         const d = value.getDate();
@@ -105,7 +106,7 @@ const DateTimePicker = ({ id, value, onChange, disabled, isTutorialActive }) => 
                             onClick={() => setIsOpen(false)}
                             className="text-blue-600 font-bold text-sm px-2"
                         >
-                            完了
+                            {DATETIME_PICKER.doneButton}
                         </button>
                     </div>
                     <div className="h-48">

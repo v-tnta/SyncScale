@@ -5,6 +5,7 @@ import { SettingsPanel } from './SettingsPanel'
 import { AnalyticsPanel } from './AnalyticsPanel'
 
 import { APP_INFO } from '../constants/appInfo'
+import { LAYOUT } from '../content'
 import logo from '../assets/logo.png'
 
 const Layout = ({ children, tasks, onTaskClick, timeLogs = [], conditionLogs = [] }) => {
@@ -31,21 +32,21 @@ const Layout = ({ children, tasks, onTaskClick, timeLogs = [], conditionLogs = [
                                 id="tutorial-analytics-button"
                                 onClick={() => setIsAnalyticsOpen(true)}
                                 className="flex items-center gap-1.5 bg-white hover:bg-gray-50 active:bg-gray-100 transition-all py-1.5 px-3.5 rounded-2xl border border-gray-200 shadow-sm text-gray-700 hover:text-gray-950 font-bold text-[13.5px]"
-                                title="分析画面を開く"
+                                title={LAYOUT.analyticsButtonTitle}
                             >
-                                📈 分析
+                                {LAYOUT.analyticsButton}
                             </button>
                             {/* 設定とユーザーアバターを統合した横長ボタン */}
                             <button
                                 onClick={() => setIsSettingsOpen(true)}
                                 className="flex items-center gap-2.5 bg-white hover:bg-gray-50 active:bg-gray-100 transition-all py-1.5 px-3.5 rounded-2xl border border-gray-200 shadow-sm text-gray-750 group"
-                                title="アカウント設定を開く"
+                                title={LAYOUT.settingsButtonTitle}
                             >
                                 {currentUser.photoURL && (
                                     <img src={currentUser.photoURL} alt={currentUser.displayName} className="w-7 h-7 rounded-full object-cover border border-gray-200/50 shadow-sm" />
                                 )}
                                 <span className="text-[13.5px] font-bold text-gray-700 max-w-[100px] truncate group-hover:text-gray-900 transition-colors">
-                                    {currentUser.displayName || 'ユーザー'}
+                                    {currentUser.displayName || LAYOUT.userFallback}
                                 </span>
                                 <span className="text-[14px] text-gray-400 group-hover:text-gray-600 transition-colors ml-0.5">⚙️</span>
                             </button>
@@ -59,7 +60,7 @@ const Layout = ({ children, tasks, onTaskClick, timeLogs = [], conditionLogs = [
                 {tasks ? (
                     /* ログイン済み: 2カラムレイアウト（タスク + カレンダー） */
                     <div className="flex flex-col-reverse md:flex-row gap-6 h-full min-h-0">
-                        <div className="w-full md:w-9/20 flex flex-col gap-6 min-h-0">
+                        <div className="w-full md:w-9/20 flex flex-col gap-6 min-h-0 overflow-y-auto">
                             {children}
                         </div>
                         <div className="w-full md:w-4/5 flex flex-col min-h-0 overflow-y-auto">
@@ -91,7 +92,7 @@ const Layout = ({ children, tasks, onTaskClick, timeLogs = [], conditionLogs = [
 
             {/* フッターエリア */}
             <footer className="text-center p-4 text-gray-400 text-xs">
-                &copy; 2026 v-tnta
+                {LAYOUT.footer}
             </footer>
         </div>
     )

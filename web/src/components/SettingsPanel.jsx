@@ -5,6 +5,7 @@ import { useConsent } from "../hooks/useConsent";
 import { useOnboarding } from "../hooks/useOnboarding";
 import { ConsentWithdrawModal } from "./ConsentWithdrawModal";
 import { ConfirmModal } from "./ConfirmModal";
+import { SETTINGS_PANEL } from "../content";
 
 // 「締切の何分前」のプリセット（分）
 const NOTIF_PRESETS = [10, 30, 60, 180, 1440];
@@ -36,7 +37,7 @@ export function SettingsPanel({ isOpen, onClose }) {
         try {
             await updateNotificationSettings({ enabled: value });
         } catch {
-            alert("通知設定の保存に失敗しました。");
+            alert(SETTINGS_PANEL.notifSaveFailedAlert);
         } finally {
             setNotifSaving(false);
         }
@@ -47,7 +48,7 @@ export function SettingsPanel({ isOpen, onClose }) {
         try {
             await updateNotificationSettings({ minutesBefore: minutes });
         } catch {
-            alert("通知設定の保存に失敗しました。");
+            alert(SETTINGS_PANEL.notifSaveFailedAlert);
         } finally {
             setNotifSaving(false);
         }
@@ -56,16 +57,16 @@ export function SettingsPanel({ isOpen, onClose }) {
     if (!isOpen) return null;
 
     const handleRestartTutorial = async () => {
-        if (window.confirm("チュートリアルを再実行しますか？\n（一時的にオンボーディング画面に戻りますが、登録したデータは消えません）")) {
+        if (window.confirm(SETTINGS_PANEL.restartTutorialConfirm)) {
             try {
-                setLoadingText("チュートリアルを準備中...");
+                setLoadingText(SETTINGS_PANEL.loadingTutorialPreparing);
                 setIsTransitioning(true);
                 await resetTutorial();
                 window.location.reload();
             } catch (error) {
                 console.error("チュートリアルのリセットに失敗しました:", error);
                 setIsTransitioning(false);
-                alert("チュートリアルのリセットに失敗しました。");
+                alert(SETTINGS_PANEL.restartTutorialFailedAlert);
             }
         }
     };
@@ -78,7 +79,7 @@ export function SettingsPanel({ isOpen, onClose }) {
     // 2段階目のモーダル完了時（実際の削除処理）
     const handleActualWithdraw = async () => {
         try {
-            setLoadingText("同意を撤回し、データを削除中...");
+            setLoadingText(SETTINGS_PANEL.loadingWithdrawing);
             setIsTransitioning(true);
             setIsSecondWithdrawOpen(false);
             await withdrawConsent();
@@ -89,7 +90,7 @@ export function SettingsPanel({ isOpen, onClose }) {
         } catch (error) {
             console.error("撤回およびログアウト中にエラーが発生しました:", error);
             setIsTransitioning(false);
-            alert("処理中にエラーが発生しました。");
+            alert(SETTINGS_PANEL.withdrawErrorAlert);
         }
     };
 
@@ -98,7 +99,7 @@ export function SettingsPanel({ isOpen, onClose }) {
             {isTransitioning && (
                 <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-[200] flex flex-col items-center justify-center gap-4">
                     <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                    <p className="font-bold text-gray-700">{loadingText || "処理中..."}</p>
+                    <p className="font-bold text-gray-700">{loadingText || SETTINGS_PANEL.loadingDefault}</p>
                 </div>
             )}
             {/* バックドロップ */}
@@ -114,7 +115,7 @@ export function SettingsPanel({ isOpen, onClose }) {
                         {/* ヘッダー */}
                         <div className="flex justify-between items-center border-b border-gray-200 pb-4">
                             <h3 className="text-lg font-black flex items-center gap-2 text-gray-900">
-                                <span>⚙️</span> 設定
+                                <span>⚙️</span> {SETTINGS_PANEL.header}
                             </h3>
                             <button
                                 onClick={onClose}
@@ -131,8 +132,8 @@ export function SettingsPanel({ isOpen, onClose }) {
                                     <img src={currentUser.photoURL} alt={currentUser.displayName} className="w-12 h-12 rounded-full object-cover border border-gray-200 shadow-sm" />
                                 )}
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-[15px] font-bold text-gray-800 truncate leading-snug">{currentUser.displayName || "ユーザー"}</p>
-                                    <p className="text-xs text-gray-400 truncate mt-0.5">{currentUser.email || "メールアドレス未設定"}</p>
+                                    <p className="text-[15px] font-bold text-gray-800 truncate leading-snug">{currentUser.displayName || SETTINGS_PANEL.userFallback}</p>
+                                    <p className="text-xs text-gray-400 truncate mt-0.5">{currentUser.email || SETTINGS_PANEL.emailFallback}</p>
                                 </div>
                             </div>
                         )}
@@ -143,11 +144,11 @@ export function SettingsPanel({ isOpen, onClose }) {
                                 <div className="flex items-center gap-3 min-w-0">
                                     <span className="text-lg">🔔</span>
                                     <div className="min-w-0">
-                                        <p className="font-bold text-sm text-gray-800">締切前に通知</p>
+                                        <p className="font-bold text-sm text-gray-800">{SETTINGS_PANEL.notifTitle}</p>
                                         <p className="text-xs text-gray-500 mt-0.5">
                                             {notifEnabled
-                                                ? `締切の${formatMinutesBefore(notifMinutes)}前にお知らせします`
-                                                : "タスクの締切前にお知らせします"}
+                                                ? SETTINGS_PANEL.notifDescEnabled(formatMinutesBefore(notifMinutes))
+                                                : SETTINGS_PANEL.notifDescDisabled}
                                         </p>
                                     </div>
                                 </div>
@@ -165,7 +166,7 @@ export function SettingsPanel({ isOpen, onClose }) {
 
                             {notifEnabled && (
                                 <div className="px-3.5 pb-3 border-t border-gray-100 pt-3">
-                                    <p className="text-xs font-bold text-gray-600 mb-2">何分前に通知するか</p>
+                                    <p className="text-xs font-bold text-gray-600 mb-2">{SETTINGS_PANEL.notifMinutesLabel}</p>
                                     <div className="flex flex-wrap gap-2">
                                         {NOTIF_PRESETS.map((preset) => (
                                             <button
@@ -175,7 +176,7 @@ export function SettingsPanel({ isOpen, onClose }) {
                                                 onClick={() => handleSelectNotifMinutes(preset)}
                                                 className={`px-3 py-1.5 rounded-full text-xs font-bold border transition disabled:opacity-50 ${notifMinutes === preset ? "bg-blue-600 text-white border-blue-600" : "bg-white text-gray-600 border-gray-200 hover:border-blue-300"}`}
                                             >
-                                                {formatMinutesBefore(preset)}前
+                                                {formatMinutesBefore(preset)}{SETTINGS_PANEL.notifPresetSuffix}
                                             </button>
                                         ))}
                                     </div>
@@ -184,7 +185,7 @@ export function SettingsPanel({ isOpen, onClose }) {
 
                             <div className="bg-amber-50 border-t border-amber-100 px-3.5 py-2.5">
                                 <p className="text-[11px] text-amber-700 leading-relaxed">
-                                    📱 通知はスマートフォンアプリ（インストール版）でのみ届きます。Web版では設定の保存のみ行えます。
+                                    {SETTINGS_PANEL.notifNote}
                                 </p>
                             </div>
                         </div>
@@ -197,8 +198,8 @@ export function SettingsPanel({ isOpen, onClose }) {
                             >
                                 <span className="text-lg">🔄</span>
                                 <div>
-                                    <p className="font-bold text-sm text-gray-800">チュートリアルの再実行</p>
-                                    <p className="text-xs text-gray-500 mt-0.5">使い方をもう一度確認する</p>
+                                    <p className="font-bold text-sm text-gray-800">{SETTINGS_PANEL.restartTutorialTitle}</p>
+                                    <p className="text-xs text-gray-500 mt-0.5">{SETTINGS_PANEL.restartTutorialSub}</p>
                                 </div>
                             </button>
 
@@ -211,8 +212,8 @@ export function SettingsPanel({ isOpen, onClose }) {
                             >
                                 <span className="text-lg">📋</span>
                                 <div>
-                                    <p className="font-bold text-sm text-gray-800">研究参加オンボーディング</p>
-                                    <p className="text-xs text-gray-500 mt-0.5">各種アンケートやリンクを再確認する</p>
+                                    <p className="font-bold text-sm text-gray-800">{SETTINGS_PANEL.onboardingTitle}</p>
+                                    <p className="text-xs text-gray-500 mt-0.5">{SETTINGS_PANEL.onboardingSub}</p>
                                 </div>
                             </button>
                         </div>
@@ -228,14 +229,14 @@ export function SettingsPanel({ isOpen, onClose }) {
                             }}
                             className="w-full py-3 px-4 bg-gray-800 hover:bg-gray-700 text-white font-bold rounded-xl text-center text-sm transition duration-200"
                         >
-                            ログアウト
+                            {SETTINGS_PANEL.logoutButton}
                         </button>
                         
                         <button
                             onClick={() => setIsWithdrawOpen(true)}
                             className="w-full py-3 px-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-center text-sm transition duration-200 shadow-md"
                         >
-                            研究同意の撤回
+                            {SETTINGS_PANEL.withdrawButton}
                         </button>
                     </div>
                 </div>
@@ -251,9 +252,9 @@ export function SettingsPanel({ isOpen, onClose }) {
             {/* 最終確認モーダル（2段階目） */}
             <ConfirmModal
                 isOpen={isSecondWithdrawOpen}
-                title="⚠️ 同意撤回の最終確認"
-                confirmText="はい、本当に削除する"
-                cancelText="いいえ、キャンセル"
+                title={SETTINGS_PANEL.finalConfirmTitle}
+                confirmText={SETTINGS_PANEL.finalConfirmConfirmText}
+                cancelText={SETTINGS_PANEL.finalConfirmCancelText}
                 onConfirm={handleActualWithdraw}
                 onCancel={() => setIsSecondWithdrawOpen(false)}
                 confirmButtonClass="text-white bg-red-600 hover:bg-red-700 shadow-sm"
@@ -261,10 +262,10 @@ export function SettingsPanel({ isOpen, onClose }) {
             >
                 <div className="space-y-3">
                     <p className="font-bold text-red-600">
-                        研究内容への同意を撤回し、本当にデータをすべて削除しますか？
+                        {SETTINGS_PANEL.finalConfirmLead}
                     </p>
                     <p className="text-xs text-slate-500 leading-relaxed">
-                        ※ この操作を実行すると、あなたのタスク、時間ログ、コンディションログ、利用状況ログ、および設定が完全に削除され、復元することはできなくなります。
+                        {SETTINGS_PANEL.finalConfirmNote}
                     </p>
                 </div>
             </ConfirmModal>

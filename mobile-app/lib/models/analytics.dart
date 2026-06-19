@@ -347,6 +347,50 @@ List<TimeBandCondition> calculateConditionByTimeOfDay(
   return result;
 }
 
+// ---- 3'. よく作業する時間帯（コンディション比較なし） -----------------------
+
+class TimeBandWork {
+  TimeBandWork({
+    required this.key,
+    required this.label,
+    required this.range,
+    this.total = 0,
+  });
+
+  final String key;
+  final String label;
+  final String range;
+  double total;
+}
+
+/// 「どの時間帯にどれくらい作業したか」を作業時間（分）で時間帯別に集計する。
+/// コンディションとの比較を行わない、作業量だけのシンプルな集計。
+List<TimeBandWork> calculateWorkTimeByTimeOfDay(
+  List<Task> tasks,
+  List<TimeLog> timeLogs,
+) {
+  final excludedTaskIds =
+      tasks.where((t) => !_isAnalyzable(t)).map((t) => t.id).toSet();
+
+  final result = timeBands
+      .map((b) => TimeBandWork(key: b.key, label: b.label, range: b.range))
+      .toList();
+  final indexByKey = {
+    for (var i = 0; i < result.length; i++) result[i].key: i,
+  };
+
+  for (final log in timeLogs) {
+    if (excludedTaskIds.contains(log.taskId)) continue;
+    final start = log.startTime;
+    if (start == null) continue;
+    final minutes = log.durationSeconds / 60.0;
+    if (minutes <= 0) continue;
+    result[indexByKey[_bandKeyOf(start.hour)]!].total += minutes;
+  }
+
+  return result;
+}
+
 // ---- 4. 放置タスク検出 ------------------------------------------------------
 
 const int _stalledThresholdDays = 3; // 最終作業からこの日数以上で「放置」と判定

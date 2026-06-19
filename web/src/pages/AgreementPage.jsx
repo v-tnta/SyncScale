@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { useConsent } from "../hooks/useConsent";
-import { AGREEMENT_CONTENT } from "../config/content";
+import { AGREEMENT_CONTENT } from "../content";
 
 // Googleのカラーロゴコンポーネント
 const GoogleIcon = () => (

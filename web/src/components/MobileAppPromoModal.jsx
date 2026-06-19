@@ -1,5 +1,6 @@
 import React from 'react';
 import appConfig from '@shared/app_config.json';
+import { MOBILE_APP_PROMO_MODAL } from '../content';
 
 /**
  * モバイルアプリインストール促進モーダル
@@ -24,20 +25,20 @@ const MobileAppPromoModal = ({ isOpen, onClose, iosUrl, androidUrl }) => {
                         <span className="text-3xl">📱</span>
                     </div>
                     <h2 className="text-xl md:text-2xl font-black text-slate-950">
-                        モバイルアプリインストールのお願い
+                        {MOBILE_APP_PROMO_MODAL.title}
                     </h2>
                 </div>
 
                 {/* 説明テキスト */}
                 <div className="space-y-3 leading-relaxed text-sm text-slate-600 font-medium">
                     <p>
-                        SyncScaleは、タスク管理と実働時間の記録を組み合わせることで効果を発揮するシステムです。
+                        {MOBILE_APP_PROMO_MODAL.paragraphs[0]}
                     </p>
                     <p className="p-3.5 bg-blue-50 rounded-xl border border-blue-200 text-blue-800 text-xs font-semibold">
-                        外出先やスマートフォンからも手軽に時間計測やコンディションの入力を行っていただけるよう、便利なスマホアプリをご用意しています。ぜひインストールしてご活用ください。
+                        {MOBILE_APP_PROMO_MODAL.paragraphs[1]}
                     </p>
                     <p>
-                        以下のストアボタンより、アプリをインストールしてGoogleアカウントでログインしてください。
+                        {MOBILE_APP_PROMO_MODAL.paragraphs[2]}
                     </p>
                 </div>
 
@@ -49,7 +50,7 @@ const MobileAppPromoModal = ({ isOpen, onClose, iosUrl, androidUrl }) => {
                         rel="noopener noreferrer"
                         className="py-3.5 px-6 bg-neutral-800 hover:bg-neutral-700 text-white font-bold rounded-2xl text-center transition duration-300 text-sm flex items-center justify-center gap-2.5 shadow-lg shadow-neutral-800/15"
                     >
-                        <span></span> App Store からダウンロード (iOS)
+                        <span></span> {MOBILE_APP_PROMO_MODAL.iosButtonText}
                     </a>
                     <a
                         href={finalAndroidUrl}
@@ -57,7 +58,7 @@ const MobileAppPromoModal = ({ isOpen, onClose, iosUrl, androidUrl }) => {
                         rel="noopener noreferrer"
                         className="py-3.5 px-6 bg-neutral-800 hover:bg-neutral-700 text-white font-bold rounded-2xl text-center transition duration-300 text-sm flex items-center justify-center gap-2.5 shadow-lg shadow-neutral-800/15"
                     >
-                        Google Play からダウンロード (Android)
+                        {MOBILE_APP_PROMO_MODAL.androidButtonText}
                     </a>
                 </div>
 
@@ -67,7 +68,7 @@ const MobileAppPromoModal = ({ isOpen, onClose, iosUrl, androidUrl }) => {
                         onClick={onClose}
                         className="text-xs font-bold text-slate-400 hover:text-slate-600 hover:bg-slate-50 px-4 py-2 rounded-xl transition"
                     >
-                        あとで通知する
+                        {MOBILE_APP_PROMO_MODAL.laterButtonText}
                     </button>
                 </div>
             </div>

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useOnboarding } from "../hooks/useOnboarding";
 import { useAuth } from "../hooks/useAuth";
-import { ONBOARDING_STEPS } from "../config/content";
+import { ONBOARDING_STEPS } from "../content";
 
 export function OnboardingPage() {
     const { onboarding, loading, completeStep } = useOnboarding();

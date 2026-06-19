@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { CONDITION_INPUT_MODAL } from '../content';
 
 const ConditionInputModal = ({ isOpen, onClose, task, onSubmit, isTutorialActive }) => {
     const [condition, setCondition] = useState('');
@@ -27,7 +28,7 @@ const ConditionInputModal = ({ isOpen, onClose, task, onSubmit, isTutorialActive
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
                         </svg>
                     </div>
-                    <h2 className="text-xl font-bold text-gray-800">お疲れ様でした！</h2>
+                    <h2 className="text-xl font-bold text-gray-800">{CONDITION_INPUT_MODAL.title}</h2>
                     <p className="text-sm text-gray-500 mt-2 line-clamp-1 border-b border-gray-100 pb-2">
                         {task.title}
                     </p>
@@ -37,14 +38,10 @@ const ConditionInputModal = ({ isOpen, onClose, task, onSubmit, isTutorialActive
                     {/* コンディション選択 */}
                     <div>
                         <label className="block text-sm font-bold text-gray-700 mb-3 text-center">
-                            今の気分（コンディション）はどうですか？
+                            {CONDITION_INPUT_MODAL.conditionQuestion}
                         </label>
                         <div className="flex justify-center gap-6">
-                            {[
-                                { value: 'good', emoji: '😊', label: '良い' },
-                                { value: 'fair', emoji: '🙂', label: '普通' },
-                                { value: 'poor', emoji: '😥', label: '悪い' }
-                            ].map(opt => (
+                            {CONDITION_INPUT_MODAL.conditionOptions.map(opt => (
                                 <button
                                     key={opt.value}
                                     onClick={() => setCondition(opt.value)}
@@ -64,12 +61,12 @@ const ConditionInputModal = ({ isOpen, onClose, task, onSubmit, isTutorialActive
                     {/* ひとことメモ */}
                     <div>
                         <label className="block text-sm font-bold text-gray-700 mb-2">
-                            ひとことメモ (任意)
+                            {CONDITION_INPUT_MODAL.memoLabel}
                         </label>
                         <textarea
                             className="w-full border border-gray-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none"
                             rows="3"
-                            placeholder="次に活かせることや、今の気持ちを残そう..."
+                            placeholder={CONDITION_INPUT_MODAL.memoPlaceholder}
                             value={memo}
                             onChange={(e) => setMemo(e.target.value)}
                         ></textarea>
@@ -82,7 +79,7 @@ const ConditionInputModal = ({ isOpen, onClose, task, onSubmit, isTutorialActive
                                 onClick={onClose}
                                 className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-4 rounded-xl transition"
                             >
-                                キャンセル
+                                {CONDITION_INPUT_MODAL.cancelButtonText}
                             </button>
                         )}
                         <button
@@ -92,7 +89,7 @@ const ConditionInputModal = ({ isOpen, onClose, task, onSubmit, isTutorialActive
                             className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-blue-200 transition disabled:opacity-50 disabled:cursor-not-allowed"
                             style={isTutorialActive ? { width: '100%', flex: 'none' } : undefined}
                         >
-                            記録して提出完了
+                            {CONDITION_INPUT_MODAL.submitButtonText}
                         </button>
                     </div>
                 </div>

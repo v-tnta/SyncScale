@@ -1,11 +1,8 @@
 import React from 'react';
+import { SIZE_LABEL_SELECTOR } from '../content';
 
 const SizeLabelSelector = ({ selectedLabel, onSelect }) => {
-  const options = [
-    { value: 'S', label: 'S (すぐ)' },
-    { value: 'M', label: 'M (半日〜1日)' },
-    { value: 'L', label: 'L (数日)' },
-  ];
+  const options = SIZE_LABEL_SELECTOR.options;
 
   const getColors = (val) => {
     switch (val) {

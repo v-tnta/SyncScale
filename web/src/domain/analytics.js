@@ -230,6 +230,33 @@ export function calculateConditionByTimeOfDay(tasks, timeLogs = [], conditionLog
     return result;
 }
 
+/**
+ * 「どの時間帯にどれくらい作業したか」を作業時間（分）で時間帯別に集計する。
+ * コンディションとの比較を行わない、作業量だけのシンプルな集計。
+ * @returns {{key:string, label:string, range:string, total:number}[]}
+ */
+export function calculateWorkTimeByTimeOfDay(tasks, timeLogs = []) {
+    const excludedTaskIds = new Set(
+        tasks.filter(t => !isAnalyzableTask(t)).map(t => t.id)
+    );
+
+    const result = TIME_BANDS.map(b => ({
+        key: b.key, label: b.label, range: b.range, total: 0
+    }));
+    const indexByKey = Object.fromEntries(result.map((r, i) => [r.key, i]));
+
+    for (const log of timeLogs) {
+        if (excludedTaskIds.has(log.taskId)) continue;
+        const start = toDate(log.startTime);
+        if (!start) continue;
+        const minutes = (log.durationSeconds || 0) / 60;
+        if (minutes <= 0) continue;
+        result[indexByKey[bandKeyOf(start.getHours())]].total += minutes;
+    }
+
+    return result;
+}
+
 // ---- 4. 放置タスク検出 ------------------------------------------------------
 
 const STALLED_THRESHOLD_DAYS = 3; // 最終作業からこの日数以上で「放置」と判定

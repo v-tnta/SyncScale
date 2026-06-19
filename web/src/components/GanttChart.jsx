@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react'
+import { GANTT_CHART } from '../content'
 
 /**
  * GanttChart コンポーネント (Stacked Style)
@@ -7,7 +8,7 @@ import React, { useMemo } from 'react'
  */
 const GanttChart = ({ logs = [], taskSize = 'M' }) => {
     if (logs.length === 0) {
-        return <p className="text-gray-400 text-sm p-4 text-center">作業ログがありません。</p>;
+        return <p className="text-gray-400 text-sm p-4 text-center">{GANTT_CHART.noLogs}</p>;
     }
 
     // 色のパレット
@@ -46,7 +47,7 @@ const GanttChart = ({ logs = [], taskSize = 'M' }) => {
         const colorsMap = {};
         let colorIndex = 0;
         sorted.forEach(log => {
-            const name = log.subTaskName || '作業';
+            const name = log.subTaskName || GANTT_CHART.defaultSubTaskName;
             if (!colorsMap[name]) {
                 colorsMap[name] = PALETTE[colorIndex % PALETTE.length];
                 colorIndex++;
@@ -62,7 +63,7 @@ const GanttChart = ({ logs = [], taskSize = 'M' }) => {
         };
     }, [logs]);
 
-    if (totalDurationMin === 0) return <p className="text-gray-400 text-sm p-4 text-center">作業時間が0分です。</p>;
+    if (totalDurationMin === 0) return <p className="text-gray-400 text-sm p-4 text-center">{GANTT_CHART.zeroDuration}</p>;
 
     // スケール定数: 標準は1分あたり3px
     const STANDARD_PIXELS_PER_MIN = 3;
@@ -94,7 +95,7 @@ const GanttChart = ({ logs = [], taskSize = 'M' }) => {
 
     return (
         <div ref={containerRef} className="mt-6 w-full pb-4">
-            <h3 className="text-sm font-bold text-gray-600 mb-2 sticky left-0">実績ガントチャート</h3>
+            <h3 className="text-sm font-bold text-gray-600 mb-2 sticky left-0">{GANTT_CHART.heading}</h3>
 
             {/* チャートコンテナ */}
             <div
@@ -124,7 +125,7 @@ const GanttChart = ({ logs = [], taskSize = 'M' }) => {
                         const durationMin = Math.max(1, Math.round((log.durationSeconds || 0) / 60));
 
                         const widthPx = durationMin * pixelsPerMin;
-                        const name = log.subTaskName || '作業';
+                        const name = log.subTaskName || GANTT_CHART.defaultSubTaskName;
                         const colorClass = subTaskColors[name] || 'bg-blue-500';
 
                         return (

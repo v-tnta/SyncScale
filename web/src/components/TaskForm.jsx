@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import SizeLabelSelector from './SizeLabelSelector'
 import DateTimePicker from './DateTimePicker'
+import { TASK_FORM } from '../content'
 
 /**
  * タスク登録フォーム
@@ -41,11 +42,11 @@ const TaskForm = ({ addTask, disabled, isTutorialActive }) => {
             <form onSubmit={handleSubmit} className="space-y-3">
                 {/* タスク名入力 */}
                 <div id="tutorial-title-input" className="transition-all duration-300 rounded-lg p-1">
-                    <label className="block text-sm font-medium text-gray-600 mb-1">タスク名</label>
+                    <label className="block text-sm font-medium text-gray-600 mb-1">{TASK_FORM.titleLabel}</label>
                     <input
                         type="text"
                         className="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                        placeholder="例: 数学の課題、レポート作成"
+                        placeholder={TASK_FORM.titlePlaceholder}
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
                         required
@@ -55,7 +56,7 @@ const TaskForm = ({ addTask, disabled, isTutorialActive }) => {
                 <div className="flex gap-4 flex-wrap">
                     {/* 締切日時入力 */}
                     <div className="flex-1 min-w-[150px] transition-all duration-300 rounded-lg p-1">
-                        <label className="block text-sm font-medium text-gray-600 mb-1">締切日時</label>
+                        <label className="block text-sm font-medium text-gray-600 mb-1">{TASK_FORM.deadlineLabel}</label>
                         <DateTimePicker
                             id="tutorial-deadline-input"
                             value={deadline}
@@ -68,7 +69,7 @@ const TaskForm = ({ addTask, disabled, isTutorialActive }) => {
 
                 {/* 🆕 相対見積もり選択 */}
                 <div id="tutorial-size-selector" className="transition-all duration-300 rounded-lg p-1">
-                    <label className="block text-sm font-medium text-gray-600 mb-1">規模感 (相対見積もり)</label>
+                    <label className="block text-sm font-medium text-gray-600 mb-1">{TASK_FORM.sizeLabel}</label>
                     <SizeLabelSelector 
                         selectedLabel={sizeLabel} 
                         onSelect={setSizeLabel} 
@@ -82,7 +83,7 @@ const TaskForm = ({ addTask, disabled, isTutorialActive }) => {
                     disabled={disabled}
                     className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold py-2 px-4 rounded transition duration-200"
                 >
-                    タスクを登録
+                    {TASK_FORM.submitButton}
                 </button>
             </form>
         </div>

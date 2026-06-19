@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useTimeLogs } from '../hooks/useTimeLogs'
 import { useActivityLog } from '../hooks/useActivityLog'
+import { TIMER } from '../content'
 
 /**
  * Timerコンポーネント (Inline版)
@@ -141,7 +142,7 @@ const Timer = ({ activeTask, logs, onUpdateTask }) => {
     // サブタスク強制入力モーダルからの保存
     const handleConfirmSave = async () => {
         if (!subTaskName.trim()) {
-            alert("作業内容を入力してください");
+            alert(TIMER.subTaskRequiredAlert);
             return;
         }
         await saveLog({ ...pendingLogData, subTaskName: subTaskName });
@@ -151,7 +152,7 @@ const Timer = ({ activeTask, logs, onUpdateTask }) => {
     // 事後報告の保存
     const handleManualSave = async () => {
         if (!manualData.durationMinutes) {
-            alert("時間を入力してください");
+            alert(TIMER.durationRequiredAlert);
             return;
         }
 
@@ -161,7 +162,7 @@ const Timer = ({ activeTask, logs, onUpdateTask }) => {
 
         const log = {
             taskId: activeTask.id,
-            subTaskName: manualData.subTaskName || '事後報告',
+            subTaskName: manualData.subTaskName || TIMER.manualDefaultSubTaskName,
             startTime: start,
             endTime: end,
             durationSeconds: durationSec
@@ -215,7 +216,7 @@ const Timer = ({ activeTask, logs, onUpdateTask }) => {
                                 : 'bg-gray-100 border-transparent text-gray-500 hover:bg-gray-200'
                         }`}
                     >
-                        きろく  
+                        {TIMER.tabRecord}
                     </button>
                     <button
                         id="tutorial-manual-tab"
@@ -227,7 +228,7 @@ const Timer = ({ activeTask, logs, onUpdateTask }) => {
                                 : 'bg-gray-100 border-transparent text-gray-500 hover:bg-gray-200'
                         }`}
                     >
-                        手動できろく
+                        {TIMER.tabManual}
                     </button>
                 </div>
             </div>
@@ -238,11 +239,11 @@ const Timer = ({ activeTask, logs, onUpdateTask }) => {
                     <div className="flex flex-col gap-6 justify-center">
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                             <div className="flex items-center gap-4 flex-1">
-                                <span className="font-bold text-gray-700 whitespace-nowrap">やること</span>
+                                <span className="font-bold text-gray-700 whitespace-nowrap">{TIMER.todoLabel}</span>
                                 <div className="flex-1 max-w-[200px]">
                                     <input
                                         type="text"
-                                        placeholder="例: 資料作成"
+                                        placeholder={TIMER.todoPlaceholder}
                                         className="w-full p-2 border-2 border-gray-300 rounded font-bold text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                                         value={subTaskName}
                                         onChange={(e) => setSubTaskName(e.target.value)}
@@ -263,14 +264,14 @@ const Timer = ({ activeTask, logs, onUpdateTask }) => {
                                             onClick={handleRecordClick}
                                             className="bg-blue-600 text-white font-bold py-1.5 px-6 rounded-full hover:bg-blue-700 transition shadow-sm"
                                         >
-                                            きろく
+                                            {TIMER.recordButton}
                                         </button>
                                     )}
                                     <button
                                         onClick={handleStart}
                                         className="bg-green-500 text-white font-bold py-1.5 px-8 rounded-full hover:bg-green-600 transition shadow-sm"
                                     >
-                                        {elapsedSeconds > 0 ? 'リスタート' : 'スタート'}
+                                        {elapsedSeconds > 0 ? TIMER.restartButton : TIMER.startButton}
                                     </button>
                                 </>
                             ) : (
@@ -279,13 +280,13 @@ const Timer = ({ activeTask, logs, onUpdateTask }) => {
                                         onClick={handleRecordClick}
                                         className="bg-blue-600 text-white font-bold py-1.5 px-6 rounded-full hover:bg-blue-700 transition shadow-sm"
                                     >
-                                        きろく
+                                        {TIMER.recordButton}
                                     </button>
                                     <button
                                         onClick={handlePause}
                                         className="bg-yellow-500 text-white font-bold py-1.5 px-8 rounded-full hover:bg-yellow-600 transition shadow-sm"
                                     >
-                                        ストップ
+                                        {TIMER.stopButton}
                                     </button>
                                 </>
                             )}
@@ -294,11 +295,11 @@ const Timer = ({ activeTask, logs, onUpdateTask }) => {
                 ) : (
                     <div className="flex flex-col gap-4">
                         <div className="flex items-center gap-4">
-                            <span className="font-bold text-gray-700 whitespace-nowrap">やったこと</span>
+                            <span className="font-bold text-gray-700 whitespace-nowrap">{TIMER.manualDoneLabel}</span>
                             <div className="flex-1 max-w-[200px]">
                                 <input
                                     type="text"
-                                    placeholder="例: 調べ物 / 発表練習 など"
+                                    placeholder={TIMER.manualDonePlaceholder}
                                     className="w-full p-2 border-2 border-gray-300 rounded font-bold text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                                     value={manualData.subTaskName}
                                     onChange={(e) => setManualData({ ...manualData, subTaskName: e.target.value })}
@@ -308,16 +309,16 @@ const Timer = ({ activeTask, logs, onUpdateTask }) => {
                         {/* 作業時間 + きろくボタンを同じ行に */}
                         <div className="flex items-center justify-between gap-4">
                             <div className="flex items-center gap-4">
-                                <span className="font-bold text-gray-700 whitespace-nowrap">作業時間</span>
+                                <span className="font-bold text-gray-700 whitespace-nowrap">{TIMER.workTimeLabel}</span>
                                 <div id="tutorial-manual-duration" className="flex items-center gap-2 transition-all duration-300 rounded-lg p-1">
                                     <input
                                         type="number"
-                                        placeholder="60"
+                                        placeholder={TIMER.durationPlaceholder}
                                         className="w-24 p-2 border-2 border-gray-300 rounded font-bold text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none text-right"
                                         value={manualData.durationMinutes}
                                         onChange={(e) => setManualData({ ...manualData, durationMinutes: e.target.value })}
                                     />
-                                    <span className="font-bold text-gray-600">分</span>
+                                    <span className="font-bold text-gray-600">{TIMER.minuteUnit}</span>
                                 </div>
                             </div>
                             <button
@@ -325,7 +326,7 @@ const Timer = ({ activeTask, logs, onUpdateTask }) => {
                                 onClick={handleManualSave}
                                 className="bg-blue-600 text-white font-bold py-2 px-8 rounded-full hover:bg-blue-700 transition shadow-sm"
                             >
-                                きろく
+                                {TIMER.manualRecordButton}
                             </button>
                         </div>
                     </div>
@@ -336,7 +337,7 @@ const Timer = ({ activeTask, logs, onUpdateTask }) => {
             {isConfirmModalOpen && (
                 <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/20 backdrop-blur-[1px]">
                     <div className="bg-white p-6 rounded shadow-lg border border-gray-200" onClick={e => e.stopPropagation()}>
-                        <h3 className="text-lg font-bold mb-2">作業名を入力してください</h3>
+                        <h3 className="text-lg font-bold mb-2">{TIMER.subTaskModalTitle}</h3>
                         <input
                             type="text"
                             className="w-full p-2 border rounded mb-4 focus:ring-2 focus:ring-blue-500"
@@ -345,8 +346,8 @@ const Timer = ({ activeTask, logs, onUpdateTask }) => {
                             autoFocus
                         />
                         <div className="flex justify-end gap-2">
-                            <button onClick={() => setIsConfirmModalOpen(false)} className="text-gray-500 px-4">キャンセル</button>
-                            <button onClick={handleConfirmSave} className="bg-blue-600 text-white px-4 py-2 rounded">保存</button>
+                            <button onClick={() => setIsConfirmModalOpen(false)} className="text-gray-500 px-4">{TIMER.subTaskModalCancel}</button>
+                            <button onClick={handleConfirmSave} className="bg-blue-600 text-white px-4 py-2 rounded">{TIMER.subTaskModalSave}</button>
                         </div>
                     </div>
                 </div>

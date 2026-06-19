@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { doc, getDoc, setDoc, updateDoc, deleteField, arrayUnion, serverTimestamp, collection, query, where, getDocs, writeBatch, onSnapshot } from "firebase/firestore";
 import { db } from "../lib/firebase";
 import { useAuth } from "./useAuth";
-import { AGREEMENT_CONTENT } from "../config/content";
+import { AGREEMENT_CONTENT } from "../content";
 
 const ConsentContext = createContext();
 

@@ -1,4 +1,5 @@
 import { TASK_STATUS_LABELS } from '../domain/task';
+import { TASK_LIST } from '../content';
 
 /**
  * タスク一覧コンポーネント
@@ -30,11 +31,11 @@ const TaskList = ({ tasks, timeLogs, loading, error, onTaskClick, onUpdateTask, 
     };
 
     if (loading) {
-        return <div className="text-center p-8 text-gray-500">読み込み中...</div>;
+        return <div className="text-center p-8 text-gray-500">{TASK_LIST.loading}</div>;
     }
 
     if (error) {
-        return <div className="text-center p-8 text-red-500">エラーが発生しました。設定を確認してください。</div>;
+        return <div className="text-center p-8 text-red-500">{TASK_LIST.error}</div>;
     }
 
     // 締切ステータス判定
@@ -59,7 +60,7 @@ const TaskList = ({ tasks, timeLogs, loading, error, onTaskClick, onUpdateTask, 
 
     // 日時フォーマット関数 (String, Date, Timestamp対応)
     const formatDate = (val) => {
-        if (!val) return '未設定';
+        if (!val) return TASK_LIST.unsetDate;
         let dateObj;
         if (typeof val === 'string') {
             dateObj = new Date(val);
@@ -68,10 +69,10 @@ const TaskList = ({ tasks, timeLogs, loading, error, onTaskClick, onUpdateTask, 
         } else if (val.seconds) {
             dateObj = new Date(val.seconds * 1000);
         } else {
-            return '未設定';
+            return TASK_LIST.unsetDate;
         }
         
-        if (isNaN(dateObj.getTime())) return '未設定';
+        if (isNaN(dateObj.getTime())) return TASK_LIST.unsetDate;
         
         const y = dateObj.getFullYear();
         const m = dateObj.getMonth() + 1;
@@ -91,21 +92,24 @@ const TaskList = ({ tasks, timeLogs, loading, error, onTaskClick, onUpdateTask, 
         <div className="bg-white p-6 rounded-lg shadow-md">
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-                    <span>📋</span> タスク一覧
+                    <span>📋</span> {TASK_LIST.heading}
                 </h2>
                 <button
                     id="tutorial-completed-list-button"
                     onClick={onOpenCompletedModal}
                     className="flex items-center gap-2 text-sm text-gray-600 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg transition font-medium border border-gray-200 shadow-sm"
                 >
-                    <span>🏆</span> 完了したタスクの一覧
+                    <span>🏆</span> {TASK_LIST.completedListButton}
                 </button>
             </div>
 
-            {/* タスクリスト表示エリア: 高さ制限とスクロールを追加 */}
-            <div className="space-y-3 max-h-[270px] overflow-y-auto pr-2 custom-scrollbar">
+            {/* タスクリスト表示エリア: 左カラム全体がスクロールするため、ここでは高さ制限をかけない
+                （以前は max-h-[270px] で内部スクロールしていたが、カラム下端がビューポート外で
+                 クリップされ「一番下までスクロールできない」状態になっていた） */}
+            <div className="space-y-3 pr-1">
+
                 {tasks.length === 0 ? (
-                    <p className="text-gray-400 text-center py-4">タスクはまだありません。</p>
+                    <p className="text-gray-400 text-center py-4">{TASK_LIST.empty}</p>
                 ) : (
                     tasks.map((task) => (
                         <div
@@ -124,7 +128,7 @@ const TaskList = ({ tasks, timeLogs, loading, error, onTaskClick, onUpdateTask, 
                                             getDeadlineStatus(task.deadline) === 'urgent' ? 'text-red-600 animate-pulse' : 
                                             'text-gray-500'
                                         }`}>
-                                            📅 締切: {formatDate(task.deadline)}
+                                            {TASK_LIST.deadlinePrefix}{formatDate(task.deadline)}
                                         </span>
                                     </div>
                                 </div>
@@ -144,7 +148,7 @@ const TaskList = ({ tasks, timeLogs, loading, error, onTaskClick, onUpdateTask, 
                                                 onClick={(e) => handleComplete(e, task)}
                                                 disabled={isTutorialActive}
                                                 className="p-1 text-gray-400 hover:text-green-600 disabled:text-gray-200 disabled:hover:bg-transparent disabled:cursor-not-allowed rounded-full hover:bg-green-50 transition"
-                                                title={isTutorialActive ? "チュートリアル中は詳細画面から完了してください" : "完了にする"}
+                                                title={isTutorialActive ? TASK_LIST.completeTitleTutorial : TASK_LIST.completeTitle}
                                             >
                                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />

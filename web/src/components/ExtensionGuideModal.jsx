@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { EXTENSION_GUIDE_MODAL } from '../content';
 
 /**
  * Chrome拡張機能の使い方解説モーダル
@@ -10,32 +11,7 @@ const ExtensionGuideModal = ({ isOpen, onClose }) => {
 
     if (!isOpen) return null;
 
-    const slides = [
-        {
-            title: "manabaの課題を自動で取り込もう",
-            description: "SyncScaleのChrome拡張機能を使うと、manabaに掲載されている課題を一括で取り込めます。手入力の手間がなくなります！",
-            imagePlaceholder: "manaba連携イメージ",
-            icon: "🔗"
-        },
-        {
-            title: "Step 1: 拡張機能アイコンをクリック",
-            description: "ブラウザ右上のSyncScale拡張機能アイコンをクリックすると、ポップアップが表示されます。",
-            imagePlaceholder: "拡張機能アイコンクリック画面",
-            icon: "🧩"
-        },
-        {
-            title: "Step 2: 課題を取り込む",
-            description: "「課題を取り込む」ボタンをクリックすると、manabaから課題が自動的にSyncScaleに追加されます。",
-            imagePlaceholder: "課題取り込みボタン画面",
-            icon: "📥"
-        },
-        {
-            title: "準備完了！",
-            description: "これでmanabaの課題がSyncScaleに反映されます。新しい課題が出たら、同じ手順で取り込めます。",
-            imagePlaceholder: "取り込み完了画面",
-            icon: "✅"
-        }
-    ];
+    const slides = EXTENSION_GUIDE_MODAL.slides;
 
     const currentData = slides[currentSlide];
     const isLastSlide = currentSlide === slides.length - 1;
@@ -61,7 +37,7 @@ const ExtensionGuideModal = ({ isOpen, onClose }) => {
                 {/* ヘッダー */}
                 <div className="flex justify-between items-center p-6 border-b border-gray-100 shrink-0">
                     <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-                        <span>🧩</span> Chrome拡張機能の使い方
+                        <span>🧩</span> {EXTENSION_GUIDE_MODAL.headerTitle}
                     </h2>
                     <button
                         onClick={onClose}
@@ -118,14 +94,14 @@ const ExtensionGuideModal = ({ isOpen, onClose }) => {
                                 onClick={handlePrev}
                                 className="flex-1 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition text-sm"
                             >
-                                ← 戻る
+                                {EXTENSION_GUIDE_MODAL.prevButtonText}
                             </button>
                         )}
                         <button
                             onClick={handleNext}
                             className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-100 transition text-sm"
                         >
-                            {isLastSlide ? '使い始める！ 🚀' : '次へ →'}
+                            {isLastSlide ? EXTENSION_GUIDE_MODAL.finishButtonText : EXTENSION_GUIDE_MODAL.nextButtonText}
                         </button>
                     </div>
 
@@ -135,7 +111,7 @@ const ExtensionGuideModal = ({ isOpen, onClose }) => {
                             onClick={onClose}
                             className="w-full mt-3 text-xs text-gray-400 hover:text-gray-600 transition text-center"
                         >
-                            スキップして閉じる
+                            {EXTENSION_GUIDE_MODAL.skipButtonText}
                         </button>
                     )}
                 </div>

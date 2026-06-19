@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { COMPLETED_TASKS_MODAL } from '../content';
 
 const CompletedTasksModal = ({ isOpen, onClose, tasks, onTaskClick }) => {
     // 開閉状態を月ごとに管理 (ex: "2026年5月" -> true/false)
@@ -92,7 +93,7 @@ const CompletedTasksModal = ({ isOpen, onClose, tasks, onTaskClick }) => {
             >
                 <div className="flex justify-between items-center p-6 border-b border-gray-100 shrink-0">
                     <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-                        <span>🏆</span> 提出完了したタスクの一覧
+                        <span>🏆</span> {COMPLETED_TASKS_MODAL.title}
                     </h2>
                     <button onClick={onClose} className="text-gray-400 hover:text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-full p-2 transition">
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -104,7 +105,7 @@ const CompletedTasksModal = ({ isOpen, onClose, tasks, onTaskClick }) => {
                 <div className="flex-1 overflow-y-auto p-6 space-y-6 custom-scrollbar bg-gray-50">
                     {groupedTasks.length === 0 ? (
                         <div className="text-center text-gray-400 py-10">
-                            完了したタスクはまだありません。
+                            {COMPLETED_TASKS_MODAL.emptyMessage}
                         </div>
                     ) : (
                         groupedTasks.map(group => {
@@ -121,7 +122,7 @@ const CompletedTasksModal = ({ isOpen, onClose, tasks, onTaskClick }) => {
                                             <h3 className="font-bold text-gray-700">{group.monthKey}</h3>
                                             <div className="h-px w-8 bg-gray-300"></div>
                                             <span className="text-xs text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full">
-                                                {group.tasks.length} 件
+                                                {COMPLETED_TASKS_MODAL.countLabel(group.tasks.length)}
                                             </span>
                                         </div>
                                         <div className={`transform transition-transform text-gray-400 ${isExpanded ? 'rotate-180' : ''}`}>
@@ -149,7 +150,7 @@ const CompletedTasksModal = ({ isOpen, onClose, tasks, onTaskClick }) => {
                                                         </h4>
                                                     </div>
                                                     <span className="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
-                                                        提出完了
+                                                        {COMPLETED_TASKS_MODAL.completedBadge}
                                                     </span>
                                                 </div>
                                             ))}

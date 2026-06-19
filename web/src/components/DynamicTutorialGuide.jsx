@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { TUTORIAL_GUIDE_STEPS, TUTORIAL_GUIDE_UI } from '../content';
 
 /**
  * 動的チュートリアルガイド
@@ -27,124 +28,9 @@ const DynamicTutorialGuide = ({
     const [targetRect, setTargetRect] = useState(null);
     const rafRef = useRef(null);
 
-    // 各ステップの定義
+    // 各ステップの定義（文言・対象IDは src/content/tutorialGuide.js に集約）
     const getStepDetails = useCallback(() => {
-        switch (step) {
-            case 1:
-                return {
-                    title: "1/15. 課題名を入力しましょう ✏️",
-                    desc: "タスクフォームの「タスク名」入力欄に、\n『線形代数のレポート』と入力してみましょう。",
-                    targetId: "tutorial-title-input",
-                    showNext: false
-                };
-            case 2:
-                return {
-                    title: "2/15. 締切日時の確認 📅",
-                    desc: "ここで締め切り時間を変更できます。\nチュートリアルでは当日の23:59に固定されています。\n確認したら「次へ進む」を押してください。",
-                    targetId: "tutorial-deadline-input",
-                    showNext: true
-                };
-            case 3:
-                return {
-                    title: "3/15. 規模感を選択しましょう 📊",
-                    desc: "課題の規模感（S/M/L）を選択してみましょう。\nご自身の思う基準で結構です！",
-                    targetId: "tutorial-size-selector",
-                    showNext: true
-                };
-            case 4:
-                return {
-                    title: "4/15. 課題を登録しましょう 🚀",
-                    desc: "入力ができたら、「タスクを登録」ボタンを\n押して課題を追加しましょう！",
-                    targetId: "tutorial-submit-button",
-                    showNext: false
-                };
-            case 5:
-                return {
-                    title: "5/15. 課題の詳細を開きましょう 🔍",
-                    desc: "課題がリストに追加されました！\n追加された『線形代数のレポート』をクリックして、\n詳細画面を開いてみましょう。",
-                    targetId: "tutorial-target-task",
-                    showNext: false
-                };
-            case 6:
-                return {
-                    title: "6/15. タスク詳細画面です 🔍",
-                    desc: "ここがタスク詳細画面です。\n課題の情報の編集や、作業時間の記録、提出完了の操作などをここから行えます。\n確認したら「次へ進む」を押してください。",
-                    targetId: "tutorial-task-detail-container",
-                    showNext: true
-                };
-            case 7:
-                return {
-                    title: "7/15. 課題の編集機能 ✏️",
-                    desc: "詳細画面が開きました！\nこちらのボタンから、課題のタイトルや締切、\n規模感（S/M/L）をいつでも編集できます。\n確認したら「次へ進む」を押してください。",
-                    targetId: "tutorial-edit-button",
-                    showNext: true
-                };
-            case 8:
-                return {
-                    title: "8/15. 課題の削除機能 🗑️",
-                    desc: "こちらのボタンから、課題を削除できます。\n予定が変わった時や、誤って登録した時に使用します。\n確認したら「次へ進む」を押してください。",
-                    targetId: "tutorial-delete-button",
-                    showNext: true
-                };
-            case 9:
-                return {
-                    title: "9/15. 手動できろくタブに切り替えましょう ⏱️",
-                    desc: "作業時間はタイマーでも計れますが、\n今回は「手動できろく」タブを\nクリックして切り替えましょう。",
-                    targetId: "tutorial-manual-tab",
-                    showNext: false
-                };
-            case 10:
-                return {
-                    title: "10/15. 作業時間を記録しましょう 📝",
-                    desc: "作業時間（例: 30分）を入力し、右側の\n「きろく」をクリックして時間を記録してみましょう。\nチャートが貯まるのを確認してください。",
-                    targetId: "tutorial-manual-duration",
-                    showNext: false
-                };
-            case 11:
-                return {
-                    title: "11/15. 課題を提出完了にしましょう 🏆",
-                    desc: "時間の記録が終わりました！詳細画面の右上にある\n「提出完了」ボタンをクリックして、\n課題を提出してください。",
-                    targetId: "tutorial-complete-button",
-                    showNext: false
-                };
-            case 12:
-                return {
-                    title: "12/15. 今のコンディションを記録しましょう 😊",
-                    desc: "今の気分（良・中・悪）を選択し、\nひとことメモ（任意）を入力して\n「記録して提出完了」をクリックしてください。",
-                    targetId: "tutorial-condition-modal",
-                    showNext: false
-                };
-            case 13:
-                return {
-                    title: "13/15. 完了したタスクを確認しましょう 🏆",
-                    desc: "課題が完了しました！タスク一覧の右上にある\n「完了したタスクの一覧」をクリックしてください。",
-                    targetId: "tutorial-completed-list-button",
-                    showNext: false
-                };
-            case 14:
-                return {
-                    title: "14/15. 振り返りを確認しましょう 📊",
-                    desc: "完了した課題のコンディションや時間ログが表示されます。\n確認したら、右上の「×」ボタンかモーダルの外側を\nクリックして閉じてください。",
-                    targetId: "tutorial-completed-modal",
-                    showNext: false
-                };
-            case 15:
-                return {
-                    title: "15/15. 分析機能をのぞいてみましょう 📈",
-                    desc: "画面右上の「📈 分析」ボタンから、着手リードタイムや\n見積もり精度、一夜漬け度などをまとめて振り返れる\n分析画面を開けます。\n確認したら「次へ進む」を押してください。",
-                    targetId: "tutorial-analytics-button",
-                    showNext: true
-                };
-            case 16:
-                return {
-                    title: "チュートリアル完了！ 🎉",
-                    desc: "お疲れ様でした！これで基本的な操作はマスターです。\nSyncScaleには、manabaから課題を自動インポートできる\n便利なChrome拡張機能も備わっています。\nそれでは実際に使い始めてみましょう！",
-                    targetId: null,
-                    showNext: false
-                };
-            default:
-                return { title: "", desc: "", targetId: null, showNext: false };
-        }
+        return TUTORIAL_GUIDE_STEPS[step] || { title: "", desc: "", targetId: null, showNext: false };
     }, [step]);
 
     const guide = getStepDetails();
@@ -516,10 +402,10 @@ const DynamicTutorialGuide = ({
                     {/* ヘッダー */}
                     <div className="flex justify-between items-center">
                         <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full border border-blue-100 uppercase tracking-wider">
-                            チュートリアルガイド
+                            {TUTORIAL_GUIDE_UI.badge}
                         </span>
                         <span className="text-xs font-bold text-slate-400">
-                            {step <= 15 ? `${step} / 15` : "完了"}
+                            {step <= 15 ? `${step} / 15` : TUTORIAL_GUIDE_UI.doneLabel}
                         </span>
                     </div>
 
@@ -541,7 +427,7 @@ const DynamicTutorialGuide = ({
                                 disabled={!isNextEnabled()}
                                 className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-extrabold rounded-xl shadow-md transition duration-250 text-center text-sm"
                             >
-                                次へ進む →
+                                {TUTORIAL_GUIDE_UI.nextButtonText}
                             </button>
                         </div>
                     )}
@@ -553,7 +439,7 @@ const DynamicTutorialGuide = ({
                                 onClick={() => onComplete(tutorialTaskId)}
                                 className="w-full py-3 px-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold rounded-xl shadow-lg shadow-blue-500/20 transition duration-300 transform active:scale-95 text-center text-sm"
                             >
-                                サービスに戻る
+                                {TUTORIAL_GUIDE_UI.finishButtonText}
                             </button>
                         </div>
                     )}

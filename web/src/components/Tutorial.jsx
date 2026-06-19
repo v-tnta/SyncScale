@@ -2,19 +2,30 @@ import React, { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import logo from '../assets/logo.png';
 import { TASK_STATUS_LABELS } from '../domain/task';
+import { TUTORIAL, TUTORIAL_MOCK_TASKS } from '../content';
 
 /**
  * チュートリアルコンポーネント
  * 未ログインユーザーに対して、アプリの機能をモックデータで体験的に紹介し、
  * 最後にGoogleログインを促すオンボーディング画面です。
+ *
+ * 表示文言は src/content/tutorial.js（TUTORIAL）に集約しています。
  */
 
 // モックデータ
-const MOCK_TASKS = [
-    { id: 1, title: '英語リスニング練習', deadline: '2026/5/4 18:00', sizeLabel: 'S', status: 'TODO' },
-    { id: 2, title: 'レポート課題 第3回', deadline: '2026/5/17 23:59', sizeLabel: 'M', status: 'DOING' },
-    { id: 3, title: 'グループ発表 資料作成', deadline: '2026/5/25 10:00', sizeLabel: 'L', status: 'TODO' },
-];
+const MOCK_TASKS = TUTORIAL_MOCK_TASKS;
+
+// セグメント配列（{ text, bold, br }）をJSXに描画するヘルパー
+const RichText = ({ segments }) => (
+    <>
+        {segments.map((seg, i) => (
+            <React.Fragment key={i}>
+                {seg.bold ? <strong>{seg.text}</strong> : seg.text}
+                {seg.br && <br />}
+            </React.Fragment>
+        ))}
+    </>
+);
 
 const getBadgeColor = (label) => {
     switch (label) {
@@ -42,8 +53,8 @@ const Tutorial = ({ onComplete }) => {
     const steps = [
         // Step 0: ウェルカム画面
         {
-            title: 'SyncScaleへようこそ！',
-            subtitle: 'タスク管理 × 時間計測で、学習を最適化するアプリです。',
+            title: TUTORIAL.steps[0].title,
+            subtitle: TUTORIAL.steps[0].subtitle,
             content: (
                 <div className="flex flex-col items-center gap-8">
                     <div className="w-24 h-24 animate-bounce-slow">
@@ -51,21 +62,21 @@ const Tutorial = ({ onComplete }) => {
                     </div>
                     <div className="text-center max-w-md space-y-4">
                         <p className="text-gray-600 text-lg leading-relaxed">
-                            SyncScaleは、大学の課題やタスクを<br />
-                            <span className="font-bold text-blue-600">「見える化」</span>して管理するアプリです。
+                            {TUTORIAL.welcome.leadBefore}<br />
+                            <span className="font-bold text-blue-600">{TUTORIAL.welcome.leadHighlight}</span>{TUTORIAL.welcome.leadAfter}
                         </p>
                         <div className="grid grid-cols-3 gap-4 mt-6">
                             <div className="bg-blue-50 rounded-xl p-4 text-center">
-                                <div className="text-3xl mb-2">📋</div>
-                                <p className="text-xs font-bold text-blue-700">タスク管理</p>
+                                <div className="text-3xl mb-2">{TUTORIAL.welcome.features[0].emoji}</div>
+                                <p className="text-xs font-bold text-blue-700">{TUTORIAL.welcome.features[0].label}</p>
                             </div>
                             <div className="bg-green-50 rounded-xl p-4 text-center">
-                                <div className="text-3xl mb-2">⏱️</div>
-                                <p className="text-xs font-bold text-green-700">時間計測</p>
+                                <div className="text-3xl mb-2">{TUTORIAL.welcome.features[1].emoji}</div>
+                                <p className="text-xs font-bold text-green-700">{TUTORIAL.welcome.features[1].label}</p>
                             </div>
                             <div className="bg-purple-50 rounded-xl p-4 text-center">
-                                <div className="text-3xl mb-2">📊</div>
-                                <p className="text-xs font-bold text-purple-700">分析・可視化</p>
+                                <div className="text-3xl mb-2">{TUTORIAL.welcome.features[2].emoji}</div>
+                                <p className="text-xs font-bold text-purple-700">{TUTORIAL.welcome.features[2].label}</p>
                             </div>
                         </div>
                     </div>
@@ -74,8 +85,8 @@ const Tutorial = ({ onComplete }) => {
         },
         // Step 1: タスク一覧の紹介
         {
-            title: 'タスクを一覧で管理',
-            subtitle: '課題の締切やサイズを一目で把握できます。',
+            title: TUTORIAL.steps[1].title,
+            subtitle: TUTORIAL.steps[1].subtitle,
             content: (
                 <div className="w-full max-w-3xl mx-auto">
                     <div className="bg-white rounded-lg shadow-md p-4">
@@ -107,8 +118,7 @@ const Tutorial = ({ onComplete }) => {
                         <p className="text-sm text-blue-800 flex items-center gap-2 justify-center">
                             <span className="text-lg">💡</span>
                             <span>
-                                タスクの<strong>見積もり所要時間</strong>を <strong>S・M・L</strong> でラベリングでき、<br />
-                                優先度を直感的に把握できます。
+                                <RichText segments={TUTORIAL.taskListHint} />
                             </span>
                         </p>
                     </div>
@@ -117,8 +127,8 @@ const Tutorial = ({ onComplete }) => {
         },
         // Step 2: タイマー機能
         {
-            title: '作業時間をタイマーで計測',
-            subtitle: '「何に・どれくらい時間をかけたか」を自動で記録します。',
+            title: TUTORIAL.steps[2].title,
+            subtitle: TUTORIAL.steps[2].subtitle,
             content: (
                 <div className="w-full max-w-2xl mx-auto">
                     <div className="flex items-center justify-center bg-gray-100 rounded-2xl p-8 w-full">
@@ -126,31 +136,31 @@ const Tutorial = ({ onComplete }) => {
                             {/* タブ */}
                             <div className="flex flex-col gap-2">
                                 <button className="px-4 py-2 rounded-lg text-sm font-bold bg-blue-600 text-white shadow-sm">
-                                    ⏱ タイマー
+                                    {TUTORIAL.timer.timerTab}
                                 </button>
                                 <button className="px-4 py-2 rounded-lg text-sm font-bold bg-white text-gray-500">
-                                    ✏️ 手入力
+                                    {TUTORIAL.timer.manualTab}
                                 </button>
                             </div>
                             {/* タイマー表示 */}
                             <div className="bg-white rounded-lg p-6 shadow-sm flex-1 w-full">
                                 <div className="flex items-center justify-between gap-4 mb-4">
                                     <div className="flex items-center gap-3">
-                                        <span className="font-bold text-gray-700">やること</span>
+                                        <span className="font-bold text-gray-700">{TUTORIAL.timer.todoLabel}</span>
                                         <div className="bg-gray-100 rounded-md px-3 py-1.5 text-sm text-gray-500 border">
-                                            例: 資料作成
+                                            {TUTORIAL.timer.todoPlaceholder}
                                         </div>
                                     </div>
                                     <div className="text-4xl font-mono font-bold text-gray-800 tracking-wider">
-                                        00:25:30
+                                        {TUTORIAL.timer.sampleTime}
                                     </div>
                                 </div>
                                 <div className="flex justify-center gap-3">
                                     <button className="bg-blue-600 text-white font-bold py-1.5 px-6 rounded-full shadow-sm">
-                                        きろく
+                                        {TUTORIAL.timer.recordButton}
                                     </button>
                                     <button className="bg-yellow-500 text-white font-bold py-1.5 px-8 rounded-full shadow-sm">
-                                        ストップ
+                                        {TUTORIAL.timer.stopButton}
                                     </button>
                                 </div>
                             </div>
@@ -160,8 +170,7 @@ const Tutorial = ({ onComplete }) => {
                         <p className="text-sm text-green-800 flex items-start gap-2 justify-center">
                             <span className="text-lg">⏱️</span>
                             <span>
-                                タイマーで計測した作業時間は自動でログに残り、<br />
-                                <strong>チャート</strong>として可視化されます。
+                                <RichText segments={TUTORIAL.timer.hint} />
                             </span>
                         </p>
                     </div>
@@ -170,46 +179,45 @@ const Tutorial = ({ onComplete }) => {
         },
         // Step 3: 締切アラート
         {
-            title: '締切が近づくとアラート表示',
-            subtitle: '24時間以内の締切は赤く点滅し、期限切れはグレーアウトします。',
+            title: TUTORIAL.steps[3].title,
+            subtitle: TUTORIAL.steps[3].subtitle,
             content: (
                 <div className="w-full max-w-3xl mx-auto">
                     <div className="bg-white rounded-lg shadow-md p-5 space-y-4">
                         {/* 通常 */}
                         <div className="p-4 border border-l-8 border-l-orange-400 rounded-lg flex justify-between items-center">
                             <div>
-                                <h4 className="font-medium text-gray-800">グループ発表 資料作成</h4>
-                                <p className="text-sm text-gray-500 mt-1 font-medium">📅 締切: 2026/5/25 10:00</p>
+                                <h4 className="font-medium text-gray-800">{TUTORIAL.alert.rows[0].title}</h4>
+                                <p className="text-sm text-gray-500 mt-1 font-medium">{TUTORIAL.alert.rows[0].deadline}</p>
                             </div>
-                            <span className="text-xs font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded">通常</span>
+                            <span className="text-xs font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded">{TUTORIAL.alert.rows[0].badge}</span>
                         </div>
                         {/* 24時間以内 */}
                         <div className="p-4 border border-l-8 border-l-cyan-400 rounded-lg flex justify-between items-center bg-red-50/30">
                             <div>
-                                <h4 className="font-medium text-gray-800">英語リスニング練習</h4>
+                                <h4 className="font-medium text-gray-800">{TUTORIAL.alert.rows[1].title}</h4>
                                 <p className="text-sm text-red-600 mt-1 font-medium animate-pulse">
-                                    ⚠️ 締切: 2026/5/17 18:00
+                                    {TUTORIAL.alert.rows[1].deadline}
                                 </p>
                             </div>
-                            <span className="text-xs font-bold text-red-600 bg-red-50 px-2 py-1 rounded border border-red-200">24h以内</span>
+                            <span className="text-xs font-bold text-red-600 bg-red-50 px-2 py-1 rounded border border-red-200">{TUTORIAL.alert.rows[1].badge}</span>
                         </div>
                         {/* 期限切れ */}
                         <div className="p-4 border border-l-8 border-l-gray-300 rounded-lg flex justify-between items-center opacity-60">
                             <div>
-                                <h4 className="font-medium text-gray-400">過去の課題</h4>
+                                <h4 className="font-medium text-gray-400">{TUTORIAL.alert.rows[2].title}</h4>
                                 <p className="text-sm text-gray-400 mt-1 font-medium line-through">
-                                    📅 締切: 2026/5/10 23:59
+                                    {TUTORIAL.alert.rows[2].deadline}
                                 </p>
                             </div>
-                            <span className="text-xs font-bold text-gray-400 bg-gray-100 px-2 py-1 rounded">期限切れ</span>
+                            <span className="text-xs font-bold text-gray-400 bg-gray-100 px-2 py-1 rounded">{TUTORIAL.alert.rows[2].badge}</span>
                         </div>
                     </div>
                     <div className="mt-4 bg-red-50 rounded-lg p-4 border border-red-100">
                         <p className="text-sm text-red-800 flex items-start gap-2 justify-center">
                             <span className="text-lg">🔔</span>
                             <span>
-                                締切が近い課題を見逃しません。<br />
-                                <strong>色と点滅</strong>で視覚的に危険度を伝えます。
+                                <RichText segments={TUTORIAL.alert.hint} />
                             </span>
                         </p>
                     </div>
@@ -218,8 +226,8 @@ const Tutorial = ({ onComplete }) => {
         },
         // Step 4: ログイン促進
         {
-            title: 'さあ、始めましょう！',
-            subtitle: 'Googleアカウントでログインすると、すべての機能が使えます。',
+            title: TUTORIAL.steps[4].title,
+            subtitle: TUTORIAL.steps[4].subtitle,
             content: (
                 <div className="flex flex-col items-center gap-8 max-w-md mx-auto">
                     <div className="w-20 h-20">
@@ -228,26 +236,16 @@ const Tutorial = ({ onComplete }) => {
 
                     <div className="text-center space-y-3">
                         <p className="text-gray-600 leading-relaxed">
-                            Googleアカウントでログインするだけで、<br />
-                            あなた専用のタスク管理環境が整います。
+                            {TUTORIAL.login.lead[0]}<br />
+                            {TUTORIAL.login.lead[1]}
                         </p>
                         <ul className="text-left text-sm text-gray-600 space-y-2 bg-gray-50 rounded-xl p-5 mt-4">
-                            <li className="flex items-center gap-2">
-                                <span className="text-green-500 font-bold">✓</span>
-                                複数デバイスでデータが自動同期
-                            </li>
-                            <li className="flex items-center gap-2">
-                                <span className="text-green-500 font-bold">✓</span>
-                                Chrome拡張機能で大学の課題を自動取得
-                            </li>
-                            <li className="flex items-center gap-2">
-                                <span className="text-green-500 font-bold">✓</span>
-                                作業ログの蓄積と分析
-                            </li>
-                            <li className="flex items-center gap-2">
-                                <span className="text-green-500 font-bold">✓</span>
-                                無料で利用可能
-                            </li>
+                            {TUTORIAL.login.benefits.map((benefit, i) => (
+                                <li key={i} className="flex items-center gap-2">
+                                    <span className="text-green-500 font-bold">✓</span>
+                                    {benefit}
+                                </li>
+                            ))}
                         </ul>
                     </div>
 
@@ -257,7 +255,7 @@ const Tutorial = ({ onComplete }) => {
                             className="w-full py-4 px-6 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 text-white font-bold rounded-2xl shadow-lg hover:shadow-violet-500/20 transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center space-x-2"
                         >
                             <span>✨</span>
-                            <span>チュートリアルを完了する</span>
+                            <span>{TUTORIAL.login.completeButtonText}</span>
                         </button>
                     ) : (
                         <button
@@ -270,7 +268,7 @@ const Tutorial = ({ onComplete }) => {
                                 <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
                                 <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
                             </svg>
-                            <span className="text-lg">Googleでログイン</span>
+                            <span className="text-lg">{TUTORIAL.login.googleButtonText}</span>
                         </button>
                     )}
                 </div>
@@ -325,7 +323,7 @@ const Tutorial = ({ onComplete }) => {
                                 }`}
                                 disabled={isFirstStep}
                             >
-                                ← 戻る
+                                {TUTORIAL.nav.backText}
                             </button>
                         </div>
 
@@ -342,7 +340,7 @@ const Tutorial = ({ onComplete }) => {
                                 onClick={() => setStep(Math.min(steps.length - 1, step + 1))}
                                 className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-8 py-3 rounded-xl transition-all shadow-md hover:shadow-lg active:scale-95 flex items-center gap-2"
                             >
-                                次のステップへ
+                                {TUTORIAL.nav.nextText}
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7" />
                                 </svg>
@@ -358,7 +356,7 @@ const Tutorial = ({ onComplete }) => {
                             onClick={() => setStep(Math.max(0, step - 1))}
                             className="text-sm text-gray-400 hover:text-gray-600 transition pt-6"
                         >
-                            ← チュートリアルに戻る
+                            {TUTORIAL.nav.backToTutorialText}
                         </button>
                     </div>
                 )}

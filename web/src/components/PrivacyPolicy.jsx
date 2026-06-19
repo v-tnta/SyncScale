@@ -1,119 +1,46 @@
 import React from 'react';
+import { PRIVACY_POLICY } from '../content';
 
 /**
  * SyncScale Chrome 拡張機能向けプライバシーポリシーページ
  * Chrome ウェブストア審査で必要なプライバシーポリシーの URL として使用する
+ *
+ * 表示文言は src/content/pages.js（PRIVACY_POLICY）に集約しています。
  */
 export default function PrivacyPolicy() {
   return (
     <div style={styles.wrapper}>
       <div style={styles.container}>
-        <h1 style={styles.title}>プライバシーポリシー</h1>
-        <p style={styles.subtitle}>SyncScale - manaba課題取得 Chrome拡張機能</p>
-        <p style={styles.date}>最終更新日: 2026年5月17日</p>
+        <h1 style={styles.title}>{PRIVACY_POLICY.title}</h1>
+        <p style={styles.subtitle}>{PRIVACY_POLICY.subtitle}</p>
+        <p style={styles.date}>{PRIVACY_POLICY.lastUpdated}</p>
 
-        <section style={styles.section}>
-          <h2 style={styles.heading}>1. はじめに</h2>
-          <p style={styles.text}>
-            SyncScale（以下「本サービス」）は、大学の学習管理システム「manaba」から課題情報を取得し、
-            タスク管理を支援するChrome拡張機能です。本プライバシーポリシーでは、本サービスが収集する情報、
-            その利用目的、および情報の取り扱いについて説明します。
-          </p>
-        </section>
-
-        <section style={styles.section}>
-          <h2 style={styles.heading}>2. 収集する情報</h2>
-          <p style={styles.text}>本サービスは、以下の情報を収集します。</p>
-          <h3 style={styles.subheading}>2.1 認証情報</h3>
-          <ul style={styles.list}>
-            <li>Googleアカウントのメールアドレス（ログイン・ユーザー識別のため）</li>
-          </ul>
-          <h3 style={styles.subheading}>2.2 学習管理システムの課題情報</h3>
-          <ul style={styles.list}>
-            <li>課題名</li>
-            <li>科目名</li>
-            <li>課題の種類</li>
-            <li>〆切日時</li>
-            <li>課題および科目のURL識別子</li>
-          </ul>
-          <h3 style={styles.subheading}>2.3 設定情報</h3>
-          <ul style={styles.list}>
-            <li>manabaのドメイン設定（例: manaba.ibaraki.ac.jp）</li>
-          </ul>
-        </section>
-
-        <section style={styles.section}>
-          <h2 style={styles.heading}>3. 情報の利用目的</h2>
-          <p style={styles.text}>収集した情報は、以下の目的にのみ使用します。</p>
-          <ul style={styles.list}>
-            <li>ユーザーの認証およびアカウントの識別</li>
-            <li>manabaからの課題情報の取得および表示</li>
-            <li>取得した課題のSyncScaleへの登録・管理</li>
-            <li>manabaドメイン設定の保存</li>
-          </ul>
-        </section>
-
-        <section style={styles.section}>
-          <h2 style={styles.heading}>4. 情報の保存</h2>
-          <p style={styles.text}>
-            認証情報および課題データは、Google Firebase（Cloud Firestore）に安全に保存されます。
-            ドメイン設定は、Chrome のローカルストレージ（chrome.storage.sync）に保存されます。
-          </p>
-        </section>
-
-        <section style={styles.section}>
-          <h2 style={styles.heading}>5. 第三者への提供</h2>
-          <p style={styles.text}>
-            本サービスは、収集した情報を第三者に販売、貸与、または共有することはありません。
-            データはサービスの提供に必要なGoogle Firebase のインフラストラクチャ上でのみ処理されます。
-          </p>
-        </section>
-
-        <section style={styles.section}>
-          <h2 style={styles.heading}>6. データのセキュリティ</h2>
-          <p style={styles.text}>
-            本サービスは、Firebase Security Rules によるアクセス制御を実施し、
-            ユーザー本人のデータにのみアクセスできるよう保護しています。
-            また、すべての通信はHTTPSにより暗号化されています。
-          </p>
-        </section>
-
-        <section style={styles.section}>
-          <h2 style={styles.heading}>7. ユーザーの権利</h2>
-          <p style={styles.text}>ユーザーは、以下の権利を有します。</p>
-          <ul style={styles.list}>
-            <li>拡張機能のアンインストールにより、ローカルに保存された設定データを削除すること</li>
-            <li>SyncScale上で自身の課題データを削除すること</li>
-            <li>Googleアカウントの設定から、本サービスへのアクセス権を取り消すこと</li>
-          </ul>
-        </section>
-
-        <section style={styles.section}>
-          <h2 style={styles.heading}>8. Webサイトの閲覧履歴について</h2>
-          <p style={styles.text}>
-            本サービスは、ユーザーのWeb閲覧履歴を収集、保存、または利用しません。
-            manabaのページにアクセスするのは、ユーザーが「課題を取得する」ボタンを明示的にクリックした場合のみであり、
-            取得するのは課題に関する情報のみです。
-          </p>
-        </section>
-
-        <section style={styles.section}>
-          <h2 style={styles.heading}>9. ポリシーの変更</h2>
-          <p style={styles.text}>
-            本プライバシーポリシーは、必要に応じて更新されることがあります。
-            重要な変更がある場合は、拡張機能のアップデートを通じてお知らせします。
-          </p>
-        </section>
-
-        <section style={styles.section}>
-          <h2 style={styles.heading}>10. お問い合わせ</h2>
-          <p style={styles.text}>
-            本プライバシーポリシーに関するご質問は、SyncScaleの開発者までお問い合わせください。
-          </p>
-        </section>
+        {PRIVACY_POLICY.sections.map((section, i) => (
+          <section key={i} style={styles.section}>
+            <h2 style={styles.heading}>{section.heading}</h2>
+            {section.text && <p style={styles.text}>{section.text}</p>}
+            {section.items && (
+              <ul style={styles.list}>
+                {section.items.map((item, j) => (
+                  <li key={j}>{item}</li>
+                ))}
+              </ul>
+            )}
+            {section.groups && section.groups.map((group, g) => (
+              <React.Fragment key={g}>
+                <h3 style={styles.subheading}>{group.subheading}</h3>
+                <ul style={styles.list}>
+                  {group.items.map((item, k) => (
+                    <li key={k}>{item}</li>
+                  ))}
+                </ul>
+              </React.Fragment>
+            ))}
+          </section>
+        ))}
 
         <footer style={styles.footer}>
-          <a href="/" style={styles.link}>← SyncScale に戻る</a>
+          <a href="/" style={styles.link}>{PRIVACY_POLICY.backLink}</a>
         </footer>
       </div>
     </div>
