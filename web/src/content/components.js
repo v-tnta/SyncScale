@@ -71,10 +71,12 @@ export const TASK_OVERLAY = {
   },
   // 確認・警告メッセージ
   titleRequiredAlert: "タイトルは必須です",
-  revertConfirm: (title) => `タスク「${title}」を未提出（これからやる）に戻しますか？`,
+  revertConfirmTitle: "未提出に戻しますか？",
+  revertConfirm: (title) => `タスク「${title}」を未提出（これからやる）に戻します。`,
   revertFailedAlert: "未提出に戻す処理に失敗しました。",
+  physicalDeleteConfirmTitle: "完全に削除しますか？",
   physicalDeleteConfirm: (title) =>
-    `タスク「${title}」を完全に削除しますか？\n\n※この操作は取り消せません。\n※関連する作業ログも全て削除されます。`,
+    `タスク「${title}」を完全に削除します。この操作は取り消せません。関連する作業ログも全て削除されます。`,
 };
 
 // ========================================
@@ -104,6 +106,7 @@ export const TIMER = {
   // 入力チェックのアラート
   subTaskRequiredAlert: "作業内容を入力してください",
   durationRequiredAlert: "時間を入力してください",
+  durationInvalidAlert: "作業時間は1分〜24時間（1440分）の範囲で、整数で入力してください",
 };
 
 // ========================================
@@ -140,7 +143,8 @@ export const SETTINGS_PANEL = {
   finalConfirmNote: "※ この操作を実行すると、あなたのタスク、時間ログ、コンディションログ、利用状況ログ、および設定が完全に削除され、復元することはできなくなります。",
   // アラート・確認
   notifSaveFailedAlert: "通知設定の保存に失敗しました。",
-  restartTutorialConfirm: "チュートリアルを再実行しますか？\n（一時的にオンボーディング画面に戻りますが、登録したデータは消えません）",
+  restartTutorialConfirmTitle: "チュートリアルを再実行しますか？",
+  restartTutorialConfirm: "一時的にオンボーディング画面に戻りますが、登録したデータは消えません。",
   restartTutorialFailedAlert: "チュートリアルのリセットに失敗しました。",
   withdrawErrorAlert: "処理中にエラーが発生しました。",
 };
@@ -255,7 +259,7 @@ export const DATETIME_PICKER = {
 // 全体レイアウト（Layout.jsx）
 // ========================================
 export const LAYOUT = {
-  analyticsButton: "📈 分析",
+  analyticsButton: "分析",
   analyticsButtonTitle: "分析画面を開く",
   settingsButtonTitle: "アカウント設定を開く",
   userFallback: "ユーザー",

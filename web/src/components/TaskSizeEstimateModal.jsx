@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { Modal } from './Modal';
 import { TASK_SIZE_ESTIMATE_MODAL } from '../content';
 
-const TaskSizeEstimateModal = ({ isOpen, task, currentIndex, totalCount, onSubmit }) => {
+const TaskSizeEstimateModal = ({ isOpen, task, currentIndex, totalCount, onSubmit, onDecline }) => {
     const [sizeLabel, setSizeLabel] = useState('');
 
     useEffect(() => {
@@ -10,8 +11,6 @@ const TaskSizeEstimateModal = ({ isOpen, task, currentIndex, totalCount, onSubmi
         }
     }, [isOpen]);
 
-    if (!isOpen || !task) return null;
-
     const handleSubmit = () => {
         onSubmit(task, sizeLabel);
     };
@@ -19,8 +18,14 @@ const TaskSizeEstimateModal = ({ isOpen, task, currentIndex, totalCount, onSubmi
     const isMultiple = totalCount > 1;
 
     return (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity">
-            <div className="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6 relative animate-fade-in-up">
+        <Modal
+            isOpen={isOpen && !!task}
+            title={task ? `${task.title} ${TASK_SIZE_ESTIMATE_MODAL.titleSingle}` : TASK_SIZE_ESTIMATE_MODAL.titleSingle}
+            closeOnOutsideClick={false}
+            className="bg-white rounded-2xl shadow-2xl p-6"
+        >
+            {task && (
+            <div>
                 <div className="text-center mb-6">
                     <div className="mx-auto w-16 h-16 bg-blue-100 text-blue-500 rounded-full flex items-center justify-center mb-4 relative">
                         <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -72,9 +77,18 @@ const TaskSizeEstimateModal = ({ isOpen, task, currentIndex, totalCount, onSubmi
                             {TASK_SIZE_ESTIMATE_MODAL.submitButtonText}
                         </button>
                     </div>
+
+                    {/* 課題として追加しない（取り込み対象から外す） */}
+                    <button
+                        onClick={() => onDecline(task)}
+                        className="w-full mt-3 text-xs text-gray-400 hover:text-red-500 transition text-center"
+                    >
+                        {TASK_SIZE_ESTIMATE_MODAL.declineButtonText}
+                    </button>
                 </div>
             </div>
-        </div>
+            )}
+        </Modal>
     );
 };
 

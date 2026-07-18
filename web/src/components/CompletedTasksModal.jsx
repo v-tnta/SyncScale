@@ -1,4 +1,7 @@
 import React, { useState, useMemo } from 'react';
+import { Trophy, X } from 'lucide-react';
+import { Modal } from './Modal';
+import { getSizeBorderClass, getSizeBadgeClass } from '../domain/taskSize';
 import { COMPLETED_TASKS_MODAL } from '../content';
 
 const CompletedTasksModal = ({ isOpen, onClose, tasks, onTaskClick }) => {
@@ -61,44 +64,24 @@ const CompletedTasksModal = ({ isOpen, onClose, tasks, onTaskClick }) => {
         }
     }, [isOpen, groupedTasks]);
 
-    if (!isOpen) return null;
-
-    const getSizeColor = (label) => {
-        switch (label) {
-            case 'S': return 'border-l-cyan-400';
-            case 'M': return 'border-l-orange-400';
-            case 'L': return 'border-l-red-500';
-            default: return 'border-l-transparent';
-        }
-    };
-
-    const getBadgeColor = (label) => {
-        switch (label) {
-            case 'S': return 'bg-cyan-50 text-cyan-700 border border-cyan-100';
-            case 'M': return 'bg-orange-50 text-orange-700 border border-orange-100';
-            case 'L': return 'bg-red-50 text-red-700 border border-red-100';
-            default: return 'bg-gray-100 text-gray-500';
-        }
-    };
+    const getSizeColor = getSizeBorderClass;
+    const getBadgeColor = getSizeBadgeClass;
 
     return (
-        <div 
-            className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-md transition-opacity"
-            onClick={onClose}
+        <Modal
+            isOpen={isOpen}
+            onClose={onClose}
+            title={COMPLETED_TASKS_MODAL.title}
+            maxWidth="max-w-3xl"
+            className="bg-white rounded-xl shadow-2xl"
         >
-            <div 
-                id="tutorial-completed-modal"
-                className="bg-white w-full max-w-3xl max-h-[85vh] rounded-xl shadow-2xl m-4 flex flex-col"
-                onClick={e => e.stopPropagation()}
-            >
+            <div id="tutorial-completed-modal" className="max-h-[85vh] flex flex-col">
                 <div className="flex justify-between items-center p-6 border-b border-gray-100 shrink-0">
                     <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-                        <span>🏆</span> {COMPLETED_TASKS_MODAL.title}
+                        <Trophy className="w-6 h-6 text-amber-500" strokeWidth={2.2} /> {COMPLETED_TASKS_MODAL.title}
                     </h2>
                     <button onClick={onClose} className="text-gray-400 hover:text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-full p-2 transition">
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
+                        <X className="w-5 h-5" strokeWidth={2.2} />
                     </button>
                 </div>
 
@@ -162,7 +145,7 @@ const CompletedTasksModal = ({ isOpen, onClose, tasks, onTaskClick }) => {
                     )}
                 </div>
             </div>
-        </div>
+        </Modal>
     );
 };
 

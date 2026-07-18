@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { X } from 'lucide-react';
+import { Modal } from './Modal';
 import { EXTENSION_GUIDE_MODAL } from '../content';
 
 /**
@@ -8,8 +10,6 @@ import { EXTENSION_GUIDE_MODAL } from '../content';
  */
 const ExtensionGuideModal = ({ isOpen, onClose }) => {
     const [currentSlide, setCurrentSlide] = useState(0);
-
-    if (!isOpen) return null;
 
     const slides = EXTENSION_GUIDE_MODAL.slides;
 
@@ -32,8 +32,8 @@ const ExtensionGuideModal = ({ isOpen, onClose }) => {
     };
 
     return (
-        <div className="fixed inset-0 z-[95] flex items-center justify-center bg-black/40 backdrop-blur-md transition-opacity">
-            <div className="bg-white w-full max-w-lg rounded-xl shadow-2xl overflow-hidden relative animate-fade-in-up mx-4 flex flex-col">
+        <Modal isOpen={isOpen} onClose={onClose} title={EXTENSION_GUIDE_MODAL.headerTitle} maxWidth="max-w-lg">
+            <div className="flex flex-col">
                 {/* ヘッダー */}
                 <div className="flex justify-between items-center p-6 border-b border-gray-100 shrink-0">
                     <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
@@ -43,9 +43,7 @@ const ExtensionGuideModal = ({ isOpen, onClose }) => {
                         onClick={onClose}
                         className="text-gray-400 hover:text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-full p-2 transition"
                     >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
+                        <X className="w-5 h-5" strokeWidth={2.2} />
                     </button>
                 </div>
 
@@ -116,7 +114,7 @@ const ExtensionGuideModal = ({ isOpen, onClose }) => {
                     )}
                 </div>
             </div>
-        </div>
+        </Modal>
     );
 };
 

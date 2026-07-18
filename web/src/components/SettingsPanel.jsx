@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { useAuth } from "../hooks/useAuth";
 import { useConsent } from "../hooks/useConsent";
 import { useOnboarding } from "../hooks/useOnboarding";
@@ -25,6 +26,7 @@ export function SettingsPanel({ isOpen, onClose }) {
     const navigate = useNavigate();
     const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
     const [isSecondWithdrawOpen, setIsSecondWithdrawOpen] = useState(false);
+    const [isRestartConfirmOpen, setIsRestartConfirmOpen] = useState(false);
     const [isTransitioning, setIsTransitioning] = useState(false);
     const [loadingText, setLoadingText] = useState("");
     const [notifSaving, setNotifSaving] = useState(false);
@@ -37,7 +39,7 @@ export function SettingsPanel({ isOpen, onClose }) {
         try {
             await updateNotificationSettings({ enabled: value });
         } catch {
-            alert(SETTINGS_PANEL.notifSaveFailedAlert);
+            toast.error(SETTINGS_PANEL.notifSaveFailedAlert);
         } finally {
             setNotifSaving(false);
         }
@@ -48,7 +50,7 @@ export function SettingsPanel({ isOpen, onClose }) {
         try {
             await updateNotificationSettings({ minutesBefore: minutes });
         } catch {
-            alert(SETTINGS_PANEL.notifSaveFailedAlert);
+            toast.error(SETTINGS_PANEL.notifSaveFailedAlert);
         } finally {
             setNotifSaving(false);
         }
@@ -57,17 +59,16 @@ export function SettingsPanel({ isOpen, onClose }) {
     if (!isOpen) return null;
 
     const handleRestartTutorial = async () => {
-        if (window.confirm(SETTINGS_PANEL.restartTutorialConfirm)) {
-            try {
-                setLoadingText(SETTINGS_PANEL.loadingTutorialPreparing);
-                setIsTransitioning(true);
-                await resetTutorial();
-                window.location.reload();
-            } catch (error) {
-                console.error("チュートリアルのリセットに失敗しました:", error);
-                setIsTransitioning(false);
-                alert(SETTINGS_PANEL.restartTutorialFailedAlert);
-            }
+        setIsRestartConfirmOpen(false);
+        try {
+            setLoadingText(SETTINGS_PANEL.loadingTutorialPreparing);
+            setIsTransitioning(true);
+            await resetTutorial();
+            window.location.reload();
+        } catch (error) {
+            console.error("チュートリアルのリセットに失敗しました:", error);
+            setIsTransitioning(false);
+            toast.error(SETTINGS_PANEL.restartTutorialFailedAlert);
         }
     };
 
@@ -90,7 +91,7 @@ export function SettingsPanel({ isOpen, onClose }) {
         } catch (error) {
             console.error("撤回およびログアウト中にエラーが発生しました:", error);
             setIsTransitioning(false);
-            alert(SETTINGS_PANEL.withdrawErrorAlert);
+            toast.error(SETTINGS_PANEL.withdrawErrorAlert);
         }
     };
 
@@ -193,7 +194,7 @@ export function SettingsPanel({ isOpen, onClose }) {
                         {/* 設定メニュー */}
                         <div className="space-y-3">
                             <button
-                                onClick={handleRestartTutorial}
+                                onClick={() => setIsRestartConfirmOpen(true)}
                                 className="w-full text-left p-3.5 rounded-xl hover:bg-gray-50 transition duration-200 flex items-center gap-3 border border-transparent hover:border-gray-200"
                             >
                                 <span className="text-lg">🔄</span>
@@ -241,6 +242,16 @@ export function SettingsPanel({ isOpen, onClose }) {
                     </div>
                 </div>
             </div>
+
+            {/* チュートリアル再実行の確認モーダル */}
+            <ConfirmModal
+                isOpen={isRestartConfirmOpen}
+                title={SETTINGS_PANEL.restartTutorialConfirmTitle}
+                onConfirm={handleRestartTutorial}
+                onCancel={() => setIsRestartConfirmOpen(false)}
+            >
+                {SETTINGS_PANEL.restartTutorialConfirm}
+            </ConfirmModal>
 
             {/* 同意撤回モーダル（1段階目） */}
             <ConsentWithdrawModal

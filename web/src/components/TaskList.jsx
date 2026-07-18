@@ -1,4 +1,6 @@
+import { ClipboardList, Trophy } from 'lucide-react';
 import { TASK_STATUS_LABELS } from '../domain/task';
+import { getSizeBorderClass, getSizeBadgeClass } from '../domain/taskSize';
 import { TASK_LIST } from '../content';
 
 /**
@@ -7,31 +9,34 @@ import { TASK_LIST } from '../content';
  * スクロール機能、ローディング表示、エラー表示を含みます。
  */
 const TaskList = ({ tasks, timeLogs, loading, error, onTaskClick, onUpdateTask, onDeleteTask, onCompleteRequest, onOpenCompletedModal, isTutorialActive }) => {
-    // サイズに応じたアクセントカラーを取得
-    const getSizeColor = (label) => {
-        if (!label) return 'border-l-gray-300 bg-gray-50';
-        const upperLabel = label.toUpperCase();
-        switch (upperLabel) {
-            case 'S': return 'border-l-cyan-400';
-            case 'M': return 'border-l-orange-400';
-            case 'L': return 'border-l-red-500';
-            default: return 'border-l-gray-300 bg-gray-50'; // 未定時はグレー
-        }
-    };
-
-    const getBadgeColor = (label) => {
-        if (!label) return 'bg-gray-100 text-gray-500';
-        const upperLabel = label.toUpperCase();
-        switch (upperLabel) {
-            case 'S': return 'bg-cyan-50 text-cyan-700 border border-cyan-100';
-            case 'M': return 'bg-orange-50 text-orange-700 border border-orange-100';
-            case 'L': return 'bg-red-50 text-red-700 border border-red-100';
-            default: return 'bg-gray-100 text-gray-500';
-        }
-    };
+    // サイズに応じたアクセントカラーを取得（未定時は薄いグレー背景を付ける）
+    const getSizeColor = (label) => label ? getSizeBorderClass(label) : 'border-l-gray-300 bg-gray-50';
+    const getBadgeColor = getSizeBadgeClass;
 
     if (loading) {
-        return <div className="text-center p-8 text-gray-500">{TASK_LIST.loading}</div>;
+        return (
+            <div className="bg-white p-6 rounded-lg shadow-md">
+                <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                        <ClipboardList className="w-5 h-5 text-gray-500" strokeWidth={2.2} /> {TASK_LIST.heading}
+                    </h2>
+                </div>
+                <div className="space-y-3 pr-1" aria-hidden="true">
+                    {[0, 1, 2].map((i) => (
+                        <div key={i} className="animate-pulse p-4 border border-l-8 border-l-gray-200 rounded-lg flex justify-between items-center bg-white">
+                            <div className="flex-1 space-y-2">
+                                <div className="h-4 bg-gray-200 rounded w-40" />
+                                <div className="h-3 bg-gray-100 rounded w-28" />
+                            </div>
+                            <div className="flex items-center gap-4">
+                                <div className="h-5 w-6 bg-gray-200 rounded" />
+                                <div className="h-6 w-20 bg-gray-100 rounded-full" />
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
     }
 
     if (error) {
@@ -92,14 +97,14 @@ const TaskList = ({ tasks, timeLogs, loading, error, onTaskClick, onUpdateTask, 
         <div className="bg-white p-6 rounded-lg shadow-md">
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-                    <span>📋</span> {TASK_LIST.heading}
+                    <ClipboardList className="w-5 h-5 text-gray-500" strokeWidth={2.2} /> {TASK_LIST.heading}
                 </h2>
                 <button
                     id="tutorial-completed-list-button"
                     onClick={onOpenCompletedModal}
                     className="flex items-center gap-2 text-sm text-gray-600 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg transition font-medium border border-gray-200 shadow-sm"
                 >
-                    <span>🏆</span> {TASK_LIST.completedListButton}
+                    <Trophy className="w-4 h-4" strokeWidth={2.2} /> {TASK_LIST.completedListButton}
                 </button>
             </div>
 
@@ -109,14 +114,17 @@ const TaskList = ({ tasks, timeLogs, loading, error, onTaskClick, onUpdateTask, 
             <div className="space-y-3 pr-1">
 
                 {tasks.length === 0 ? (
-                    <p className="text-gray-400 text-center py-4">{TASK_LIST.empty}</p>
+                    <div className="flex flex-col items-center gap-2 text-gray-300 text-center py-8">
+                        <ClipboardList className="w-10 h-10" strokeWidth={1.5} />
+                        <p className="text-gray-400">{TASK_LIST.empty}</p>
+                    </div>
                 ) : (
                     tasks.map((task) => (
                         <div
                             key={task.id}
                             id={task.title.includes("線形代数") ? "tutorial-target-task" : undefined}
                             onClick={() => onTaskClick(task)}
-                            className={`cursor-pointer hover:shadow-md transition p-4 border border-l-8 rounded-lg flex justify-between items-center bg-white ${getSizeColor(task.sizeLabel)}`}
+                            className={`animate-fade-in-up cursor-pointer hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:shadow-sm transition-all p-4 border border-l-8 rounded-lg flex justify-between items-center bg-white ${getSizeColor(task.sizeLabel)}`}
                         >
                                 <div>
                                     <h3 className="font-medium flex items-center gap-2 text-gray-800">
@@ -147,7 +155,7 @@ const TaskList = ({ tasks, timeLogs, loading, error, onTaskClick, onUpdateTask, 
                                             <button
                                                 onClick={(e) => handleComplete(e, task)}
                                                 disabled={isTutorialActive}
-                                                className="p-1 text-gray-400 hover:text-green-600 disabled:text-gray-200 disabled:hover:bg-transparent disabled:cursor-not-allowed rounded-full hover:bg-green-50 transition"
+                                                className="p-1 text-gray-400 hover:text-green-600 disabled:text-gray-200 disabled:hover:bg-transparent disabled:cursor-not-allowed rounded-full hover:bg-green-50 transition-all hover:scale-125 active:scale-95"
                                                 title={isTutorialActive ? TASK_LIST.completeTitleTutorial : TASK_LIST.completeTitle}
                                             >
                                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import logo from '../assets/logo.png';
 import { TASK_STATUS_LABELS } from '../domain/task';
+import { getSizeBorderClass, getSizeBadgeClass } from '../domain/taskSize';
 import { TUTORIAL, TUTORIAL_MOCK_TASKS } from '../content';
 
 /**
@@ -27,23 +28,8 @@ const RichText = ({ segments }) => (
     </>
 );
 
-const getBadgeColor = (label) => {
-    switch (label) {
-        case 'S': return 'bg-cyan-50 text-cyan-700 border border-cyan-200';
-        case 'M': return 'bg-orange-50 text-orange-700 border border-orange-200';
-        case 'L': return 'bg-red-50 text-red-700 border border-red-200';
-        default: return 'bg-gray-100 text-gray-500';
-    }
-};
-
-const getSizeColor = (label) => {
-    switch (label) {
-        case 'S': return 'border-l-cyan-400';
-        case 'M': return 'border-l-orange-400';
-        case 'L': return 'border-l-red-500';
-        default: return 'border-l-gray-300';
-    }
-};
+const getBadgeColor = getSizeBadgeClass;
+const getSizeColor = getSizeBorderClass;
 
 const Tutorial = ({ onComplete }) => {
     const { login } = useAuth();

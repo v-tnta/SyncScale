@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Modal } from './Modal';
 import { CONDITION_INPUT_MODAL } from '../content';
 
 const ConditionInputModal = ({ isOpen, onClose, task, onSubmit, isTutorialActive }) => {
@@ -12,16 +13,21 @@ const ConditionInputModal = ({ isOpen, onClose, task, onSubmit, isTutorialActive
         }
     }, [isOpen]);
 
-    if (!isOpen || !task) return null;
-
     const handleSubmit = () => {
         // UI層のみの実装のため、今回はそのままonSubmitを呼ぶ
         onSubmit({ condition, memo });
     };
 
     return (
-        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity">
-            <div id="tutorial-condition-modal" className="bg-white w-full max-w-md rounded-2xl shadow-2xl p-6 relative animate-fade-in-up">
+        <Modal
+            isOpen={isOpen && !!task}
+            onClose={onClose}
+            title={task ? `${task.title} ${CONDITION_INPUT_MODAL.title}` : CONDITION_INPUT_MODAL.title}
+            closeOnOutsideClick={false}
+            className="bg-white rounded-2xl shadow-2xl p-6"
+        >
+            {task && (
+            <div id="tutorial-condition-modal">
                 <div className="text-center mb-6">
                     <div className="mx-auto w-16 h-16 bg-green-100 text-green-500 rounded-full flex items-center justify-center mb-4">
                         <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -94,7 +100,8 @@ const ConditionInputModal = ({ isOpen, onClose, task, onSubmit, isTutorialActive
                     </div>
                 </div>
             </div>
-        </div>
+            )}
+        </Modal>
     );
 };
 

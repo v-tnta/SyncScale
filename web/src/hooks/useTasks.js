@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import * as taskService from '../services/taskService';
 import { useAuth } from './useAuth';
 import { useActivityLog } from './useActivityLog';
@@ -59,7 +60,7 @@ export const useTasks = () => {
             });
         } catch (err) {
             console.error("タスク追加エラー:", err);
-            alert("タスクの追加に失敗しました");
+            toast.error("タスクの追加に失敗しました");
         }
     };
 
@@ -89,7 +90,7 @@ export const useTasks = () => {
             }
         } catch (err) {
             console.error("タスク更新エラー:", err);
-            alert("タスクの更新に失敗しました");
+            toast.error("タスクの更新に失敗しました");
         }
     };
 
@@ -105,7 +106,7 @@ export const useTasks = () => {
             logEvent('task_delete', { taskId });
         } catch (err) {
             console.error("タスク削除エラー:", err);
-            alert("タスクの削除に失敗しました");
+            toast.error("タスクの削除に失敗しました");
         }
     };
 
@@ -116,7 +117,7 @@ export const useTasks = () => {
             console.log("タスクと関連ログの完全削除に成功");
         } catch (err) {
             console.error("完全削除エラー:", err);
-            alert("削除に失敗しました。");
+            toast.error("削除に失敗しました。");
             throw err;
         }
     };
@@ -135,7 +136,7 @@ export const useTasks = () => {
             });
         } catch (err) {
             console.error("一括追加エラー:", err);
-            alert("タスクの一括追加に失敗しました");
+            toast.error("タスクの一括追加に失敗しました");
         }
     }
 

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import * as timeLogService from '../services/timeLogService';
 import { useAuth } from './useAuth';
 import { useActivityLog } from './useActivityLog';
@@ -63,7 +64,7 @@ export const useTimeLogs = () => {
         } catch (err) {
             console.error("Failed to add TimeLog:", err);
             setError(err);
-            alert("ログの保存に失敗しました");
+            toast.error("ログの保存に失敗しました");
         } finally {
             setLoading(false);
         }

@@ -1,4 +1,5 @@
 import React from 'react'
+import { Settings, BarChart3 } from 'lucide-react'
 import Calendar from './Calendar'
 import { useAuth } from '../hooks/useAuth'
 import { SettingsPanel } from './SettingsPanel'
@@ -34,6 +35,7 @@ const Layout = ({ children, tasks, onTaskClick, timeLogs = [], conditionLogs = [
                                 className="flex items-center gap-1.5 bg-white hover:bg-gray-50 active:bg-gray-100 transition-all py-1.5 px-3.5 rounded-2xl border border-gray-200 shadow-sm text-gray-700 hover:text-gray-950 font-bold text-[13.5px]"
                                 title={LAYOUT.analyticsButtonTitle}
                             >
+                                <BarChart3 className="w-4 h-4" strokeWidth={2.5} />
                                 {LAYOUT.analyticsButton}
                             </button>
                             {/* 設定とユーザーアバターを統合した横長ボタン */}
@@ -48,7 +50,7 @@ const Layout = ({ children, tasks, onTaskClick, timeLogs = [], conditionLogs = [
                                 <span className="text-[13.5px] font-bold text-gray-700 max-w-[100px] truncate group-hover:text-gray-900 transition-colors">
                                     {currentUser.displayName || LAYOUT.userFallback}
                                 </span>
-                                <span className="text-[14px] text-gray-400 group-hover:text-gray-600 transition-colors ml-0.5">⚙️</span>
+                                <Settings className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors ml-0.5" strokeWidth={2.5} />
                             </button>
                         </div>
                     )}

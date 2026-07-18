@@ -1,17 +1,11 @@
 import React from 'react';
+import { getSizeSelectorClass } from '../domain/taskSize';
 import { SIZE_LABEL_SELECTOR } from '../content';
 
 const SizeLabelSelector = ({ selectedLabel, onSelect }) => {
   const options = SIZE_LABEL_SELECTOR.options;
 
-  const getColors = (val) => {
-    switch (val) {
-      case 'S': return 'bg-cyan-100 text-cyan-700 hover:bg-cyan-200 border-cyan-300 ring-cyan-400';
-      case 'M': return 'bg-orange-100 text-orange-700 hover:bg-orange-200 border-orange-300 ring-orange-400';
-      case 'L': return 'bg-red-100 text-red-700 hover:bg-red-200 border-red-300 ring-red-400';
-      default: return 'bg-gray-100 text-gray-700 hover:bg-gray-200 border-gray-300';
-    }
-  };
+  const getColors = getSizeSelectorClass;
 
   return (
     <div className="flex gap-3 justify-center w-full">

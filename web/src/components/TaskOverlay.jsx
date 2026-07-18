@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react'
+import { toast } from 'sonner'
 import GanttChart from './GanttChart'
 import Timer from './Timer'
 import SizeLabelSelector from './SizeLabelSelector'
 import DateTimePicker from './DateTimePicker'
+import { Modal } from './Modal'
+import { ConfirmModal } from './ConfirmModal'
 import { TASK_STATUS_LABELS } from '../domain/task'
+import { getSizeBadgeClass } from '../domain/taskSize'
 import { useConditionLogs } from '../hooks/useConditionLogs'
 import { TASK_OVERLAY } from '../content'
 
@@ -19,8 +23,13 @@ const TaskOverlay = ({ isOpen, onClose, task, logs, onUpdate, onDelete, onPhysic
     const [isEditing, setIsEditing] = useState(false);
     const [editForm, setEditForm] = useState({ title: '', deadline: null, sizeLabel: 'M' });
     const [isChartExpanded, setIsChartExpanded] = useState(true); // 実績チャートの開閉状態
+    const [isRevertConfirmOpen, setIsRevertConfirmOpen] = useState(false);
+    const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
 
-    // モーダルが開くたび、またはタスクが変わるたびにフォームを初期化
+    // モーダルが開くたび、またはタスクが変わるたびにフォームを初期化。
+    // task はFirestoreスナップショットのたびに新しいオブジェクトになるため、
+    // オブジェクト参照ではなく id の変化のみを見る（そうしないと、タイトル編集中に
+    // 他のタスクの変更が書き込まれるだけで編集内容が消えてしまう）。
     useEffect(() => {
         if (task) {
             // 締切日の形式変換 (Dateオブジェクトへ)
@@ -63,12 +72,12 @@ const TaskOverlay = ({ isOpen, onClose, task, logs, onUpdate, onDelete, onPhysic
                 setConditionLog(null)
             }
         }
-    }, [task, isOpen]);
+    }, [task?.id, isOpen]);
 
     if (!isOpen || !task) return null;
 
     const handleSave = async () => {
-        if (!editForm.title.trim()) return alert(TASK_OVERLAY.titleRequiredAlert);
+        if (!editForm.title.trim()) return toast.warning(TASK_OVERLAY.titleRequiredAlert);
 
         // 更新処理
         await onUpdate(task.id, {
@@ -82,17 +91,16 @@ const TaskOverlay = ({ isOpen, onClose, task, logs, onUpdate, onDelete, onPhysic
 
     // 未提出に戻す（TODOに戻す）処理
     const handleRevertToIncomplete = async () => {
-        if (window.confirm(TASK_OVERLAY.revertConfirm(task.title))) {
-            try {
-                await onUpdate(task.id, {
-                    status: 'TODO',
-                    completedAt: null,
-                    updatedAt: new Date()
-                })
-            } catch (err) {
-                console.error("Failed to revert task status:", err)
-                alert(TASK_OVERLAY.revertFailedAlert)
-            }
+        setIsRevertConfirmOpen(false);
+        try {
+            await onUpdate(task.id, {
+                status: 'TODO',
+                completedAt: null,
+                updatedAt: new Date()
+            })
+        } catch (err) {
+            console.error("Failed to revert task status:", err)
+            toast.error(TASK_OVERLAY.revertFailedAlert)
         }
     }
 
@@ -103,11 +111,9 @@ const TaskOverlay = ({ isOpen, onClose, task, logs, onUpdate, onDelete, onPhysic
 
     // 物理削除
     const handlePhysicalDelete = async () => {
-        const confirmMessage = TASK_OVERLAY.physicalDeleteConfirm(task.title);
-        if (window.confirm(confirmMessage)) {
-            await onPhysicalDelete(task.id);
-            onClose();
-        }
+        setIsDeleteConfirmOpen(false);
+        await onPhysicalDelete(task.id);
+        onClose();
     };
 
     // 締切ステータス判定
@@ -149,29 +155,18 @@ const TaskOverlay = ({ isOpen, onClose, task, logs, onUpdate, onDelete, onPhysic
         return `${year}年${month}月${day}日 ${hour}:${min}`;
     };
 
-    const getBadgeColor = (label) => {
-        if (!label) return 'bg-gray-100 text-gray-500';
-        const upperLabel = label.toUpperCase();
-        switch (upperLabel) {
-            case 'S': return 'bg-cyan-50 text-cyan-700 border border-cyan-100';
-            case 'M': return 'bg-orange-50 text-orange-700 border border-orange-100';
-            case 'L': return 'bg-red-50 text-red-700 border border-red-100';
-            default: return 'bg-gray-100 text-gray-500';
-        }
-    };
+    const getBadgeColor = getSizeBadgeClass;
 
     return (
-        // 背景 (Backdrop)
-        <div
-            className="fixed inset-0 z-[80] flex items-center justify-center bg-black/30 backdrop-blur-sm transition-opacity"
-            onClick={onClose}
+        <>
+        <Modal
+            isOpen={isOpen}
+            onClose={onClose}
+            title={task.title}
+            maxWidth="max-w-5xl"
+            className="bg-white rounded-xl shadow-2xl p-6"
         >
-            {/* モーダル本体 */}
-            <div
-                id="tutorial-task-detail-container"
-                className="bg-white w-full max-w-5xl max-h-[90vh] overflow-y-auto rounded-xl shadow-2xl m-4 p-6 relative animate-fade-in-up"
-                onClick={(e) => e.stopPropagation()}
-            >
+            <div id="tutorial-task-detail-container">
                 {/* ヘッダーエリア */}
                 <div className="flex justify-between items-start">
                     <div className="flex-1 mr-4 w-full">
@@ -253,7 +248,7 @@ const TaskOverlay = ({ isOpen, onClose, task, logs, onUpdate, onDelete, onPhysic
                                             {task.status === 'DONE' && (
                                                 <div className="flex flex-col items-center gap-1">
                                                     <button
-                                                        onClick={handleRevertToIncomplete}
+                                                        onClick={() => setIsRevertConfirmOpen(true)}
                                                         className="w-10 h-10 flex items-center justify-center rounded-full bg-yellow-50 text-yellow-600 hover:bg-yellow-100 transition"
                                                         title={TASK_OVERLAY.buttons.revert}
                                                     >
@@ -267,7 +262,7 @@ const TaskOverlay = ({ isOpen, onClose, task, logs, onUpdate, onDelete, onPhysic
 
                                             <div className="flex flex-col items-center gap-1">
                                                 <button
-                                                    onClick={handlePhysicalDelete}
+                                                    onClick={() => setIsDeleteConfirmOpen(true)}
                                                     className="w-10 h-10 flex items-center justify-center rounded-full bg-red-50 text-red-600 hover:bg-red-100 transition"
                                                     title={TASK_OVERLAY.buttons.delete}
                                                     id="tutorial-delete-button"
@@ -401,7 +396,30 @@ const TaskOverlay = ({ isOpen, onClose, task, logs, onUpdate, onDelete, onPhysic
                     </section>
                 </div>
             </div>
-        </div>
+        </Modal>
+
+        {/* 未提出に戻す確認モーダル */}
+        <ConfirmModal
+            isOpen={isRevertConfirmOpen}
+            title={TASK_OVERLAY.revertConfirmTitle}
+            onConfirm={handleRevertToIncomplete}
+            onCancel={() => setIsRevertConfirmOpen(false)}
+        >
+            {TASK_OVERLAY.revertConfirm(task.title)}
+        </ConfirmModal>
+
+        {/* 完全削除の確認モーダル */}
+        <ConfirmModal
+            isOpen={isDeleteConfirmOpen}
+            title={TASK_OVERLAY.physicalDeleteConfirmTitle}
+            onConfirm={handlePhysicalDelete}
+            onCancel={() => setIsDeleteConfirmOpen(false)}
+            confirmButtonClass="text-white bg-red-600 hover:bg-red-700 shadow-sm"
+            cancelButtonClass="text-slate-600 bg-slate-100 hover:bg-slate-200"
+        >
+            {TASK_OVERLAY.physicalDeleteConfirm(task.title)}
+        </ConfirmModal>
+        </>
     )
 }
 

@@ -1,7 +1,57 @@
 import React, { useState, useEffect, useRef } from 'react'
+import { toast } from 'sonner'
 import { useTimeLogs } from '../hooks/useTimeLogs'
 import { useActivityLog } from '../hooks/useActivityLog'
+import { Modal } from './Modal'
 import { TIMER } from '../content'
+
+const RING_SIZE = 148;
+const RING_STROKE = 8;
+const RING_RADIUS = (RING_SIZE - RING_STROKE) / 2;
+const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
+
+/**
+ * 円形プログレスタイマー表示。
+ * ストップウォッチ（上限なしのカウントアップ）のため「進捗」の概念がなく、
+ * アナログ時計の秒針のように「直近1分」を1周として繰り返しスイープさせることで
+ * 時間が流れていることを視覚的に伝える。1秒ごとの状態更新をCSSトランジションで
+ * 滑らかに補間することで、見た目上は連続的に動いているように見せている。
+ */
+const TimerRing = ({ seconds, isActive, children }) => {
+    const progress = (seconds % 60) / 60;
+    const dashOffset = RING_CIRCUMFERENCE * (1 - progress);
+
+    return (
+        <div className="relative shrink-0" style={{ width: RING_SIZE, height: RING_SIZE }}>
+            <svg width={RING_SIZE} height={RING_SIZE} className="-rotate-90">
+                <circle
+                    cx={RING_SIZE / 2}
+                    cy={RING_SIZE / 2}
+                    r={RING_RADIUS}
+                    fill="none"
+                    strokeWidth={RING_STROKE}
+                    className="stroke-gray-100"
+                />
+                <circle
+                    cx={RING_SIZE / 2}
+                    cy={RING_SIZE / 2}
+                    r={RING_RADIUS}
+                    fill="none"
+                    strokeWidth={RING_STROKE}
+                    strokeLinecap="round"
+                    strokeDasharray={RING_CIRCUMFERENCE}
+                    strokeDashoffset={dashOffset}
+                    className={`transition-[stroke-dashoffset] duration-1000 ease-linear ${
+                        isActive ? 'stroke-blue-600' : 'stroke-gray-300'
+                    }`}
+                />
+            </svg>
+            <div className="absolute inset-0 flex items-center justify-center">
+                {children}
+            </div>
+        </div>
+    );
+};
 
 /**
  * Timerコンポーネント (Inline版)
@@ -32,7 +82,10 @@ const Timer = ({ activeTask, logs, onUpdateTask }) => {
 
     const intervalRef = useRef(null);
 
-    // activeTaskが変わったらリセット (TaskOverlayが開くたびにリセットされる想定だが念のため)
+    // activeTaskが変わったらリセット (TaskOverlayが開くたびにリセットされる想定だが念のため)。
+    // activeTask はFirestoreスナップショットのたびに新しいオブジェクトになるため、
+    // オブジェクト参照ではなく id の変化のみを見る（そうしないと計測中に他の変更が
+    // Firestoreに書き込まれるたびにタイマーがリセットされてしまう）。
     useEffect(() => {
         if (activeTask) {
             setSubTaskName('');
@@ -41,7 +94,7 @@ const Timer = ({ activeTask, logs, onUpdateTask }) => {
             setAccumulatedSeconds(0);
             setStartTime(null);
         }
-    }, [activeTask]);
+    }, [activeTask?.id]);
 
     // タイマー計測ロジック
     useEffect(() => {
@@ -142,7 +195,7 @@ const Timer = ({ activeTask, logs, onUpdateTask }) => {
     // サブタスク強制入力モーダルからの保存
     const handleConfirmSave = async () => {
         if (!subTaskName.trim()) {
-            alert(TIMER.subTaskRequiredAlert);
+            toast.warning(TIMER.subTaskRequiredAlert);
             return;
         }
         await saveLog({ ...pendingLogData, subTaskName: subTaskName });
@@ -151,12 +204,20 @@ const Timer = ({ activeTask, logs, onUpdateTask }) => {
 
     // 事後報告の保存
     const handleManualSave = async () => {
-        if (!manualData.durationMinutes) {
-            alert(TIMER.durationRequiredAlert);
+        const minutes = Number(manualData.durationMinutes);
+        if (!manualData.durationMinutes || !Number.isFinite(minutes)) {
+            toast.warning(TIMER.durationRequiredAlert);
+            return;
+        }
+        // 0以下・24時間超・小数は事後報告の実運用として不自然なため弾く
+        // （負数は startTime > endTime の壊れたログを生み、極端に大きい値は
+        // 週カレンダーの日付分割処理で無駄な繰り返しを引き起こすため）
+        if (!Number.isInteger(minutes) || minutes <= 0 || minutes > 24 * 60) {
+            toast.warning(TIMER.durationInvalidAlert);
             return;
         }
 
-        const durationSec = Number(manualData.durationMinutes) * 60;
+        const durationSec = minutes * 60;
         const end = new Date();
         const start = new Date(end.getTime() - durationSec * 1000);
 
@@ -236,25 +297,26 @@ const Timer = ({ activeTask, logs, onUpdateTask }) => {
             {/* 右側：コンテンツエリア */}
             <div className="border border-gray-200 shadow-sm rounded-lg p-6 bg-white w-full max-w-xl min-h-[160px] flex flex-col justify-center min-h-[180px]">
                 {activeTab === 'timer' ? (
-                    <div className="flex flex-col gap-6 justify-center">
-                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                            <div className="flex items-center gap-4 flex-1">
-                                <span className="font-bold text-gray-700 whitespace-nowrap">{TIMER.todoLabel}</span>
-                                <div className="flex-1 max-w-[200px]">
-                                    <input
-                                        type="text"
-                                        placeholder={TIMER.todoPlaceholder}
-                                        className="w-full p-2 border-2 border-gray-300 rounded font-bold text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                                        value={subTaskName}
-                                        onChange={(e) => setSubTaskName(e.target.value)}
-                                        disabled={isActive || isConfirmModalOpen}
-                                    />
-                                </div>
-                            </div>
-                            <div className={`text-4xl font-mono font-bold tracking-wider  ${isActive ? 'text-blue-600' : 'text-gray-800'}`}>
-                                {formatTime(elapsedSeconds)}
+                    <div className="flex flex-col gap-5 justify-center items-center">
+                        <div className="flex items-center gap-4 w-full">
+                            <span className="font-bold text-gray-700 whitespace-nowrap">{TIMER.todoLabel}</span>
+                            <div className="flex-1 max-w-[280px]">
+                                <input
+                                    type="text"
+                                    placeholder={TIMER.todoPlaceholder}
+                                    className="w-full p-2 border-2 border-gray-300 rounded font-bold text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                    value={subTaskName}
+                                    onChange={(e) => setSubTaskName(e.target.value)}
+                                    disabled={isActive || isConfirmModalOpen}
+                                />
                             </div>
                         </div>
+
+                        <TimerRing seconds={elapsedSeconds} isActive={isActive}>
+                            <span className={`text-xl font-mono font-bold tracking-tight ${isActive ? 'text-blue-600' : 'text-gray-800'}`}>
+                                {formatTime(elapsedSeconds)}
+                            </span>
+                        </TimerRing>
 
                         <div className="flex justify-center gap-3">
                             {!isActive ? (
@@ -334,24 +396,26 @@ const Timer = ({ activeTask, logs, onUpdateTask }) => {
             </div>
 
             {/* --- 内部モーダル: サブタスク入力確認 --- */}
-            {isConfirmModalOpen && (
-                <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/20 backdrop-blur-[1px]">
-                    <div className="bg-white p-6 rounded shadow-lg border border-gray-200" onClick={e => e.stopPropagation()}>
-                        <h3 className="text-lg font-bold mb-2">{TIMER.subTaskModalTitle}</h3>
-                        <input
-                            type="text"
-                            className="w-full p-2 border rounded mb-4 focus:ring-2 focus:ring-blue-500"
-                            value={subTaskName}
-                            onChange={(e) => setSubTaskName(e.target.value)}
-                            autoFocus
-                        />
-                        <div className="flex justify-end gap-2">
-                            <button onClick={() => setIsConfirmModalOpen(false)} className="text-gray-500 px-4">{TIMER.subTaskModalCancel}</button>
-                            <button onClick={handleConfirmSave} className="bg-blue-600 text-white px-4 py-2 rounded">{TIMER.subTaskModalSave}</button>
-                        </div>
-                    </div>
+            <Modal
+                isOpen={isConfirmModalOpen}
+                onClose={() => setIsConfirmModalOpen(false)}
+                title={TIMER.subTaskModalTitle}
+                maxWidth="max-w-sm"
+                className="bg-white rounded-lg shadow-2xl p-6"
+            >
+                <h3 className="text-lg font-bold mb-2">{TIMER.subTaskModalTitle}</h3>
+                <input
+                    type="text"
+                    className="w-full p-2 border rounded mb-4 focus:ring-2 focus:ring-blue-500"
+                    value={subTaskName}
+                    onChange={(e) => setSubTaskName(e.target.value)}
+                    autoFocus
+                />
+                <div className="flex justify-end gap-2">
+                    <button onClick={() => setIsConfirmModalOpen(false)} className="text-gray-500 px-4">{TIMER.subTaskModalCancel}</button>
+                    <button onClick={handleConfirmSave} className="bg-blue-600 text-white px-4 py-2 rounded">{TIMER.subTaskModalSave}</button>
                 </div>
-            )}
+            </Modal>
         </div>
     )
 }

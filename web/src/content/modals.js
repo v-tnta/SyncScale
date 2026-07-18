@@ -97,6 +97,8 @@ export const TASK_SIZE_ESTIMATE_MODAL = {
     { value: "L", color: "bg-red-100 text-red-700 hover:bg-red-200 border-red-300", desc: "数日かかる" },
   ],
   submitButtonText: "決定して次へ",
+  declineButtonText: "この課題は追加しない",
+  declineToastText: (title) => `「${title}」は追加しませんでした`,
 };
 
 // ========================================

@@ -1,4 +1,5 @@
 import React from 'react'
+import { toast } from 'sonner'
 import Layout from '../components/Layout'
 import TaskForm from '../components/TaskForm'
 import TaskList from '../components/TaskList'
@@ -16,6 +17,7 @@ import { useAuth } from '../hooks/useAuth'
 import { useOnboarding } from '../hooks/useOnboarding'
 import { useActivityLog } from '../hooks/useActivityLog'
 import ExtensionGuideModal from '../components/ExtensionGuideModal'
+import { TASK_SIZE_ESTIMATE_MODAL } from '../content'
 
 export function HomePage() {
   const { currentUser } = useAuth();
@@ -51,36 +53,42 @@ export function HomePage() {
   // チュートリアル終了時のトランジション状態
   const [isTransitioning, setIsTransitioning] = React.useState(false);
 
+  // 論理削除済み（isVisible: false）のタスクは全ての表示から除外する。
+  // 重複インポート判定には削除済みも含めた tasks / tasksRef を使う。
+  const visibleTasks = React.useMemo(() => {
+    return tasks.filter(t => t.isVisible !== false);
+  }, [tasks]);
+
   // 表示用タスクと完了タスクの切り分け（チュートリアル中かどうかに応じて動的フィルタリング）
   const incompleteTasks = React.useMemo(() => {
     if (isTutorialActive) {
-      return tasks.filter(t => t.status !== 'DONE' && t.isTutorialTask === true);
+      return visibleTasks.filter(t => t.status !== 'DONE' && t.isTutorialTask === true);
     } else {
-      return tasks.filter(t => t.status !== 'DONE' && t.isTutorialTask !== true);
+      return visibleTasks.filter(t => t.status !== 'DONE' && t.isTutorialTask !== true);
     }
-  }, [tasks, isTutorialActive]);
+  }, [visibleTasks, isTutorialActive]);
 
   const completedTasks = React.useMemo(() => {
     if (isTutorialActive) {
-      return tasks.filter(t => t.status === 'DONE' && t.isTutorialTask === true);
+      return visibleTasks.filter(t => t.status === 'DONE' && t.isTutorialTask === true);
     } else {
-      return tasks.filter(t => t.status === 'DONE' && t.isTutorialTask !== true);
+      return visibleTasks.filter(t => t.status === 'DONE' && t.isTutorialTask !== true);
     }
-  }, [tasks, isTutorialActive]);
+  }, [visibleTasks, isTutorialActive]);
 
   // カレンダー等の表示用タスクのフィルタリング
   const filteredTasks = React.useMemo(() => {
     if (isTutorialActive) {
-      return tasks.filter(t => t.isTutorialTask === true);
+      return visibleTasks.filter(t => t.isTutorialTask === true);
     } else {
-      return tasks.filter(t => t.isTutorialTask !== true);
+      return visibleTasks.filter(t => t.isTutorialTask !== true);
     }
-  }, [tasks, isTutorialActive]);
+  }, [visibleTasks, isTutorialActive]);
 
   // 新規取得された見積もり待ちのタスクをすべて抽出
   const allNewTasksToEstimate = React.useMemo(() => {
-    return tasks.filter(t => t.isNew === true && !t.sizeLabel);
-  }, [tasks]);
+    return visibleTasks.filter(t => t.isNew === true && !t.sizeLabel);
+  }, [visibleTasks]);
 
   const taskToEstimate = allNewTasksToEstimate.length > 0 ? allNewTasksToEstimate[0] : null;
   const totalNewTasksRef = React.useRef(0);
@@ -261,6 +269,19 @@ export function HomePage() {
     });
   };
 
+  // 「課題として追加しない」選択時の処理。
+  // 物理削除ではなく論理削除にすることで manabaAssignmentId が残り、
+  // 次回の拡張機能同期で同じ課題が再インポートされない。
+  const handleEstimateDecline = async (task) => {
+    await updateTask(task.id, {
+      isVisible: false,
+      isNew: false,
+      updatedAt: new Date()
+    });
+    logEvent('task_import_decline', { taskId: task.id });
+    toast.info(TASK_SIZE_ESTIMATE_MODAL.declineToastText(task.title));
+  };
+
   // タスクのインポート
   const handleImportTasks = async (importedTasks) => {
     if (!importedTasks || importedTasks.length === 0) return;
@@ -290,13 +311,13 @@ export function HomePage() {
     if (newTasksData.length > 0) {
       try {
         await addTasksBatch(newTasksData);
-        alert(`${newTasksData.length}件の課題を新規登録しました！`);
+        toast.success(`${newTasksData.length}件の課題を新規登録しました！`);
       } catch (e) {
         console.error("課題の一括登録に失敗しました", e);
-        alert("課題の登録中にエラーが発生しました。");
+        toast.error("課題の登録中にエラーが発生しました。");
       }
     } else {
-      alert("新しい課題はありませんでした。（全て登録済みです）");
+      toast.info("新しい課題はありませんでした。（全て登録済みです）");
     }
   };
 
@@ -412,6 +433,7 @@ export function HomePage() {
           currentIndex={estimateCurrentIndex}
           totalCount={estimateTotalCount}
           onSubmit={handleEstimateSubmit}
+          onDecline={handleEstimateDecline}
         />
 
         <DebugLogger tasks={tasks} taskToEstimate={taskToEstimate} />

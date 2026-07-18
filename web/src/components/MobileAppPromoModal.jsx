@@ -1,5 +1,6 @@
 import React from 'react';
 import appConfig from '@shared/app_config.json';
+import { Modal } from './Modal';
 import { MOBILE_APP_PROMO_MODAL } from '../content';
 
 /**
@@ -7,18 +8,12 @@ import { MOBILE_APP_PROMO_MODAL } from '../content';
  * 研究での必須利用のため、インストールを強く促します。
  */
 const MobileAppPromoModal = ({ isOpen, onClose, iosUrl, androidUrl }) => {
-    if (!isOpen) return null;
-
     const finalIosUrl = iosUrl || appConfig.iosStoreUrl;
     const finalAndroidUrl = androidUrl || appConfig.androidStoreUrl;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            {/* バックドロップ */}
-            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={onClose}></div>
-
-            {/* モーダルコンテンツ */}
-            <div className="relative w-full max-w-lg bg-white rounded-3xl p-6 md:p-8 shadow-2xl border border-slate-100 flex flex-col space-y-6 animate-fade-in">
+        <Modal isOpen={isOpen} onClose={onClose} title={MOBILE_APP_PROMO_MODAL.title} maxWidth="max-w-lg" className="bg-white rounded-3xl shadow-2xl p-6 md:p-8 border border-slate-100">
+            <div className="flex flex-col space-y-6">
                 {/* ヘッダー */}
                 <div className="text-center space-y-2">
                     <div className="inline-flex items-center justify-center p-3 bg-blue-50/80 rounded-2xl border border-blue-500/20 mb-2">
@@ -72,7 +67,7 @@ const MobileAppPromoModal = ({ isOpen, onClose, iosUrl, androidUrl }) => {
                     </button>
                 </div>
             </div>
-        </div>
+        </Modal>
     );
 };
 

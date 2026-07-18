@@ -17,6 +17,11 @@ class NotificationService {
       FlutterLocalNotificationsPlugin();
   bool _initialized = false;
 
+  // 同期の直列化用。並行実行を許すと、古いタスク一覧を持つ同期が
+  // 新しい同期の cancelAll 後に削除済みタスクを再登録してしまう。
+  int _syncRequestId = 0;
+  Future<void> _syncQueue = Future.value();
+
   static const String _channelId = 'task_deadline_reminders';
   static const String _channelName = '締切リマインダー';
   static const String _channelDescription = 'タスクの締切前にお知らせする通知';
@@ -141,10 +146,33 @@ class NotificationService {
     required bool enabled,
     required int minutesBefore,
     required List<Task> tasks,
-  }) async {
+  }) {
     if (kIsWeb) {
-      return;
+      return Future.value();
     }
+
+    // 前の同期の完了を待ってから実行する（直列化）。待機中にさらに新しい
+    // リクエストが来ていたら、この呼び出しは古いスナップショットなのでスキップする。
+    final requestId = ++_syncRequestId;
+    final run = _syncQueue.then((_) async {
+      if (requestId != _syncRequestId) {
+        return;
+      }
+      await _doSyncTaskReminders(
+        enabled: enabled,
+        minutesBefore: minutesBefore,
+        tasks: tasks,
+      );
+    });
+    _syncQueue = run.catchError((_) {});
+    return run;
+  }
+
+  Future<void> _doSyncTaskReminders({
+    required bool enabled,
+    required int minutesBefore,
+    required List<Task> tasks,
+  }) async {
     if (!_initialized) {
       await init();
     }

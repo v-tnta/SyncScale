@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { toast } from "sonner";
 import { ConfirmModal } from "./ConfirmModal";
 import { CONSENT_WITHDRAW_MODAL } from "../content";
 
@@ -11,7 +12,7 @@ export function ConsentWithdrawModal({ isOpen, onClose, onConfirm }) {
             await onConfirm();
         } catch (error) {
             console.error("同意の撤回エラー:", error);
-            alert(CONSENT_WITHDRAW_MODAL.errorAlert);
+            toast.error(CONSENT_WITHDRAW_MODAL.errorAlert);
         } finally {
             setLoading(false);
             onClose();

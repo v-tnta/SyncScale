@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { onAuthStateChanged, signInWithPopup, signOut } from "firebase/auth";
+import { toast } from "sonner";
 import { auth, googleProvider } from "../lib/firebase";
 
 // Contextの作成
@@ -27,7 +28,9 @@ export function AuthProvider({ children }) {
             return result.user;
         } catch (error) {
             console.error("ログインエラー:", error);
-            alert(`ログインに失敗しました。\nエラーコード: ${error.code}\nメッセージ: ${error.message}`);
+            toast.error("ログインに失敗しました。", {
+                description: `エラーコード: ${error.code}\nメッセージ: ${error.message}`
+            });
             throw error;
         }
     };
@@ -38,7 +41,7 @@ export function AuthProvider({ children }) {
             await signOut(auth);
         } catch (error) {
             console.error("ログアウトエラー:", error);
-            alert("ログアウトに失敗しました。");
+            toast.error("ログアウトに失敗しました。");
         }
     };
 

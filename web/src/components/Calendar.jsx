@@ -5,6 +5,7 @@ import 'react-big-calendar/lib/css/react-big-calendar.css'
 
 // momentのロケール設定 (日本語)
 import 'moment/locale/ja'
+import { getSizeHexColor } from '../domain/taskSize'
 import { CALENDAR } from '../content'
 moment.locale('ja')
 
@@ -82,31 +83,61 @@ const Calendar = ({ tasks, onEventClick, timeLogs = [] }) => {
 
     // 週表示では、作業ログを「実働時間分の長方形（緑の帯）」として時間軸上に表示する。
     // timeLogs は startTime に対して durationSeconds の長さで終端を決める（ピンポイントの細い線にしない）。
+    // 日を跨ぐ作業（例: 23:00〜翌2:00）は深夜0:00で分割し、各日にその日ぶんの帯を描画する。
     const workLogEvents = React.useMemo(() => {
         if (view !== 'week') return [];
-        return timeLogs.map((log) => {
+        const segments = [];
+        for (const log of timeLogs) {
             const start = toDate(log.startTime);
-            if (!start) return null;
+            if (!start) continue;
 
             let end = toDate(log.endTime);
             const durationMs = (log.durationSeconds || 0) * 1000;
             if (!end || end.getTime() <= start.getTime()) {
                 end = new Date(start.getTime() + durationMs);
             }
-            // 最低限の高さを確保（短い作業でも帯として見えるように）
-            const minEnd = new Date(start.getTime() + MIN_WORKLOG_MINUTES * 60 * 1000);
-            if (end.getTime() < minEnd.getTime()) end = minEnd;
+            // 実働0秒（タイマー開始直後の記録など）でも帯を表示する。月表示の作業実績
+            // インジケータはこうしたログも件数に数えるため、週表示でも一致させる
+            // （視認できる最低限の高さは下の MIN_WORKLOG_MINUTES クランプで確保される）。
+            if (end.getTime() <= start.getTime()) {
+                end = new Date(start.getTime() + 60 * 1000);
+            }
 
-            const minutes = Math.max(1, Math.round((log.durationSeconds || 0) / 60));
             const name = log.subTaskName || CALENDAR.workLog.defaultName;
-            return {
-                title: CALENDAR.workLog.title(name, minutes),
-                start,
-                end,
-                allDay: false,
-                isWorkLog: true,
-            };
-        }).filter(Boolean);
+
+            // 開始日から終了日まで、日付境界（深夜0:00）ごとに帯を切り出す
+            let segStart = start;
+            while (segStart.getTime() < end.getTime()) {
+                // segStart の翌日の0:00
+                const dayEnd = new Date(
+                    segStart.getFullYear(), segStart.getMonth(), segStart.getDate() + 1, 0, 0, 0, 0
+                );
+                // 翌日まで続く作業はこの日の終端で打ち切る。終端を 0:00 ちょうどにすると
+                // react-big-calendar が「日跨ぎ＝終日イベント」と誤認するため 23:59:59.999 に丸める。
+                const dayBoundaryMs = dayEnd.getTime() - 1;
+                const reachesBoundary = end.getTime() >= dayEnd.getTime();
+                const segEndMs = reachesBoundary ? dayBoundaryMs : end.getTime();
+                const minutes = Math.max(1, Math.round((segEndMs - segStart.getTime()) / 60000));
+
+                // 視認できる最低の高さを確保（短い作業でも帯として見えるように）。ただし日付境界は超えない。
+                let displayEndMs = segEndMs;
+                const minEndMs = segStart.getTime() + MIN_WORKLOG_MINUTES * 60 * 1000;
+                if (displayEndMs < minEndMs) {
+                    displayEndMs = Math.min(minEndMs, dayBoundaryMs);
+                }
+
+                segments.push({
+                    title: CALENDAR.workLog.title(name, minutes),
+                    start: segStart,
+                    end: new Date(displayEndMs),
+                    allDay: false,
+                    isWorkLog: true,
+                });
+
+                segStart = dayEnd; // 次の日の0:00から続ける
+            }
+        }
+        return segments;
     }, [timeLogs, view]);
 
     // 完了したタスクを除外し、カレンダーイベント形式に変換
@@ -115,7 +146,6 @@ const Calendar = ({ tasks, onEventClick, timeLogs = [] }) => {
     const deadlineEvents = activeTasks.map(task => {
         let start = new Date();
         let end = new Date();
-        let allDay = true;
 
         if (task.deadline) {
             if (task.deadline.seconds) {
@@ -168,13 +198,7 @@ const Calendar = ({ tasks, onEventClick, timeLogs = [] }) => {
             };
         }
 
-        let backgroundColor = '#3174ad'; // Default Blue
-
-        switch (event.sizeLabel) {
-            case 'S': backgroundColor = '#06b6d4'; break; // Cyan-500
-            case 'M': backgroundColor = '#f97316'; break; // Orange-500
-            case 'L': backgroundColor = '#ef4444'; break; // Red-500
-        }
+        const backgroundColor = getSizeHexColor(event.sizeLabel);
 
         return {
             style: {
@@ -199,7 +223,7 @@ const Calendar = ({ tasks, onEventClick, timeLogs = [] }) => {
     };
 
     return (
-        <div className="h-[660px] bg-white p-4 rounded-lg shadow-md">
+        <div className="syncscale-calendar h-[660px] bg-white p-4 rounded-lg shadow-md">
             <BigCalendar
                 localizer={localizer}
                 events={events}
@@ -213,6 +237,12 @@ const Calendar = ({ tasks, onEventClick, timeLogs = [] }) => {
                 onNavigate={onNavigate}
                 // Views configuration (remove 'day')
                 views={['month', 'week']}
+                // 週表示: 0:00〜24:00 を1時間刻みで圧縮表示し、スクロールなしで一望できるようにする。
+                // 先頭ラベルは「0:00」（深夜）になるよう時間軸フォーマットを指定する。
+                step={60}
+                timeslots={1}
+                scrollToTime={new Date(1970, 0, 1, 0, 0, 0)}
+                formats={{ timeGutterFormat: 'H:mm' }}
                 onSelectEvent={(event) => { if (event.resource) onEventClick(event.resource); }}
                 eventPropGetter={eventPropGetter}
                 components={components}

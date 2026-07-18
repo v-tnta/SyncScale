@@ -1,4 +1,52 @@
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;800;900&display=swap");
 @import "tailwindcss";
+
+/* ============================================================
+   デザイントークン
+   ブランドカラー・フォントの単一の定義元。Tailwind v4 の @theme は
+   --color-* / --font-* 等から bg-primary, text-success のような
+   ユーティリティクラスを自動生成する。既存の bg-blue-600 等の
+   Tailwind標準クラスも引き続き使えるが、新規コンポーネントは
+   こちらのセマンティックなトークンを優先して使うこと。
+   ============================================================ */
+@theme {
+    --font-sans: "Noto Sans JP", ui-sans-serif, system-ui, sans-serif;
+
+    /* 主要アクション（登録・保存・タイマー開始などのボタン） */
+    --color-primary: #2563eb;      /* blue-600 相当 */
+    --color-primary-hover: #1d4ed8; /* blue-700 相当 */
+
+    /* 完了・作業実績（カレンダーの作業ログの帯など） */
+    --color-success: #22c55e;      /* green-500 相当 */
+
+    /* タスクの規模感（S/M/L）。TaskList/TaskOverlay/Calendar等で共有 */
+    --color-size-s: #06b6d4;       /* cyan-500 相当 */
+    --color-size-m: #f97316;       /* orange-500 相当 */
+    --color-size-l: #ef4444;       /* red-500 相当 */
+
+    /* モーダルの開閉アニメーション。
+       各所で animate-fade-in / animate-fade-in-up というクラス名は
+       以前から使われていたが、対応する @keyframes 定義が存在せず
+       実際には何も起きていなかった（無効なクラス名だった）。 */
+    --animate-fade-in: fade-in 0.2s ease-out;
+    --animate-fade-in-up: fade-in-up 0.25s ease-out;
+    --animate-fade-out: fade-out 0.15s ease-in;
+}
+
+@keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes fade-in-up {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-out {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
 
 /* 入力欄以外でのテキストカーソル（キャレット）点滅を防止 */
 * {
@@ -29,4 +77,21 @@ textarea,
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: #aaa;
+}
+
+/* ============================================================
+   カレンダー週表示（react-big-calendar）
+   1時間ごとの行を圧縮し、縦スクロールなしで 0:00〜24:00 を
+   一望できるようにする（h-[660px] のコンテナに収める）。
+   行の高さは時間軸ラベルの line-height でも決まるため、
+   ラベルも小さくして 1 行 ≒ 19px に抑える（24 行で約 456px）。
+   ============================================================ */
+.syncscale-calendar .rbc-timeslot-group {
+    min-height: 19px;
+}
+
+.syncscale-calendar .rbc-time-gutter .rbc-time-slot,
+.syncscale-calendar .rbc-time-gutter .rbc-label {
+    font-size: 11px;
+    line-height: 15px;
 }
