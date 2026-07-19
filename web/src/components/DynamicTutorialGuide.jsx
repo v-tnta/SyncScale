@@ -374,6 +374,7 @@ const DynamicTutorialGuide = ({
             {/* clip-pathで対象要素をくり抜いたオーバーレイ */}
             {step < 16 && (
                 <div
+                    data-tutorial-guide
                     style={{
                         position: 'fixed',
                         inset: 0,
@@ -395,6 +396,7 @@ const DynamicTutorialGuide = ({
 
             {/* ガイドメッセージボックス - 対象要素の近くに動的配置 */}
             <div
+                data-tutorial-guide
                 style={getTooltipStyle()}
                 className="bg-white/95 backdrop-blur-md border border-blue-100 rounded-2xl shadow-2xl p-5 md:p-6 transition-all duration-300"
             >

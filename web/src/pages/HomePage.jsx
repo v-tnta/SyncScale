@@ -415,6 +415,7 @@ export function HomePage() {
           onClose={() => setIsCompletedModalOpen(false)}
           tasks={completedTasks}
           onTaskClick={handleTaskClick}
+          isTutorialActive={isTutorialActive}
         />
 
         {/* コンディション入力モーダル */}

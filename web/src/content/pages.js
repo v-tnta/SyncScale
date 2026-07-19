@@ -58,6 +58,17 @@ export const ONBOARDING_STEPS = {
     buttonText: "LINE OpenChat に参加する",
     completeButtonText: "参加しました",
   },
+  // step3 の手前に挟む Chrome 本体のインストール案内。
+  // 使用中のブラウザが Chrome なら表示されない（OnboardingPage で自動スキップ）。
+  chromeGate: {
+    title: "Google Chrome をご用意ください",
+    description: "お使いのブラウザは Google Chrome ではないようです。次のステップでインストールする課題自動取得の拡張機能は、Chrome ブラウザ上で動作します。まず以下から Chrome をインストールしてください。",
+    note: "インストール後、Chrome でこのページ（sync-scale.web.app）を開いて同じ Google アカウントでログインすると、この続きから再開できます。",
+    downloadUrl: "https://www.google.com/chrome/",
+    downloadButtonText: "Google Chrome をダウンロード",
+    noticeShort: "お使いのブラウザは Chrome ではないようです。拡張機能の利用には Google Chrome のインストールが必要です。",
+    skipButtonText: "すでに Chrome の準備ができている方・このブラウザのまま進む方はこちら",
+  },
   step3: {
     title: "Chrome拡張機能をインストールする",
     description: "manaba等のLMSから課題を自動取得する「SyncScale Chrome extension」をインストールします。Chromeウェブストアから追加してください。",

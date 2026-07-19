@@ -2,12 +2,14 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { ONBOARDING_STEPS } from "../content";
+import { isChromeBrowser } from "../domain/browser";
 
 export function InfoPage() {
     const { currentUser } = useAuth();
     const navigate = useNavigate();
     const [isMobile, setIsMobile] = useState(false);
     const [copied, setCopied] = useState(false);
+    const [isChrome] = useState(() => isChromeBrowser());
 
     // UIDを動的に事前入力したURLを生成
     const prefilledFormUrl = React.useMemo(() => {
@@ -138,6 +140,22 @@ export function InfoPage() {
                                 <div className="p-3 bg-amber-500/10 border border-amber-500/20 text-amber-700 rounded-xl text-[11px] flex items-start gap-1.5 mt-2">
                                     <span>⚠️</span>
                                     <span>{ONBOARDING_STEPS.step3.pcOnlyMessage}</span>
+                                </div>
+                            )}
+                            {!isMobile && !isChrome && (
+                                <div className="p-3 bg-amber-500/10 border border-amber-500/20 text-amber-700 rounded-xl text-[11px] flex items-start gap-1.5 mt-2">
+                                    <span>⚠️</span>
+                                    <span>
+                                        {ONBOARDING_STEPS.chromeGate.noticeShort}{' '}
+                                        <a
+                                            href={ONBOARDING_STEPS.chromeGate.downloadUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="underline underline-offset-2 font-bold hover:text-amber-800"
+                                        >
+                                            {ONBOARDING_STEPS.chromeGate.downloadButtonText}
+                                        </a>
+                                    </span>
                                 </div>
                             )}
                         </div>

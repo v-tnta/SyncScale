@@ -109,7 +109,9 @@ export function SettingsPanel({ isOpen, onClose }) {
                 onClick={onClose}
             ></div>
 
-            {/* 中央モーダルレイアウト */}
+            {/* 中央モーダルレイアウト。
+                このパネルからは確認モーダル（ConfirmModal / ConsentWithdrawModal、
+                いずれも z-100）を開くため、それより下の 95 に置くこと。 */}
             <div className="fixed inset-0 flex items-center justify-center z-[95] p-4 pointer-events-none">
                 <div className="w-full max-w-md bg-white border border-gray-200 text-gray-800 shadow-2xl rounded-3xl p-6 flex flex-col justify-between font-sans pointer-events-auto relative max-h-[90vh] overflow-y-auto">
                     <div className="space-y-6">

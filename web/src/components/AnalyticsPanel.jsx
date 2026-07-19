@@ -110,7 +110,7 @@ export function AnalyticsPanel({ isOpen, onClose, tasks = [], timeLogs = [] }) {
                 onClick={onClose}
             ></div>
 
-            {/* モーダル本体 */}
+            {/* モーダル本体。z-index は SettingsPanel と揃える */}
             <div className="fixed inset-0 flex items-center justify-center z-[95] p-4 pointer-events-none">
                 <div className="w-full max-w-lg bg-white border border-gray-200 text-gray-800 shadow-2xl rounded-3xl p-6 flex flex-col justify-between font-sans pointer-events-auto relative max-h-[90vh] overflow-y-auto animate-fade-in-up">
                     <div className="space-y-7">

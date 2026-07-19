@@ -12,7 +12,7 @@ const MobileAppPromoModal = ({ isOpen, onClose, iosUrl, androidUrl }) => {
     const finalAndroidUrl = androidUrl || appConfig.androidStoreUrl;
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title={MOBILE_APP_PROMO_MODAL.title} maxWidth="max-w-lg" className="bg-white rounded-3xl shadow-2xl p-6 md:p-8 border border-slate-100">
+        <Modal isOpen={isOpen} onClose={onClose} title={MOBILE_APP_PROMO_MODAL.title} maxWidth="max-w-lg" zIndex={50} className="bg-white rounded-3xl shadow-2xl p-6 md:p-8 border border-slate-100">
             <div className="flex flex-col space-y-6">
                 {/* ヘッダー */}
                 <div className="text-center space-y-2">

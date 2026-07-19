@@ -24,6 +24,8 @@ const ConditionInputModal = ({ isOpen, onClose, task, onSubmit, isTutorialActive
             onClose={onClose}
             title={task ? `${task.title} ${CONDITION_INPUT_MODAL.title}` : CONDITION_INPUT_MODAL.title}
             closeOnOutsideClick={false}
+            zIndex={90}
+            blockOutsideInteraction={!isTutorialActive}
             className="bg-white rounded-2xl shadow-2xl p-6"
         >
             {task && (

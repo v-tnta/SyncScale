@@ -4,7 +4,7 @@ import { Modal } from './Modal';
 import { getSizeBorderClass, getSizeBadgeClass } from '../domain/taskSize';
 import { COMPLETED_TASKS_MODAL } from '../content';
 
-const CompletedTasksModal = ({ isOpen, onClose, tasks, onTaskClick }) => {
+const CompletedTasksModal = ({ isOpen, onClose, tasks, onTaskClick, isTutorialActive }) => {
     // 開閉状態を月ごとに管理 (ex: "2026年5月" -> true/false)
     const [expandedMonths, setExpandedMonths] = useState({});
 
@@ -73,6 +73,8 @@ const CompletedTasksModal = ({ isOpen, onClose, tasks, onTaskClick }) => {
             onClose={onClose}
             title={COMPLETED_TASKS_MODAL.title}
             maxWidth="max-w-3xl"
+            zIndex={60}
+            blockOutsideInteraction={!isTutorialActive}
             className="bg-white rounded-xl shadow-2xl"
         >
             <div id="tutorial-completed-modal" className="max-h-[85vh] flex flex-col">

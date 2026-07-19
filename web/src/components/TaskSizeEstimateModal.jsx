@@ -22,6 +22,7 @@ const TaskSizeEstimateModal = ({ isOpen, task, currentIndex, totalCount, onSubmi
             isOpen={isOpen && !!task}
             title={task ? `${task.title} ${TASK_SIZE_ESTIMATE_MODAL.titleSingle}` : TASK_SIZE_ESTIMATE_MODAL.titleSingle}
             closeOnOutsideClick={false}
+            zIndex={80}
             className="bg-white rounded-2xl shadow-2xl p-6"
         >
             {task && (

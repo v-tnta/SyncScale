@@ -32,7 +32,7 @@ const ExtensionGuideModal = ({ isOpen, onClose }) => {
     };
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title={EXTENSION_GUIDE_MODAL.headerTitle} maxWidth="max-w-lg">
+        <Modal isOpen={isOpen} onClose={onClose} title={EXTENSION_GUIDE_MODAL.headerTitle} maxWidth="max-w-lg" zIndex={95}>
             <div className="flex flex-col">
                 {/* ヘッダー */}
                 <div className="flex justify-between items-center p-6 border-b border-gray-100 shrink-0">

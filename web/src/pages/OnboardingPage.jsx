@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useOnboarding } from "../hooks/useOnboarding";
 import { useAuth } from "../hooks/useAuth";
 import { ONBOARDING_STEPS } from "../content";
+import { isChromeBrowser } from "../domain/browser";
 
 export function OnboardingPage() {
     const { onboarding, loading, completeStep } = useOnboarding();
@@ -10,6 +11,12 @@ export function OnboardingPage() {
     const navigate = useNavigate();
     const [currentStep, setCurrentStep] = useState(1);
     const [isMobile, setIsMobile] = useState(false);
+
+    // Chrome 本体のインストール案内（step3 の手前）。
+    // Chrome ならゲート自体を出さない。モバイルは拡張機能が PC 専用である旨を
+    // step3 側で案内するため、ここでは対象外とする。
+    const [isChrome] = useState(() => isChromeBrowser());
+    const [chromeGateDismissed, setChromeGateDismissed] = useState(false);
 
     // UIDを動的に事前入力したURLを生成
     const prefilledFormUrl = React.useMemo(() => {
@@ -207,7 +214,40 @@ export function OnboardingPage() {
                         </div>
                     )}
 
-                    {currentStep === 3 && (
+                    {/* step3 の手前: Chrome 本体が入っていない（別ブラウザ使用中の）場合の案内 */}
+                    {currentStep === 3 && !isChrome && !isMobile && !chromeGateDismissed && (
+                        <div className="flex flex-col space-y-4">
+                            <h2 className="text-xl font-bold flex items-center gap-2 text-slate-900">
+                                <span className="p-1.5 bg-amber-500/10 rounded-lg">🌐</span>
+                                {ONBOARDING_STEPS.chromeGate.title}
+                            </h2>
+                            <p className="text-slate-600 text-sm leading-relaxed">
+                                {ONBOARDING_STEPS.chromeGate.description}
+                            </p>
+                            <div className="p-4 bg-blue-500/10 border border-blue-500/20 text-blue-700 rounded-xl text-xs flex items-start gap-2">
+                                <span>💡</span>
+                                <span>{ONBOARDING_STEPS.chromeGate.note}</span>
+                            </div>
+                            <div className="pt-4 flex">
+                                <a
+                                    href={ONBOARDING_STEPS.chromeGate.downloadUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex-1 py-3 px-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-xl shadow-lg hover:shadow-blue-500/20 transition duration-300 text-center block text-sm"
+                                >
+                                    {ONBOARDING_STEPS.chromeGate.downloadButtonText}
+                                </a>
+                            </div>
+                            <button
+                                onClick={() => setChromeGateDismissed(true)}
+                                className="text-xs text-slate-400 hover:text-slate-600 underline underline-offset-2 transition text-center"
+                            >
+                                {ONBOARDING_STEPS.chromeGate.skipButtonText}
+                            </button>
+                        </div>
+                    )}
+
+                    {currentStep === 3 && (isChrome || isMobile || chromeGateDismissed) && (
                         <div className="flex flex-col space-y-4">
                             <h2 className="text-xl font-bold flex items-center gap-2 text-slate-900">
                                 <span className="p-1.5 bg-blue-500/10 rounded-lg text-blue-500">3</span>

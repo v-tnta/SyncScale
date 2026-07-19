@@ -164,6 +164,8 @@ const TaskOverlay = ({ isOpen, onClose, task, logs, onUpdate, onDelete, onPhysic
             onClose={onClose}
             title={task.title}
             maxWidth="max-w-5xl"
+            zIndex={80}
+            blockOutsideInteraction={!isTutorialActive}
             className="bg-white rounded-xl shadow-2xl p-6"
         >
             <div id="tutorial-task-detail-container">

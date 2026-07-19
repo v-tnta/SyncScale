@@ -401,6 +401,7 @@ const Timer = ({ activeTask, logs, onUpdateTask }) => {
                 onClose={() => setIsConfirmModalOpen(false)}
                 title={TIMER.subTaskModalTitle}
                 maxWidth="max-w-sm"
+                zIndex={70}
                 className="bg-white rounded-lg shadow-2xl p-6"
             >
                 <h3 className="text-lg font-bold mb-2">{TIMER.subTaskModalTitle}</h3>
