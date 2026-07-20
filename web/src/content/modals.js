@@ -5,6 +5,12 @@
  * 文言を編集したいときは、該当するモーダルのオブジェクトを書き換えてください。
  */
 
+// 拡張機能ガイドのスライド画像（4:3 / 928x696 の @2x 素材）
+import storeImage from '../assets/extension-guide/0-store.png';
+import popupImage from '../assets/extension-guide/1-popup.png';
+import importImage from '../assets/extension-guide/2-import.png';
+import sizingImage from '../assets/extension-guide/3-sizing.png';
+
 // ========================================
 // 確認モーダル（ConfirmModal.jsx）の既定ラベル
 // ========================================
@@ -56,25 +62,29 @@ export const EXTENSION_GUIDE_MODAL = {
     {
       title: "manabaの課題を自動で取り込もう",
       description: "SyncScaleのChrome拡張機能を使うと、manabaに掲載されている課題を一括で取り込めます。手入力の手間がなくなります！",
-      imagePlaceholder: "manaba連携イメージ",
+      image: storeImage,
+      imageAlt: "Chromeウェブストアのアイテムページ。「Chrome に追加」ボタンが表示されている",
       icon: "🔗",
     },
     {
       title: "Step 1: 拡張機能アイコンをクリック",
       description: "ブラウザ右上のSyncScale拡張機能アイコンをクリックすると、ポップアップが表示されます。",
-      imagePlaceholder: "拡張機能アイコンクリック画面",
+      image: popupImage,
+      imageAlt: "ツールバーから開いたSyncScale拡張機能のポップアップ",
       icon: "🧩",
     },
     {
       title: "Step 2: 課題を取り込む",
       description: "「課題を取り込む」ボタンをクリックすると、manabaから課題が自動的にSyncScaleに追加されます。",
-      imagePlaceholder: "課題取り込みボタン画面",
+      image: importImage,
+      imageAlt: "manabaから課題を取得しましたと表示された確認ダイアログ",
       icon: "📥",
     },
     {
       title: "準備完了！",
       description: "これでmanabaの課題がSyncScaleに反映されます。新しい課題が出たら、同じ手順で取り込めます。",
-      imagePlaceholder: "取り込み完了画面",
+      image: sizingImage,
+      imageAlt: "取り込んだ課題の規模をS/M/Lから選ぶ画面",
       icon: "✅",
     },
   ],
