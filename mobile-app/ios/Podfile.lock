@@ -1486,7 +1486,7 @@ SPEC CHECKSUMS:
   FirebaseFirestore: e5c352f6cc5158929702a7dffc0b917324907e89
   FirebaseFirestoreInternal: f5748d57cf73bb51f01ecebce87c72321193e388
   FirebaseSharedSwift: 76bdd9de8ff1da7a601236ee058253e36206978e
-  Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
+  Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   flutter_local_notifications: 395056b3175ba4f08480a7c5de30cd36d69827e4
   flutter_timezone: ee50ce7786b5fde27e2fe5375bbc8c9661ffc13f
   google_sign_in_ios: 205742c688aea0e64db9da03c33121694a365109
