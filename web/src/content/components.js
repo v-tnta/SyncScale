@@ -12,9 +12,9 @@
 // ========================================
 export const SIZE_LABEL_SELECTOR = {
   options: [
-    { value: "S", label: "S (すぐ)" },
-    { value: "M", label: "M (半日〜1日)" },
-    { value: "L", label: "L (数日)" },
+    { value: "S", label: "S（小さい）" },
+    { value: "M", label: "M（中くらい）" },
+    { value: "L", label: "L（大きい）" },
   ],
 };
 
@@ -26,6 +26,7 @@ export const TASK_FORM = {
   titlePlaceholder: "例: 数学の課題、レポート作成",
   deadlineLabel: "締切日時",
   sizeLabel: "規模感 (相対見積もり)",
+  sizeHelp: "課題やタスクの規模感を、あなたが感じるボリューム感で選択してください。",
   submitButton: "タスクを登録",
 };
 
@@ -162,9 +163,9 @@ export const ANALYTICS_PANEL = {
     all: "全期間",
   },
   sizeDescription: {
-    S: "小規模 (すぐやる)",
-    M: "中規模 (半日〜1日)",
-    L: "大規模 (数日)",
+    S: "小さい",
+    M: "中くらい",
+    L: "大きい",
   },
   // 着手リードタイム
   leadTime: {
@@ -243,7 +244,6 @@ export const CALENDAR = {
 export const GANTT_CHART = {
   noLogs: "作業ログがありません。",
   zeroDuration: "作業時間が0分です。",
-  heading: "実績ガントチャート",
   defaultSubTaskName: "作業",
 };
 

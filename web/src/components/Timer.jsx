@@ -5,54 +5,6 @@ import { useActivityLog } from '../hooks/useActivityLog'
 import { Modal } from './Modal'
 import { TIMER } from '../content'
 
-const RING_SIZE = 148;
-const RING_STROKE = 8;
-const RING_RADIUS = (RING_SIZE - RING_STROKE) / 2;
-const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
-
-/**
- * 円形プログレスタイマー表示。
- * ストップウォッチ（上限なしのカウントアップ）のため「進捗」の概念がなく、
- * アナログ時計の秒針のように「直近1分」を1周として繰り返しスイープさせることで
- * 時間が流れていることを視覚的に伝える。1秒ごとの状態更新をCSSトランジションで
- * 滑らかに補間することで、見た目上は連続的に動いているように見せている。
- */
-const TimerRing = ({ seconds, isActive, children }) => {
-    const progress = (seconds % 60) / 60;
-    const dashOffset = RING_CIRCUMFERENCE * (1 - progress);
-
-    return (
-        <div className="relative shrink-0" style={{ width: RING_SIZE, height: RING_SIZE }}>
-            <svg width={RING_SIZE} height={RING_SIZE} className="-rotate-90">
-                <circle
-                    cx={RING_SIZE / 2}
-                    cy={RING_SIZE / 2}
-                    r={RING_RADIUS}
-                    fill="none"
-                    strokeWidth={RING_STROKE}
-                    className="stroke-gray-100"
-                />
-                <circle
-                    cx={RING_SIZE / 2}
-                    cy={RING_SIZE / 2}
-                    r={RING_RADIUS}
-                    fill="none"
-                    strokeWidth={RING_STROKE}
-                    strokeLinecap="round"
-                    strokeDasharray={RING_CIRCUMFERENCE}
-                    strokeDashoffset={dashOffset}
-                    className={`transition-[stroke-dashoffset] duration-1000 ease-linear ${
-                        isActive ? 'stroke-blue-600' : 'stroke-gray-300'
-                    }`}
-                />
-            </svg>
-            <div className="absolute inset-0 flex items-center justify-center">
-                {children}
-            </div>
-        </div>
-    );
-};
-
 /**
  * Timerコンポーネント (Inline版)
  * TaskOverlayのヘッダーなどに埋め込んで使用するタイマーボタン群。
@@ -264,29 +216,31 @@ const Timer = ({ activeTask, logs, onUpdateTask }) => {
     if (activeTask.status === 'DONE') return null;
 
     return (
-        <div className="flex flex-col md:flex-row items-center gap-4 md:gap-8 w-full mt-2 justify-center">
+        <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6 w-full mt-2 justify-center">
             {/* 左端：タブ切り替え */}
             <div className="flex flex-col gap-2 shrink-0 w-full md:w-32">
                 <div className="flex md:flex-col gap-2">
                     <button
+                        type="button"
                         onClick={() => setActiveTab('timer')}
                         disabled={isActive && activeTab !== 'timer'}
-                        className={`flex-1 md:flex-none py-2 px-3 text-sm font-bold text-center rounded-lg border-2 transition-all ${
+                        className={`flex-1 md:flex-none py-2 px-3 text-xs sm:text-sm font-bold text-center rounded-xl border-2 transition-all ${
                             activeTab === 'timer'
-                                ? 'bg-white border-blue-500 text-blue-600 shadow-sm'
-                                : 'bg-gray-100 border-transparent text-gray-500 hover:bg-gray-200'
+                                ? 'bg-white dark:bg-slate-800 border-blue-500 text-blue-600 dark:text-blue-400 shadow-xs'
+                                : 'bg-slate-100 dark:bg-slate-800 border-transparent text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
                         }`}
                     >
                         {TIMER.tabRecord}
                     </button>
                     <button
                         id="tutorial-manual-tab"
+                        type="button"
                         onClick={() => setActiveTab('manual')}
                         disabled={isActive && activeTab !== 'manual'}
-                        className={`flex-1 md:flex-none py-2 px-3 text-sm font-bold text-center rounded-lg border-2 transition-all ${
+                        className={`flex-1 md:flex-none py-2 px-3 text-xs sm:text-sm font-bold text-center rounded-xl border-2 transition-all ${
                             activeTab === 'manual'
-                                ? 'bg-white border-blue-500 text-blue-600 shadow-sm'
-                                : 'bg-gray-100 border-transparent text-gray-500 hover:bg-gray-200'
+                                ? 'bg-white dark:bg-slate-800 border-blue-500 text-blue-600 dark:text-blue-400 shadow-xs'
+                                : 'bg-slate-100 dark:bg-slate-800 border-transparent text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
                         }`}
                     >
                         {TIMER.tabManual}
@@ -295,43 +249,44 @@ const Timer = ({ activeTask, logs, onUpdateTask }) => {
             </div>
 
             {/* 右側：コンテンツエリア */}
-            <div className="border border-gray-200 shadow-sm rounded-lg p-6 bg-white w-full max-w-xl min-h-[160px] flex flex-col justify-center min-h-[180px]">
+            <div className="border border-slate-200 dark:border-slate-750 shadow-xs rounded-2xl p-5 bg-white dark:bg-slate-850 w-full max-w-xl min-h-[170px] flex flex-col justify-center">
                 {activeTab === 'timer' ? (
-                    <div className="flex flex-col gap-5 justify-center items-center">
-                        <div className="flex items-center gap-4 w-full">
-                            <span className="font-bold text-gray-700 whitespace-nowrap">{TIMER.todoLabel}</span>
-                            <div className="flex-1 max-w-[280px]">
-                                <input
-                                    type="text"
-                                    placeholder={TIMER.todoPlaceholder}
-                                    className="w-full p-2 border-2 border-gray-300 rounded font-bold text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                                    value={subTaskName}
-                                    onChange={(e) => setSubTaskName(e.target.value)}
-                                    disabled={isActive || isConfirmModalOpen}
-                                />
+                    <div className="flex flex-col gap-5 justify-center">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div className="flex items-center gap-3 flex-1">
+                                <span className="font-bold text-xs sm:text-sm text-slate-700 dark:text-slate-300 whitespace-nowrap">{TIMER.todoLabel}</span>
+                                <div className="flex-1 max-w-[220px]">
+                                    <input
+                                        type="text"
+                                        placeholder={TIMER.todoPlaceholder}
+                                        className="w-full px-3 py-1.5 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                        value={subTaskName}
+                                        onChange={(e) => setSubTaskName(e.target.value)}
+                                        disabled={isActive || isConfirmModalOpen}
+                                    />
+                                </div>
+                            </div>
+                            <div className={`text-3xl sm:text-4xl font-mono font-black tracking-wider text-right ${isActive ? 'text-blue-600 dark:text-blue-400 animate-pulse' : 'text-slate-800 dark:text-slate-100'}`}>
+                                {formatTime(elapsedSeconds)}
                             </div>
                         </div>
-
-                        <TimerRing seconds={elapsedSeconds} isActive={isActive}>
-                            <span className={`text-xl font-mono font-bold tracking-tight ${isActive ? 'text-blue-600' : 'text-gray-800'}`}>
-                                {formatTime(elapsedSeconds)}
-                            </span>
-                        </TimerRing>
 
                         <div className="flex justify-center gap-3">
                             {!isActive ? (
                                 <>
                                     {elapsedSeconds > 0 && (
                                         <button
+                                            type="button"
                                             onClick={handleRecordClick}
-                                            className="bg-blue-600 text-white font-bold py-1.5 px-6 rounded-full hover:bg-blue-700 transition shadow-sm"
+                                            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-xl transition shadow-xs text-xs sm:text-sm"
                                         >
                                             {TIMER.recordButton}
                                         </button>
                                     )}
                                     <button
+                                        type="button"
                                         onClick={handleStart}
-                                        className="bg-green-500 text-white font-bold py-1.5 px-8 rounded-full hover:bg-green-600 transition shadow-sm"
+                                        className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-8 rounded-xl transition shadow-xs text-xs sm:text-sm"
                                     >
                                         {elapsedSeconds > 0 ? TIMER.restartButton : TIMER.startButton}
                                     </button>
@@ -339,14 +294,16 @@ const Timer = ({ activeTask, logs, onUpdateTask }) => {
                             ) : (
                                 <>
                                     <button
+                                        type="button"
                                         onClick={handleRecordClick}
-                                        className="bg-blue-600 text-white font-bold py-1.5 px-6 rounded-full hover:bg-blue-700 transition shadow-sm"
+                                        className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-xl transition shadow-xs text-xs sm:text-sm"
                                     >
                                         {TIMER.recordButton}
                                     </button>
                                     <button
+                                        type="button"
                                         onClick={handlePause}
-                                        className="bg-yellow-500 text-white font-bold py-1.5 px-8 rounded-full hover:bg-yellow-600 transition shadow-sm"
+                                        className="bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 px-8 rounded-xl transition shadow-xs text-xs sm:text-sm"
                                     >
                                         {TIMER.stopButton}
                                     </button>
@@ -356,37 +313,41 @@ const Timer = ({ activeTask, logs, onUpdateTask }) => {
                     </div>
                 ) : (
                     <div className="flex flex-col gap-4">
-                        <div className="flex items-center gap-4">
-                            <span className="font-bold text-gray-700 whitespace-nowrap">{TIMER.manualDoneLabel}</span>
-                            <div className="flex-1 max-w-[200px]">
+                        <div className="flex items-center gap-3">
+                            <span className="font-bold text-xs sm:text-sm text-slate-700 dark:text-slate-300 whitespace-nowrap">{TIMER.manualDoneLabel}</span>
+                            <div className="flex-1 max-w-[220px]">
                                 <input
                                     type="text"
                                     placeholder={TIMER.manualDonePlaceholder}
-                                    className="w-full p-2 border-2 border-gray-300 rounded font-bold text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                    className="w-full px-3 py-1.5 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                                     value={manualData.subTaskName}
                                     onChange={(e) => setManualData({ ...manualData, subTaskName: e.target.value })}
                                 />
                             </div>
                         </div>
                         {/* 作業時間 + きろくボタンを同じ行に */}
-                        <div className="flex items-center justify-between gap-4">
-                            <div className="flex items-center gap-4">
-                                <span className="font-bold text-gray-700 whitespace-nowrap">{TIMER.workTimeLabel}</span>
-                                <div id="tutorial-manual-duration" className="flex items-center gap-2 transition-all duration-300 rounded-lg p-1">
+                        <div
+                            id="tutorial-manual-record-row"
+                            className="flex items-center justify-between gap-4 transition-all duration-300 rounded-xl p-1"
+                        >
+                            <div className="flex items-center gap-3">
+                                <span className="font-bold text-xs sm:text-sm text-slate-700 dark:text-slate-300 whitespace-nowrap">{TIMER.workTimeLabel}</span>
+                                <div id="tutorial-manual-duration" className="flex items-center gap-1.5 transition-all duration-300 rounded-lg">
                                     <input
                                         type="number"
                                         placeholder={TIMER.durationPlaceholder}
-                                        className="w-24 p-2 border-2 border-gray-300 rounded font-bold text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none text-right"
+                                        className="w-20 px-2 py-1.5 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-blue-500 focus:outline-none text-right"
                                         value={manualData.durationMinutes}
                                         onChange={(e) => setManualData({ ...manualData, durationMinutes: e.target.value })}
                                     />
-                                    <span className="font-bold text-gray-600">{TIMER.minuteUnit}</span>
+                                    <span className="font-bold text-xs sm:text-sm text-slate-600 dark:text-slate-400">{TIMER.minuteUnit}</span>
                                 </div>
                             </div>
                             <button
                                 id="tutorial-manual-save-button"
+                                type="button"
                                 onClick={handleManualSave}
-                                className="bg-blue-600 text-white font-bold py-2 px-8 rounded-full hover:bg-blue-700 transition shadow-sm"
+                                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-xl transition shadow-xs text-xs sm:text-sm"
                             >
                                 {TIMER.manualRecordButton}
                             </button>
@@ -402,19 +363,23 @@ const Timer = ({ activeTask, logs, onUpdateTask }) => {
                 title={TIMER.subTaskModalTitle}
                 maxWidth="max-w-sm"
                 zIndex={70}
-                className="bg-white rounded-lg shadow-2xl p-6"
+                className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 rounded-2xl shadow-2xl p-6"
             >
-                <h3 className="text-lg font-bold mb-2">{TIMER.subTaskModalTitle}</h3>
+                <h3 className="text-base font-bold mb-2 text-slate-900 dark:text-slate-50">{TIMER.subTaskModalTitle}</h3>
                 <input
                     type="text"
-                    className="w-full p-2 border rounded mb-4 focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-xl mb-4 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm"
                     value={subTaskName}
                     onChange={(e) => setSubTaskName(e.target.value)}
                     autoFocus
                 />
                 <div className="flex justify-end gap-2">
-                    <button onClick={() => setIsConfirmModalOpen(false)} className="text-gray-500 px-4">{TIMER.subTaskModalCancel}</button>
-                    <button onClick={handleConfirmSave} className="bg-blue-600 text-white px-4 py-2 rounded">{TIMER.subTaskModalSave}</button>
+                    <button type="button" onClick={() => setIsConfirmModalOpen(false)} className="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 px-3 py-1.5 text-xs font-bold rounded-xl transition">
+                        {TIMER.subTaskModalCancel}
+                    </button>
+                    <button type="button" onClick={handleConfirmSave} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-xl font-bold text-xs transition">
+                        {TIMER.subTaskModalSave}
+                    </button>
                 </div>
             </Modal>
         </div>

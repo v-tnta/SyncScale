@@ -81,7 +81,7 @@ export function Modal({
     closeOnOutsideClick = true,
     zIndex = 90,
     blockOutsideInteraction = true,
-    className = 'bg-white rounded-2xl shadow-2xl',
+    className = 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 rounded-2xl shadow-2xl',
 }) {
     useEffect(() => { installTutorialGuidePointerTracker(); }, []);
 

@@ -1,33 +1,39 @@
 @import url("https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;800;900&display=swap");
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* ============================================================
    デザイントークン
-   ブランドカラー・フォントの単一の定義元。Tailwind v4 の @theme は
-   --color-* / --font-* 等から bg-primary, text-success のような
-   ユーティリティクラスを自動生成する。既存の bg-blue-600 等の
-   Tailwind標準クラスも引き続き使えるが、新規コンポーネントは
-   こちらのセマンティックなトークンを優先して使うこと。
+   ブランドカラー・フォント・アニメーションの単一の定義元。
    ============================================================ */
 @theme {
     --font-sans: "Noto Sans JP", ui-sans-serif, system-ui, sans-serif;
 
     /* 主要アクション（登録・保存・タイマー開始などのボタン） */
-    --color-primary: #2563eb;      /* blue-600 相当 */
-    --color-primary-hover: #1d4ed8; /* blue-700 相当 */
+    --color-primary: #2563eb;       /* blue-600 相当 */
+    --color-primary-hover: #1d4ed8;  /* blue-700 相当 */
 
     /* 完了・作業実績（カレンダーの作業ログの帯など） */
-    --color-success: #22c55e;      /* green-500 相当 */
+    --color-success: #22c55e;       /* green-500 相当 */
+    --color-success-hover: #16a34a; /* green-600 相当 */
 
-    /* タスクの規模感（S/M/L）。TaskList/TaskOverlay/Calendar等で共有 */
-    --color-size-s: #06b6d4;       /* cyan-500 相当 */
-    --color-size-m: #f97316;       /* orange-500 相当 */
-    --color-size-l: #ef4444;       /* red-500 相当 */
+    /* タスクの規模感（S/M/L）。通常バッジ用 */
+    --color-size-s: #06b6d4;        /* cyan-500 相当 */
+    --color-size-m: #f97316;        /* orange-500 相当 */
+    --color-size-l: #ef4444;        /* red-500 相当 */
 
-    /* モーダルの開閉アニメーション。
-       各所で animate-fade-in / animate-fade-in-up というクラス名は
-       以前から使われていたが、対応する @keyframes 定義が存在せず
-       実際には何も起きていなかった（無効なクラス名だった）。 */
+    /* カレンダー締切日円用（白文字のWCAG 2.2コントラスト比 4.5:1 以上を担保する高コントラスト版） */
+    --color-size-s-contrast: #0891b2; /* cyan-600 */
+    --color-size-m-contrast: #ea580c; /* orange-600 */
+    --color-size-l-contrast: #dc2626; /* red-600 */
+
+    /* ダークモード用中間スレートカラー（カード背景や境界の微調整用） */
+    --color-slate-650: #293548;
+    --color-slate-750: #1e293b;
+    --color-slate-850: #111a2e;
+
+    /* モーダルの開閉アニメーション */
     --animate-fade-in: fade-in 0.2s ease-out;
     --animate-fade-in-up: fade-in-up 0.25s ease-out;
     --animate-fade-out: fade-out 0.15s ease-in;
@@ -60,32 +66,101 @@ textarea,
     caret-color: auto !important;
 }
 
-/* Webkit scrollbar customization for 'custom-scrollbar' class */
+/* ============================================================
+   スクロールバー（ライト／ダーク両対応）
+   ============================================================ */
 .custom-scrollbar::-webkit-scrollbar {
-    width: 8px;
+    width: 6px;
+    height: 6px;
 }
     
 .custom-scrollbar::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 4px;
+    background: transparent;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #ccc;
-    border-radius: 4px;
+    background: #cbd5e1;
+    border-radius: 9999px;
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #475569;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #aaa;
+    background: #94a3b8;
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #64748b;
 }
 
 /* ============================================================
-   カレンダー週表示（react-big-calendar）
-   1時間ごとの行を圧縮し、縦スクロールなしで 0:00〜24:00 を
-   一望できるようにする（h-[660px] のコンテナに収める）。
-   行の高さは時間軸ラベルの line-height でも決まるため、
-   ラベルも小さくして 1 行 ≒ 19px に抑える（24 行で約 456px）。
+   外部リンク用ボタンスタイル
+   （アンケート・ストアはホバー時薄青、LINEは緑）
    ============================================================ */
+.btn-external-blue {
+    background-color: #f1f5f9;
+    color: #1e293b;
+    border: 1px solid #cbd5e1;
+    transition: all 0.2s ease-in-out;
+}
+.btn-external-blue:hover,
+.btn-external-blue:focus-visible {
+    background-color: #dbeafe;
+    color: #1d4ed8;
+    border-color: #93c5fd;
+}
+.btn-external-blue:active {
+    background-color: #bfdbfe;
+    color: #1e40af;
+}
+
+.dark .btn-external-blue {
+    background-color: #1e293b;
+    color: #e2e8f0;
+    border: 1px solid #334155;
+}
+.dark .btn-external-blue:hover,
+.dark .btn-external-blue:focus-visible {
+    background-color: #1e3a8a;
+    color: #bfdbfe;
+    border-color: #3b82f6;
+}
+.dark .btn-external-blue:active {
+    background-color: #172554;
+}
+
+.btn-external-line {
+    background-color: #059669;
+    color: #ffffff;
+    border: 1px solid #047857;
+    transition: all 0.2s ease-in-out;
+}
+.btn-external-line:hover,
+.btn-external-line:focus-visible {
+    background-color: #10b981;
+    color: #064e3b;
+    border-color: #34d399;
+}
+.btn-external-line:active {
+    background-color: #047857;
+    color: #ffffff;
+}
+
+/* ============================================================
+   カレンダー（react-big-calendar）スタイル & ダークモード対応
+   ============================================================ */
+.syncscale-calendar {
+    color: #1e293b;
+    font-family: var(--font-sans);
+}
+
+.dark .syncscale-calendar {
+    color: #f1f5f9;
+}
+
+/* カレンダー週表示（0:00〜24:00 を一望） */
 .syncscale-calendar .rbc-timeslot-group {
     min-height: 19px;
 }
@@ -94,4 +169,147 @@ textarea,
 .syncscale-calendar .rbc-time-gutter .rbc-label {
     font-size: 11px;
     line-height: 15px;
+}
+
+/* カレンダーの罫線とヘッダー */
+.syncscale-calendar .rbc-header {
+    border-bottom: 1px solid #e2e8f0;
+    padding: 6px 4px;
+    font-weight: 700;
+    font-size: 13px;
+    color: #475569;
+}
+
+.dark .syncscale-calendar .rbc-header {
+    border-bottom: 1px solid #334155;
+    color: #94a3b8;
+}
+
+.syncscale-calendar .rbc-header + .rbc-header {
+    border-left: 1px solid #e2e8f0;
+}
+
+.dark .syncscale-calendar .rbc-header + .rbc-header {
+    border-left: 1px solid #334155;
+}
+
+.syncscale-calendar .rbc-month-view,
+.syncscale-calendar .rbc-time-view {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+    background-color: transparent;
+}
+
+.dark .syncscale-calendar .rbc-month-view,
+.dark .syncscale-calendar .rbc-time-view {
+    border: 1px solid #334155;
+}
+
+.syncscale-calendar .rbc-day-bg + .rbc-day-bg {
+    border-left: 1px solid #f1f5f9;
+}
+
+.dark .syncscale-calendar .rbc-day-bg + .rbc-day-bg {
+    border-left: 1px solid #1e293b;
+}
+
+.syncscale-calendar .rbc-month-row + .rbc-month-row {
+    border-top: 1px solid #f1f5f9;
+}
+
+.dark .syncscale-calendar .rbc-month-row + .rbc-month-row {
+    border-top: 1px solid #1e293b;
+}
+
+/* 今日の日付セル背景 */
+.syncscale-calendar .rbc-day-bg.rbc-today {
+    background-color: #f0f7ff;
+}
+
+.dark .syncscale-calendar .rbc-day-bg.rbc-today {
+    background-color: rgba(37, 99, 235, 0.12);
+}
+
+/* 前後月（範囲外の日） */
+.syncscale-calendar .rbc-off-range-bg {
+    background-color: #fafafa;
+}
+
+.dark .syncscale-calendar .rbc-off-range-bg {
+    background-color: rgba(15, 23, 42, 0.5);
+}
+
+.syncscale-calendar .rbc-off-range {
+    color: #94a3b8;
+}
+
+.dark .syncscale-calendar .rbc-off-range {
+    color: #475569;
+}
+
+/* ツールバー（ナビゲーション）ボタン */
+.syncscale-calendar .rbc-toolbar button {
+    border: 1px solid #e2e8f0;
+    color: #334155;
+    background-color: #ffffff;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 8px;
+    padding: 5px 12px;
+    transition: all 0.15s ease;
+}
+
+.dark .syncscale-calendar .rbc-toolbar button {
+    border: 1px solid #334155;
+    color: #cbd5e1;
+    background-color: #1e293b;
+}
+
+.syncscale-calendar .rbc-toolbar button:hover {
+    background-color: #f1f5f9;
+    color: #0f172a;
+}
+
+.dark .syncscale-calendar .rbc-toolbar button:hover {
+    background-color: #334155;
+    color: #f8fafc;
+}
+
+.syncscale-calendar .rbc-toolbar button.rbc-active {
+    background-color: #2563eb;
+    border-color: #2563eb;
+    color: #ffffff;
+    box-shadow: 0 1px 2px rgba(37, 99, 235, 0.2);
+}
+
+.dark .syncscale-calendar .rbc-toolbar button.rbc-active {
+    background-color: #3b82f6;
+    border-color: #3b82f6;
+    color: #ffffff;
+}
+
+/* 時間軸のグリッド（週表示） */
+.syncscale-calendar .rbc-time-content {
+    border-top: 1px solid #e2e8f0;
+}
+
+.dark .syncscale-calendar .rbc-time-content {
+    border-top: 1px solid #334155;
+}
+
+.syncscale-calendar .rbc-time-content > * + * > * {
+    border-left: 1px solid #f1f5f9;
+}
+
+.dark .syncscale-calendar .rbc-time-content > * + * > * {
+    border-left: 1px solid #1e293b;
+}
+
+.syncscale-calendar .rbc-timeslot-group {
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.dark .syncscale-calendar .rbc-timeslot-group {
+    border-bottom: 1px solid #1e293b;
 }

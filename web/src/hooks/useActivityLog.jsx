@@ -10,7 +10,7 @@ let sessionStartLogged = false;
 /**
  * 行動ログ記録用のカスタムフック
  *
- * - 未ログイン or 未同意（同意書バージョン不一致を含む）の間は何も記録しない
+ * - 未ログインまたは未同意の間は何も記録しない
  * - 記録の失敗がアプリの動作を妨げないよう、fire-and-forget で書き込む（await しない・throw しない）
  */
 export const useActivityLog = () => {

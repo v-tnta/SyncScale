@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Zap } from 'lucide-react';
 import { Modal } from './Modal';
 import { TASK_SIZE_ESTIMATE_MODAL } from '../content';
 
@@ -23,43 +24,42 @@ const TaskSizeEstimateModal = ({ isOpen, task, currentIndex, totalCount, onSubmi
             title={task ? `${task.title} ${TASK_SIZE_ESTIMATE_MODAL.titleSingle}` : TASK_SIZE_ESTIMATE_MODAL.titleSingle}
             closeOnOutsideClick={false}
             zIndex={80}
-            className="bg-white rounded-2xl shadow-2xl p-6"
+            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 rounded-3xl shadow-2xl p-6 sm:p-8"
         >
             {task && (
             <div>
                 <div className="text-center mb-6">
-                    <div className="mx-auto w-16 h-16 bg-blue-100 text-blue-500 rounded-full flex items-center justify-center mb-4 relative">
-                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                        </svg>
+                    <div className="mx-auto w-14 h-14 bg-blue-100 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center mb-3 relative shadow-xs">
+                        <Zap className="w-7 h-7" strokeWidth={2.2} />
                         {isMultiple && (
-                            <div className="absolute -top-2 -right-4 bg-red-500 text-white text-xs font-black px-2 py-1 rounded-full shadow-md">
+                            <div className="absolute -top-1.5 -right-3 bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-xs">
                                 {currentIndex}/{totalCount}
                             </div>
                         )}
                     </div>
-                    <h2 className="text-xl font-bold text-gray-800">
+                    <h2 className="text-xl font-black text-slate-900 dark:text-slate-50">
                         {isMultiple ? TASK_SIZE_ESTIMATE_MODAL.titleMultiple : TASK_SIZE_ESTIMATE_MODAL.titleSingle}
                     </h2>
-                    <p className="text-sm text-gray-500 mt-2 line-clamp-2 border-b border-gray-100 pb-2 px-2">
+                    <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 line-clamp-2 border-b border-slate-100 dark:border-slate-800 pb-3 px-2">
                         {task.title}
                     </p>
                 </div>
 
                 <div className="space-y-6">
                     <div>
-                        <label className="block text-sm font-bold text-gray-700 mb-3 text-center">
+                        <label className="block text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 mb-3 text-center">
                             {TASK_SIZE_ESTIMATE_MODAL.question}
                         </label>
-                        <div className="flex justify-center gap-4">
+                        <div className="flex justify-center gap-3.5">
                             {TASK_SIZE_ESTIMATE_MODAL.sizeOptions.map(opt => (
                                 <button
                                     key={opt.value}
+                                    type="button"
                                     onClick={() => setSizeLabel(opt.value)}
-                                    className={`flex flex-col items-center justify-center w-24 h-24 rounded-2xl border-2 transition-all ${
+                                    className={`flex flex-col items-center justify-center w-24 h-24 rounded-2xl border-2 transition-all cursor-pointer ${
                                         sizeLabel === opt.value 
-                                            ? `${opt.color} transform scale-110 shadow-md ring-2 ring-offset-2 ring-${opt.color.split('-')[1]}-400` 
-                                            : 'bg-white border-gray-200 text-gray-400 hover:border-gray-300 hover:bg-gray-50'
+                                            ? `${opt.color} transform scale-105 shadow-md ring-2 ring-offset-2 dark:ring-offset-slate-900` 
+                                            : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-750'
                                     }`}
                                 >
                                     <span className="text-3xl font-black mb-1">{opt.value}</span>
@@ -69,11 +69,12 @@ const TaskSizeEstimateModal = ({ isOpen, task, currentIndex, totalCount, onSubmi
                         </div>
                     </div>
 
-                    <div className="flex pt-2">
+                    <div className="flex pt-1">
                         <button
+                            type="button"
                             onClick={handleSubmit}
                             disabled={!sizeLabel}
-                            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl shadow-lg shadow-blue-200 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold py-3 px-4 rounded-xl shadow-xs transition text-sm disabled:opacity-40 disabled:cursor-not-allowed"
                         >
                             {TASK_SIZE_ESTIMATE_MODAL.submitButtonText}
                         </button>
@@ -81,8 +82,9 @@ const TaskSizeEstimateModal = ({ isOpen, task, currentIndex, totalCount, onSubmi
 
                     {/* 課題として追加しない（取り込み対象から外す） */}
                     <button
+                        type="button"
                         onClick={() => onDecline(task)}
-                        className="w-full mt-3 text-xs text-gray-400 hover:text-red-500 transition text-center"
+                        className="w-full mt-2 text-xs font-semibold text-slate-400 hover:text-red-500 dark:hover:text-red-400 transition text-center cursor-pointer"
                     >
                         {TASK_SIZE_ESTIMATE_MODAL.declineButtonText}
                     </button>

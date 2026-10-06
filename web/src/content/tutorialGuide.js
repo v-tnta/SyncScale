@@ -28,7 +28,7 @@ export const TUTORIAL_GUIDE_STEPS = {
   },
   3: {
     title: "3/15. 規模感を選択しましょう 📊",
-    desc: "課題の規模感（S/M/L）を選択してみましょう。\nご自身の思う基準で結構です！",
+    desc: "課題やタスクの規模感を、あなたが感じるボリューム感で選択してください。",
     targetId: "tutorial-size-selector",
     showNext: true,
   },
@@ -45,20 +45,20 @@ export const TUTORIAL_GUIDE_STEPS = {
     showNext: false,
   },
   6: {
-    title: "6/15. タスク詳細画面です 🔍",
-    desc: "ここがタスク詳細画面です。\n課題の情報の編集や、作業時間の記録、提出完了の操作などをここから行えます。\n確認したら「次へ進む」を押してください。",
+    title: "6/15. タスク詳細画面 🔍",
+    desc: "詳細画面が開きました。\nこの画面にて、課題の情報の編集や、作業時間の記録、提出完了の操作などを行えます。",
     targetId: "tutorial-task-detail-container",
     showNext: true,
   },
   7: {
     title: "7/15. 課題の編集機能 ✏️",
-    desc: "詳細画面が開きました！\nこちらのボタンから、課題のタイトルや締切、\n規模感（S/M/L）をいつでも編集できます。\n確認したら「次へ進む」を押してください。",
+    desc: "こちらのボタンから、課題のタイトルや締切、\n規模感（S/M/L）をいつでも編集できます。",
     targetId: "tutorial-edit-button",
     showNext: true,
   },
   8: {
     title: "8/15. 課題の削除機能 🗑️",
-    desc: "こちらのボタンから、課題を削除できます。\n予定が変わった時や、誤って登録した時に使用します。\n確認したら「次へ進む」を押してください。",
+    desc: "こちらのボタンから、課題を削除できます。\n予定が変わった時や、誤って登録した時に使用します。",
     targetId: "tutorial-delete-button",
     showNext: true,
   },
@@ -71,7 +71,7 @@ export const TUTORIAL_GUIDE_STEPS = {
   10: {
     title: "10/15. 作業時間を記録しましょう 📝",
     desc: "作業時間（例: 30分）を入力し、右側の\n「きろく」をクリックして時間を記録してみましょう。\nチャートが貯まるのを確認してください。",
-    targetId: "tutorial-manual-duration",
+    targetId: "tutorial-manual-record-row",
     showNext: false,
   },
   11: {

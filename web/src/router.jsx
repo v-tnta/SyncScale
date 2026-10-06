@@ -5,6 +5,7 @@ import { useConsent } from "./hooks/useConsent";
 import { useOnboarding } from "./hooks/useOnboarding";
 import { AgreementPage } from "./pages/AgreementPage";
 import PrivacyPolicy from "./components/PrivacyPolicy";
+import MobilePrivacyPolicy from "./components/MobilePrivacyPolicy";
 import { ExtSyncPage } from "./pages/ExtSyncPage";
 import { LoginPage } from "./pages/LoginPage";
 import { ConsentGuard } from "./guards/ConsentGuard";
@@ -20,7 +21,7 @@ export function RootRedirect() {
 
     if (authLoading || consentLoading || onboardingLoading) {
         return (
-            <div className="flex h-screen items-center justify-center bg-slate-50 text-slate-800">
+            <div className="flex h-screen items-center justify-center bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100">
                 <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div>
             </div>
         );
@@ -43,6 +44,7 @@ export function AppRouter() {
             {/* 公開ルート */}
             <Route path="/agreement" element={<AgreementPage />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/privacy/mobile" element={<MobilePrivacyPolicy />} />
             <Route path="/svc/ext-sync" element={<ExtSyncPage />} />
             <Route path="/login" element={<LoginPage />} />
             

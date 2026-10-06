@@ -1,1049 +1,550 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>SyncScale プロジェクトガイド</title>
-<meta name="description" content="SyncScale — 相対見積もり（S/M/L）を用いた学生向けタスク管理能力・メタ認知支援ツールの仕組みとデータフローの解説" />
-<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-<style>
-  :root {
-    --primary: #2563eb;
-    --primary-hover: #1d4ed8;
-    --success: #22c55e;
-    --size-s: #06b6d4;
-    --size-m: #f97316;
-    --size-l: #ef4444;
-
-    --bg: #f8fafc;
-    --panel: #ffffff;
-    --sidebar-bg: #0f172a;
-    --sidebar-text: #cbd5e1;
-    --sidebar-muted: #64748b;
-    --border: #e2e8f0;
-    --text: #1e293b;
-    --muted: #64748b;
-    --heading: #0f172a;
-    --code-bg: #f1f5f9;
-    --code-text: #334155;
-    --table-head: #f1f5f9;
-    --note-bg: #eff6ff;
-    --note-border: #bfdbfe;
-    --warn-bg: #fffbeb;
-    --warn-border: #fde68a;
-    --diagram-box: #ffffff;
-    --diagram-stroke: #94a3b8;
-  }
-  @media (prefers-color-scheme: dark) {
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SyncScale ガイド</title>
+  <meta name="description" content="SyncScale は、大学の課題を S/M/L のざっくり見積もりと作業時間の記録で「見える化」するタスク管理ツールです。茨城大学の研究プロジェクトとして、研究参加者を募集しています。" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <script>
+    // アプリ本体（useTheme）と同じキーを共有し、ガイドとアプリで外観設定を揃える
+    (function () {
+      var t = 'system';
+      try { t = localStorage.getItem('syncscale_theme') || 'system'; } catch (e) {}
+      var dark = t === 'dark' || (t === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      document.documentElement.classList.toggle('dark', dark);
+      document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+      document.documentElement.dataset.themePref = t;
+    })();
+  </script>
+  <style>
+    /* ============================================================
+       デザイントークン（web/src/index.css の @theme と同じ値）
+       ============================================================ */
     :root {
-      --bg: #0b1120;
-      --panel: #111a2e;
-      --sidebar-bg: #060b16;
-      --sidebar-text: #94a3b8;
-      --sidebar-muted: #475569;
-      --border: #253248;
-      --text: #cbd5e1;
-      --muted: #7d8ea6;
-      --heading: #e8eef7;
-      --code-bg: #1a2438;
-      --code-text: #a5b4cb;
-      --table-head: #16203400;
-      --note-bg: #12213d;
-      --note-border: #1e3a5f;
-      --warn-bg: #251d0a;
-      --warn-border: #4d3d10;
-      --diagram-box: #16213a;
-      --diagram-stroke: #48576e;
+      --primary: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-soft: #eff6ff;
+      --primary-text: #2563eb;
+      --success: #22c55e;
+      --size-s: #06b6d4;
+      --size-m: #f97316;
+      --size-l: #ef4444;
+
+      --bg: #f8fafc;          /* slate-50 */
+      --surface: #ffffff;
+      --surface-2: #f1f5f9;   /* slate-100 */
+      --border: #e2e8f0;      /* slate-200 */
+      --text: #1e293b;        /* slate-800 */
+      --heading: #0f172a;     /* slate-900 */
+      --muted: #64748b;       /* slate-500 */
+      --shadow: 0 1px 2px rgb(15 23 42 / 0.05), 0 4px 16px -6px rgb(15 23 42 / 0.08);
+
+      --badge-s-bg: #ecfeff; --badge-s-fg: #0e7490; --badge-s-bd: #a5f3fc;
+      --badge-m-bg: #fff7ed; --badge-m-fg: #c2410c; --badge-m-bd: #fed7aa;
+      --badge-l-bg: #fef2f2; --badge-l-fg: #b91c1c; --badge-l-bd: #fecaca;
     }
-  }
+    :root.dark {
+      --primary-soft: rgb(23 37 84 / 0.6);
+      --primary-text: #60a5fa; /* blue-400 */
+      --bg: #020617;          /* slate-950 */
+      --surface: #0f172a;     /* slate-900 */
+      --surface-2: #1e293b;   /* slate-800 */
+      --border: #1e293b;
+      --text: #e2e8f0;
+      --heading: #f8fafc;
+      --muted: #94a3b8;
+      --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px -8px rgb(0 0 0 / 0.5);
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
-  body {
-    font-family: "Noto Sans JP", "Hiragino Kaku Gothic ProN", ui-sans-serif, system-ui, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    line-height: 1.75;
-    font-size: 15px;
-  }
-  code {
-    font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
-    background: var(--code-bg);
-    color: var(--code-text);
-    padding: 0.1em 0.4em;
-    border-radius: 4px;
-    font-size: 0.88em;
-    word-break: break-all;
-  }
-  pre {
-    background: var(--code-bg);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 14px 16px;
-    overflow-x: auto;
-    line-height: 1.6;
-    margin: 12px 0 20px;
-  }
-  pre code { background: none; padding: 0; font-size: 12.5px; }
-  a { color: var(--primary); text-decoration: none; }
-  a:hover { text-decoration: underline; }
-
-  /* ============ layout ============ */
-  .app { display: flex; min-height: 100vh; }
-
-  .sidebar {
-    width: 250px;
-    flex-shrink: 0;
-    background: var(--sidebar-bg);
-    color: var(--sidebar-text);
-    position: sticky;
-    top: 0;
-    height: 100vh;
-    overflow-y: auto;
-    padding: 22px 14px 30px;
-  }
-  .brand {
-    display: flex; align-items: center; gap: 10px;
-    padding: 2px 10px 16px;
-    border-bottom: 1px solid rgba(148,163,184,0.18);
-    margin-bottom: 14px;
-  }
-  .brand .logo {
-    width: 34px; height: 34px; border-radius: 8px;
-    background: linear-gradient(135deg, var(--primary), #7c3aed);
-    display: flex; align-items: center; justify-content: center;
-    color: #fff; font-weight: 700; font-size: 15px;
-    flex-shrink: 0;
-  }
-  .brand .name { font-weight: 700; color: #f1f5f9; font-size: 15px; line-height: 1.3; }
-  .brand .sub { font-size: 11px; color: var(--sidebar-muted); }
-
-  .nav-group { margin: 14px 0 4px; }
-  .nav-group-label {
-    font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase;
-    color: var(--sidebar-muted); padding: 0 10px; margin-bottom: 4px; font-weight: 600;
-  }
-  .nav a {
-    display: block;
-    padding: 7px 10px;
-    border-radius: 7px;
-    color: var(--sidebar-text);
-    font-size: 13.5px;
-    margin-bottom: 1px;
-    border-left: 3px solid transparent;
-  }
-  .nav a:hover { background: rgba(148,163,184,0.1); text-decoration: none; }
-  .nav a.active {
-    background: rgba(37,99,235,0.22);
-    color: #ffffff;
-    border-left-color: var(--primary);
-    font-weight: 600;
-  }
-  .sidebar .foot {
-    margin-top: 22px; padding: 12px 10px 0; border-top: 1px solid rgba(148,163,184,0.18);
-    font-size: 11.5px; color: var(--sidebar-muted); line-height: 1.7;
-  }
-  .sidebar .foot a { color: #93b4f5; }
-
-  .main { flex: 1; min-width: 0; }
-  .content {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 36px 40px 90px;
-  }
-
-  /* ============ typography ============ */
-  .section { display: none; }
-  .section.active { display: block; animation: fadeIn 0.25s ease-out; }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-
-  .kicker {
-    color: var(--primary); font-weight: 700; font-size: 12.5px;
-    letter-spacing: 0.06em; margin-bottom: 6px;
-  }
-  h1 { color: var(--heading); font-size: 27px; line-height: 1.4; margin-bottom: 10px; }
-  .lead { color: var(--muted); font-size: 15px; margin-bottom: 28px; }
-  h2 {
-    color: var(--heading); font-size: 19px; margin: 40px 0 12px;
-    padding-bottom: 8px; border-bottom: 1px solid var(--border);
-  }
-  h3 { color: var(--heading); font-size: 15.5px; margin: 26px 0 8px; }
-  p { margin-bottom: 12px; }
-  ul, ol { margin: 0 0 14px 1.4em; }
-  li { margin-bottom: 5px; }
-  strong { color: var(--heading); }
-
-  table {
-    width: 100%; border-collapse: collapse; margin: 12px 0 22px;
-    font-size: 13.5px; background: var(--panel);
-    border: 1px solid var(--border); border-radius: 8px; overflow: hidden;
-  }
-  .table-wrap { overflow-x: auto; margin: 12px 0 22px; border-radius: 8px; }
-  .table-wrap table { margin: 0; min-width: 560px; }
-  th {
-    background: var(--table-head); color: var(--heading); text-align: left;
-    padding: 9px 12px; font-size: 12.5px; border-bottom: 1px solid var(--border);
-    white-space: nowrap;
-  }
-  td { padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
-  tr:last-child td { border-bottom: none; }
-
-  .note, .warn {
-    border-radius: 8px; padding: 12px 16px; margin: 14px 0 20px; font-size: 13.5px;
-  }
-  .note { background: var(--note-bg); border: 1px solid var(--note-border); }
-  .warn { background: var(--warn-bg); border: 1px solid var(--warn-border); }
-  .note p:last-child, .warn p:last-child { margin-bottom: 0; }
-
-  .chip {
-    display: inline-block; padding: 1px 9px; border-radius: 999px;
-    font-size: 11.5px; font-weight: 700; color: #fff; vertical-align: middle;
-  }
-  .chip.s { background: var(--size-s); }
-  .chip.m { background: var(--size-m); }
-  .chip.l { background: var(--size-l); }
-  .chip.web { background: var(--primary); }
-  .chip.ext { background: #7c3aed; }
-  .chip.mob { background: #0d9488; }
-  .chip.fb  { background: #f59e0b; }
-  .chip.gray { background: var(--muted); }
-
-  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; margin: 14px 0 22px; }
-  .card {
-    background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
-    padding: 16px 18px;
-  }
-  .card h4 { color: var(--heading); font-size: 14.5px; margin-bottom: 6px; }
-  .card p { font-size: 13px; color: var(--muted); margin-bottom: 0; }
-
-  /* flow steps */
-  .steps { list-style: none; margin: 16px 0 24px; counter-reset: step; }
-  .steps li {
-    position: relative; padding: 0 0 18px 46px; counter-increment: step;
-  }
-  .steps li::before {
-    content: counter(step);
-    position: absolute; left: 0; top: 0;
-    width: 30px; height: 30px; border-radius: 999px;
-    background: var(--primary); color: #fff; font-weight: 700; font-size: 13.5px;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .steps li::after {
-    content: ""; position: absolute; left: 14.5px; top: 32px; bottom: 2px;
-    width: 1.5px; background: var(--border);
-  }
-  .steps li:last-child::after { display: none; }
-  .steps .who { font-size: 11.5px; margin-right: 6px; }
-  .steps .t { font-weight: 700; color: var(--heading); }
-  .steps .d { font-size: 13.5px; color: var(--muted); margin-top: 2px; }
-
-  /* lifecycle */
-  .lifecycle { display: flex; align-items: stretch; gap: 0; margin: 16px 0 8px; flex-wrap: wrap; }
-  .lc-state {
-    background: var(--panel); border: 1.5px solid var(--border); border-radius: 10px;
-    padding: 10px 18px; text-align: center; min-width: 150px; flex: 1;
-  }
-  .lc-state .st { font-weight: 700; color: var(--heading); font-size: 15px; }
-  .lc-state .sd { font-size: 12px; color: var(--muted); }
-  .lc-arrow { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0 10px; color: var(--muted); font-size: 11.5px; text-align: center; }
-  .lc-arrow .a { color: var(--primary); font-size: 20px; line-height: 1; font-weight: 700; }
-
-  .diagram-wrap { overflow-x: auto; margin: 16px 0 8px; }
-  .diagram-wrap svg { min-width: 760px; width: 100%; height: auto; display: block; }
-  .diagram-cap { font-size: 12.5px; color: var(--muted); text-align: center; margin-bottom: 22px; }
-
-  .pagelinks { display: flex; justify-content: space-between; gap: 12px; margin-top: 48px; }
-  .pagelinks a {
-    flex: 1; max-width: 48%;
-    border: 1px solid var(--border); background: var(--panel); border-radius: 10px;
-    padding: 12px 16px; font-size: 13.5px;
-  }
-  .pagelinks a:hover { border-color: var(--primary); text-decoration: none; }
-  .pagelinks .dir { display: block; font-size: 11px; color: var(--muted); }
-  .pagelinks .next { text-align: right; margin-left: auto; }
-
-  /* ============ mobile ============ */
-  @media (max-width: 900px) {
-    .app { flex-direction: column; }
-    .sidebar {
-      width: 100%; height: auto; position: sticky; top: 0; z-index: 10;
-      padding: 10px 12px;
-      overflow-x: auto; overflow-y: hidden;
+      --badge-s-bg: rgb(8 51 68 / 0.5);  --badge-s-fg: #67e8f9; --badge-s-bd: #155e75;
+      --badge-m-bg: rgb(67 20 7 / 0.5);  --badge-m-fg: #fdba74; --badge-m-bd: #9a3412;
+      --badge-l-bg: rgb(69 10 10 / 0.5); --badge-l-fg: #fca5a5; --badge-l-bd: #991b1b;
     }
-    .brand { border-bottom: none; padding: 0 4px 8px; margin-bottom: 0; }
-    .nav { display: flex; gap: 4px; }
-    .nav-group { display: contents; }
-    .nav-group-label { display: none; }
-    .nav a { white-space: nowrap; border-left: none; border-bottom: 3px solid transparent; border-radius: 7px 7px 0 0; }
-    .nav a.active { border-left: none; border-bottom-color: var(--primary); }
-    .sidebar .foot { display: none; }
-    .content { padding: 24px 18px 70px; }
-    h1 { font-size: 22px; }
-    .pagelinks a { max-width: none; }
-  }
-</style>
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 72px; }
+    body {
+      font-family: 'Noto Sans JP', ui-sans-serif, system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.75;
+      -webkit-font-smoothing: antialiased;
+      transition: background-color .2s, color .2s;
+    }
+    a { color: inherit; text-decoration: none; }
+    svg.i { width: 1.15em; height: 1.15em; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 0 16px; }
+    @media (min-width: 640px) { .wrap { padding: 0 24px; } }
+
+    /* ---------- ボタン ---------- */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+      font-weight: 700; font-size: .9rem; border-radius: 1rem; padding: .75rem 1.4rem;
+      border: 1px solid transparent; cursor: pointer; transition: all .15s; white-space: nowrap;
+    }
+    .btn-primary { background: var(--primary); color: #fff; box-shadow: 0 6px 16px -6px rgb(37 99 235 / .6); }
+    .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); }
+    .btn-ghost { background: var(--surface); color: var(--text); border-color: var(--border); }
+    .btn-ghost:hover { background: var(--surface-2); }
+    .btn-sm { padding: .45rem .9rem; font-size: .8rem; border-radius: .9rem; }
+
+    /* ---------- ヘッダー ---------- */
+    header {
+      position: sticky; top: 0; z-index: 10;
+      background: color-mix(in srgb, var(--bg) 82%, transparent);
+      backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav { display: flex; align-items: center; justify-content: space-between; height: 60px; gap: .75rem; }
+    .brand { display: flex; align-items: center; gap: .55rem; font-weight: 900; color: var(--heading); font-size: 1.05rem; }
+    .brand img { width: 28px; height: 28px; object-fit: contain; }
+    .ver { font-size: .68rem; font-weight: 700; color: var(--muted); background: var(--surface-2); border: 1px solid var(--border); padding: .05rem .45rem; border-radius: 999px; }
+    .nav-right { display: flex; align-items: center; gap: .5rem; }
+    .nav-links { display: none; gap: 1.25rem; font-size: .85rem; font-weight: 700; color: var(--muted); margin-right: .5rem; }
+    .nav-links a:hover { color: var(--primary-text); }
+    @media (min-width: 820px) { .nav-links { display: flex; } }
+
+    .theme-btn {
+      display: inline-flex; align-items: center; gap: .4rem; font: inherit; font-size: .8rem; font-weight: 700;
+      color: var(--text); background: var(--surface); border: 1px solid var(--border);
+      border-radius: 1rem; padding: .4rem .75rem; cursor: pointer;
+    }
+    .theme-btn:hover { background: var(--surface-2); }
+    .theme-label { white-space: nowrap; }
+    @media (max-width: 639px) { .theme-label { display: none; } .theme-btn { padding: .45rem .55rem; } }
+    @media (max-width: 419px) { .ver { display: none; } }
+    .sunmoon { position: relative; display: inline-block; width: 22px; height: 18px; }
+    .sunmoon .sun { position: absolute; left: 0; top: 0; width: 15px; height: 15px; color: #f59e0b; }
+    .sunmoon .moon { position: absolute; right: 0; bottom: 0; width: 13px; height: 13px; color: #6366f1; fill: rgb(99 102 241 / .2); }
+    :root.dark .sunmoon .moon { color: #a5b4fc; }
+
+    /* ---------- ヒーロー ---------- */
+    .hero { padding: 64px 0 56px; }
+    .hero-grid { text-align: center; }
+    .hero-grid .lead { margin-left: auto; margin-right: auto; }
+    .hero-grid .cta-row { justify-content: center; }
+    @media (min-width: 900px) { .hero { padding: 80px 0 72px; } }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: .4rem; font-size: .78rem; font-weight: 700;
+      color: var(--primary-text); background: var(--primary-soft); padding: .3rem .8rem; border-radius: 999px; margin-bottom: 1.1rem;
+    }
+    h1 { font-size: clamp(1.9rem, 5vw, 2.9rem); line-height: 1.3; font-weight: 900; color: var(--heading); letter-spacing: -.01em; }
+    h1 .accent { color: var(--primary-text); }
+    .lead { margin-top: 1.1rem; font-size: 1rem; color: var(--muted); max-width: 34em; }
+    .lead strong { color: var(--text); }
+    .cta-row { margin-top: 1.75rem; display: flex; gap: .75rem; flex-wrap: wrap; }
+    .hero-note { margin-top: .9rem; font-size: .78rem; color: var(--muted); }
+
+
+
+    /* ---------- スクリーンショット ---------- */
+    .frame { margin: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 1rem; overflow: hidden; box-shadow: var(--shadow); }
+    .frame img { display: block; width: 100%; height: auto; }
+    .frame-bar { display: flex; align-items: center; gap: .35rem; padding: .55rem .8rem; border-bottom: 1px solid var(--border); background: var(--surface-2); }
+    .frame-bar i { width: .6rem; height: .6rem; border-radius: 50%; background: var(--border); }
+    :root.dark .frame-bar i { background: #334155; }
+    .frame-bar span { margin: 0 auto; font-size: .7rem; color: var(--muted); padding-right: 1.8rem; }
+    .shot-dark { display: none !important; }
+    :root.dark .shot-light { display: none !important; }
+    :root.dark .shot-dark { display: block !important; }
+    .hero-shot { margin-top: 48px; border-radius: 1.1rem; }
+    @media (min-width: 900px) { .hero-shot { margin-top: 64px; } }
+    .caption { text-align: center; font-size: .78rem; color: var(--muted); margin-top: .8rem; }
+
+    .spot { display: grid; gap: 24px; align-items: center; }
+    .spot + .spot { margin-top: 56px; }
+    @media (min-width: 900px) {
+      .spot { grid-template-columns: .9fr 1.1fr; gap: 48px; }
+      .spot.reverse .spot-text { order: 2; }
+    }
+    .spot-text h3 { font-size: 1.2rem; font-weight: 900; color: var(--heading); line-height: 1.5; margin-top: .6rem; }
+    .spot-text p { color: var(--muted); font-size: .9rem; margin-top: .6rem; }
+    .step-chip { display: inline-block; font-size: .72rem; font-weight: 700; color: var(--primary-text); background: var(--primary-soft); padding: .15rem .65rem; border-radius: 999px; }
+    .spot-media.two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .frame.tall { max-width: 460px; margin: 0 auto; }
+
+    /* ---------- セクション共通 ---------- */
+    section.block { padding: 72px 0; }
+    section.alt { background: var(--surface); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+    .sec-head { max-width: 640px; margin-bottom: 2.25rem; }
+    .sec-label { font-size: .75rem; font-weight: 700; color: var(--primary-text); letter-spacing: .08em; }
+    h2 { font-size: clamp(1.4rem, 3.4vw, 1.9rem); font-weight: 900; color: var(--heading); line-height: 1.4; margin-top: .35rem; }
+    .sec-desc { color: var(--muted); margin-top: .6rem; font-size: .95rem; }
+
+    /* ---------- 機能 ---------- */
+    .features { display: grid; gap: 14px; grid-template-columns: 1fr; }
+    @media (min-width: 640px) { .features { grid-template-columns: 1fr 1fr; } }
+    @media (min-width: 960px) { .features { grid-template-columns: repeat(3, 1fr); } }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 1.1rem; padding: 1.3rem; box-shadow: var(--shadow); }
+    section.alt .card { background: var(--bg); box-shadow: none; }
+    .ficon { width: 40px; height: 40px; border-radius: .8rem; display: flex; align-items: center; justify-content: center; margin-bottom: .85rem; }
+    .ficon svg { width: 20px; height: 20px; }
+    .ficon.blue { background: var(--primary-soft); color: var(--primary-text); }
+    .ficon.cyan { background: var(--badge-s-bg); color: var(--badge-s-fg); }
+    .ficon.orange { background: var(--badge-m-bg); color: var(--badge-m-fg); }
+    .ficon.red { background: var(--badge-l-bg); color: var(--badge-l-fg); }
+    .ficon.green { background: rgb(34 197 94 / .12); color: #16a34a; }
+    :root.dark .ficon.green { color: #4ade80; }
+    .ficon.violet { background: rgb(139 92 246 / .12); color: #7c3aed; }
+    :root.dark .ficon.violet { color: #a78bfa; }
+    .card h3 { font-size: 1rem; font-weight: 700; color: var(--heading); }
+    .card p { font-size: .86rem; color: var(--muted); margin-top: .35rem; }
+    .chips { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .7rem; }
+    .chip { font-size: .7rem; font-weight: 700; padding: .1rem .55rem; border-radius: 999px; background: var(--surface-2); color: var(--muted); }
+
+    /* ---------- 研究 ---------- */
+    .research { display: grid; gap: 20px; }
+    @media (min-width: 900px) { .research { grid-template-columns: 1.1fr .9fr; gap: 28px; } }
+    .facts { display: grid; gap: .6rem; }
+    .fact { display: flex; gap: .8rem; align-items: flex-start; padding: .9rem 1rem; border: 1px solid var(--border); border-radius: .9rem; background: var(--bg); }
+    .fact svg { color: var(--primary-text); margin-top: .25rem; }
+    .fact b { display: block; color: var(--heading); font-size: .9rem; }
+    .fact span { font-size: .84rem; color: var(--muted); }
+    .data-list { list-style: none; display: grid; gap: .45rem; margin-top: .75rem; }
+    .data-list li { display: flex; gap: .5rem; font-size: .85rem; color: var(--text); }
+    .data-list li svg { color: var(--success); margin-top: .3rem; width: 1em; height: 1em; }
+    .small { font-size: .78rem; color: var(--muted); margin-top: .9rem; }
+    .small a { color: var(--primary-text); font-weight: 700; text-decoration: underline; text-underline-offset: 2px; }
+
+    /* ---------- 参加の流れ ---------- */
+    .steps { list-style: none; display: grid; gap: 12px; counter-reset: s; }
+    @media (min-width: 640px) { .steps { grid-template-columns: 1fr 1fr; } }
+    @media (min-width: 960px) { .steps { grid-template-columns: repeat(3, 1fr); } }
+    .step { position: relative; padding-left: 3.4rem; }
+    .step::before {
+      counter-increment: s; content: counter(s);
+      position: absolute; left: 1.2rem; top: 1.25rem; width: 1.7rem; height: 1.7rem; border-radius: .6rem;
+      background: var(--primary); color: #fff; font-weight: 900; font-size: .85rem; display: flex; align-items: center; justify-content: center;
+    }
+    .step h3 { font-size: .95rem; }
+    .pc { display: inline-block; font-size: .66rem; font-weight: 700; color: var(--muted); border: 1px solid var(--border); border-radius: 999px; padding: 0 .45rem; margin-left: .3rem; vertical-align: 2px; }
+
+    /* ---------- FAQ ---------- */
+    .faq { display: grid; gap: 10px; max-width: 780px; }
+    details { background: var(--surface); border: 1px solid var(--border); border-radius: 1rem; padding: 0 1.1rem; }
+    summary { cursor: pointer; list-style: none; padding: 1rem 0; font-weight: 700; color: var(--heading); font-size: .92rem; display: flex; justify-content: space-between; gap: 1rem; }
+    summary::-webkit-details-marker { display: none; }
+    summary::after { content: '+'; color: var(--muted); font-weight: 400; font-size: 1.2rem; line-height: 1; }
+    details[open] summary::after { content: '−'; }
+    details p { padding-bottom: 1rem; font-size: .86rem; color: var(--muted); }
+
+    /* ---------- 最終CTA ---------- */
+    .final {
+      text-align: center; border-radius: 1.5rem; padding: 48px 20px;
+      background: linear-gradient(135deg, #2563eb, #1d4ed8 60%, #1e40af); color: #fff;
+    }
+    .final h2 { color: #fff; }
+    .final p { color: rgb(255 255 255 / .85); margin: .7rem auto 1.6rem; max-width: 36em; font-size: .95rem; }
+    .final .btn { background: #fff; color: #1d4ed8; }
+    .final .btn:hover { background: #eff6ff; transform: translateY(-1px); }
+
+    footer { padding: 32px 0 40px; font-size: .8rem; color: var(--muted); }
+    .foot { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; align-items: center; }
+    .foot-links { display: flex; flex-wrap: wrap; gap: 1.1rem; font-weight: 700; }
+    .foot-links a:hover { color: var(--primary-text); }
+  </style>
 </head>
 <body>
-<div class="app">
+  <!-- アイコン（lucide 由来のパス） -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <symbol id="i-list" viewBox="0 0 24 24"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4M12 16h4M8 11h.01M8 16h.01"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/><path d="M12 15V3"/></symbol>
+    <symbol id="i-scale" viewBox="0 0 24 24"><path d="M12 3v18"/><path d="M5 7h14"/><path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/><path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"/></symbol>
+    <symbol id="i-timer" viewBox="0 0 24 24"><path d="M10 2h4"/><path d="M12 14l3-3"/><circle cx="12" cy="14" r="8"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></symbol>
+    <symbol id="i-flask" viewBox="0 0 24 24"><path d="M9 3h6"/><path d="M10 3v6.5L4.5 19a2 2 0 0 0 1.7 3h11.6a2 2 0 0 0 1.7-3L14 9.5V3"/><path d="M7 15h10"/></symbol>
+    <symbol id="i-cal-range" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M8 15h8"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+    <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></symbol>
+  </svg>
 
-  <!-- ================= サイドバー ================= -->
-  <aside class="sidebar">
-    <div class="brand">
-      <div class="logo">S</div>
-      <div>
-        <div class="name">SyncScale</div>
-        <div class="sub">プロジェクトガイド</div>
+  <header>
+    <div class="wrap nav">
+      <a href="/" class="brand">
+        <img src="/logo.png" alt="" />
+        <span>SyncScale</span>
+        <span class="ver">v1.0.0</span>
+      </a>
+      <div class="nav-right">
+        <nav class="nav-links" aria-label="ページ内リンク">
+          <a href="#features">機能</a>
+          <a href="#screens">画面</a>
+          <a href="#research">研究について</a>
+          <a href="#join">参加の流れ</a>
+          <a href="#faq">よくある質問</a>
+        </nav>
+        <button type="button" class="theme-btn" id="themeBtn" aria-label="テーマ切り替え"></button>
+        <a href="/" class="btn btn-primary btn-sm">アプリを開く</a>
       </div>
     </div>
-    <nav class="nav" id="nav">
-      <div class="nav-group">
-        <div class="nav-group-label">はじめに</div>
-        <a href="#overview" data-tab="overview">プロジェクト概要</a>
+  </header>
+
+  <main>
+    <!-- ヒーロー -->
+    <section class="hero">
+      <div class="wrap hero-grid">
+        <div>
+          <span class="eyebrow"><svg class="i"><use href="#i-flask"/></svg>茨城大学 研究プロジェクト ・ 参加者募集中</span>
+          <h1>課題の「重さ」と<br>「かけた時間」を、<br><span class="accent">見える化する。</span></h1>
+          <p class="lead">
+            SyncScale は、大学の課題を <strong>S / M / L のざっくり見積もり</strong>で登録し、<strong>実際にかけた作業時間</strong>を記録していくタスク管理ツールです。
+            自分の取り組み方のクセに気づき、無理のない計画につなげることを目指しています。
+          </p>
+          <div class="cta-row">
+            <a href="/" class="btn btn-primary">研究に参加して使ってみる<svg class="i"><use href="#i-arrow"/></svg></a>
+            <a href="#features" class="btn btn-ghost">機能を見る</a>
+          </div>
+          <p class="hero-note">Google アカウントでログイン → 同意書を確認して参加できます。参加は任意で、いつでも撤回できます。</p>
+        </div>
       </div>
-      <div class="nav-group">
-        <div class="nav-group-label">アーキテクチャ</div>
-        <a href="#architecture" data-tab="architecture">システム全体像</a>
-        <a href="#dataflow" data-tab="dataflow">データフロー</a>
-        <a href="#schema" data-tab="schema">データ構造（Firestore）</a>
+      <div class="wrap">
+        <figure class="hero-shot frame">
+          <div class="frame-bar" aria-hidden="true"><i></i><i></i><i></i><span>sync-scale.web.app</span></div>
+          <img class="shot-light" src="/guide/img/home-light.jpg" width="1800" height="1125" alt="SyncScale のホーム画面。左にS/M/Lの色分けがされたタスク一覧、右に締切カレンダーが並ぶ" fetchpriority="high" />
+          <img class="shot-dark" src="/guide/img/home-dark.jpg" width="1800" height="1125" alt="SyncScale のホーム画面（ダークテーマ）" loading="lazy" />
+        </figure>
+        <p class="caption">ホーム画面（表示はデモデータ）。課題の一覧と締切カレンダーを 1 画面で確認できます。</p>
       </div>
-      <div class="nav-group">
-        <div class="nav-group-label">プロダクト</div>
-        <a href="#web" data-tab="web">Web アプリ</a>
-        <a href="#extension" data-tab="extension">Chrome 拡張機能</a>
-        <a href="#mobile" data-tab="mobile">モバイルアプリ</a>
+    </section>
+
+    <!-- 機能 -->
+    <section class="block alt" id="features">
+      <div class="wrap">
+        <div class="sec-head">
+          <div class="sec-label">FEATURES</div>
+          <h2>SyncScale でできること</h2>
+          <p class="sec-desc">登録・記録・ふり返りを、なるべく手間なく続けられるように作っています。</p>
+        </div>
+        <div class="features">
+          <div class="card">
+            <div class="ficon blue"><svg class="i"><use href="#i-download"/></svg></div>
+            <h3>manaba の課題を取り込み</h3>
+            <p>Chrome 拡張機能から、manaba の課題名・科目名・締切をまとめて取り込めます。手入力の手間と締切の見落としを減らします。</p>
+          </div>
+          <div class="card">
+            <div class="ficon orange"><svg class="i"><use href="#i-scale"/></svg></div>
+            <h3>S / M / L でざっくり見積もり</h3>
+            <p>「何分かかるか」ではなく、課題の重さを S（小）・M（中）・L（大）で直感的に選ぶだけ。登録のハードルを下げます。</p>
+          </div>
+          <div class="card">
+            <div class="ficon green"><svg class="i"><use href="#i-timer"/></svg></div>
+            <h3>作業時間の記録</h3>
+            <p>タイマーで計測、または後から手入力で、課題ごとに作業時間を記録。完了時にはその時のコンディションも残せます。</p>
+          </div>
+          <div class="card">
+            <div class="ficon cyan"><svg class="i"><use href="#i-calendar"/></svg></div>
+            <h3>締切カレンダー</h3>
+            <p>月・週表示で締切と作業の記録を一望。課題の重さが色で分かり、作業した日には実績のマークが付きます。</p>
+          </div>
+          <div class="card">
+            <div class="ficon violet"><svg class="i"><use href="#i-chart"/></svg></div>
+            <h3>ふり返り分析</h3>
+            <p>記録がたまると、自分の取り組み方を 5 つの観点で確認できます。</p>
+            <div class="chips">
+              <span class="chip">平均着手タイミング</span><span class="chip">サイズ別の平均作業時間</span><span class="chip">一夜漬け度</span><span class="chip">よく作業する時間帯</span><span class="chip">放置タスク</span>
+            </div>
+          </div>
+          <div class="card">
+            <div class="ficon red"><svg class="i"><use href="#i-phone"/></svg></div>
+            <h3>スマホでも同じデータ</h3>
+            <p>iPhone アプリ・スマホのブラウザからも同じアカウントで利用でき、データは自動で同期されます。スマホアプリでは締切前の通知も受け取れます。</p>
+          </div>
+        </div>
       </div>
-      <div class="nav-group">
-        <div class="nav-group-label">機能詳細</div>
-        <a href="#analytics" data-tab="analytics">分析機能</a>
+    </section>
+
+    <!-- 画面で見る -->
+    <section class="block" id="screens">
+      <div class="wrap">
+        <div class="sec-head">
+          <div class="sec-label">SCREENS</div>
+          <h2>画面で見る SyncScale</h2>
+          <p class="sec-desc">実際の画面の一部をご紹介します。</p>
+        </div>
+
+        <div class="spot">
+          <div class="spot-text">
+            <span class="step-chip">課題の登録</span>
+            <h3>manaba を開いて、ボタンを押すだけ</h3>
+            <p>Chrome 拡張機能の「課題を取得する」を押すと、manaba の課題が SyncScale に取り込まれます。新しい課題ごとに S / M / L を選べば登録完了。追加したくない課題は取り込まずにスキップできます。</p>
+          </div>
+          <div class="spot-media two">
+            <figure class="frame"><img src="/guide/img/ext-popup.jpg" width="928" height="696" alt="Chrome 拡張機能のポップアップ。「課題を取得する」ボタンがある" loading="lazy" /></figure>
+            <figure class="frame"><img src="/guide/img/ext-sizing.jpg" width="928" height="696" alt="取り込んだ課題の規模を S・M・L から選ぶ画面" loading="lazy" /></figure>
+          </div>
+        </div>
+
+        <div class="spot reverse">
+          <div class="spot-text">
+            <span class="step-chip">ふり返り</span>
+            <h3>自分の「取り組み方のクセ」が数字で分かる</h3>
+            <p>記録した作業時間から、サイズごとに締切の何日前に着手しているか、実際に何時間かかっているかを集計します。「L の課題は思ったより早めに始めたほうがいい」といった気づきにつながります。</p>
+          </div>
+          <div class="spot-media">
+            <figure class="frame tall">
+              <img class="shot-light" src="/guide/img/analytics-light.jpg" width="840" height="1000" alt="分析ダッシュボード。S/M/L ごとの平均着手タイミングとサイズ別の平均作業時間" loading="lazy" />
+              <img class="shot-dark" src="/guide/img/analytics-dark.jpg" width="840" height="1000" alt="分析ダッシュボード（ダークテーマ）" loading="lazy" />
+            </figure>
+          </div>
+        </div>
       </div>
-      <div class="nav-group">
-        <div class="nav-group-label">運用</div>
-        <a href="#security" data-tab="security">認証・セキュリティ</a>
-        <a href="#build" data-tab="build">技術スタック・ビルド</a>
-        <a href="#changelog" data-tab="changelog">変更履歴</a>
+    </section>
+
+    <!-- 研究について -->
+    <section class="block alt" id="research">
+      <div class="wrap">
+        <div class="sec-head">
+          <div class="sec-label">RESEARCH</div>
+          <h2>研究へのご協力をお願いします</h2>
+          <p class="sec-desc">
+            SyncScale は、タスク管理・主観的な課題の規模・実際の作業時間の記録と分析を通じて、学習プロセスの改善を支援するツールとしての有用性を検証する研究の一環として運用しています。
+            ふだんの課題管理に使っていただくことが、そのまま研究への協力になります。
+          </p>
+        </div>
+        <div class="research">
+          <div class="facts">
+            <div class="fact"><svg class="i"><use href="#i-cal-range"/></svg><div><b>研究期間</b><span>2026年7月22日 〜 2027年2月20日</span></div></div>
+            <div class="fact"><svg class="i"><use href="#i-user"/></svg><div><b>参加条件</b><span>18歳以上の方。参加は自由で、参加しなくても不利益は一切ありません。</span></div></div>
+            <div class="fact"><svg class="i"><use href="#i-undo"/></svg><div><b>いつでも撤回できます</b><span>研究期間内であれば、設定画面の「同意の撤回」からいつでも参加をやめられます。撤回すると、収集されたデータはすべて削除されます。</span></div></div>
+            <div class="fact"><svg class="i"><use href="#i-lock"/></svg><div><b>データの取り扱い</b><span>データは暗号化された安全なサーバーに保管し、研究目的（分析・学術論文・学会発表など）にのみ使用します。分析は個人が特定されないよう匿名化した上で行います。</span></div></div>
+          </div>
+          <div class="card">
+            <h3>記録させていただくデータ</h3>
+            <ul class="data-list">
+              <li><svg class="i"><use href="#i-check"/></svg>Google アカウントの識別子（ログイン・本人確認のため）</li>
+              <li><svg class="i"><use href="#i-check"/></svg>登録したタスクの情報（タスク名・期限・カテゴリ・ステータス・完了時のコンディション）</li>
+              <li><svg class="i"><use href="#i-check"/></svg>課題の見積もり（S/M/L）と実際の作業時間</li>
+              <li><svg class="i"><use href="#i-check"/></svg>システムの利用状況（ログイン状況・滞在時間・各機能の使用状況）</li>
+              <li><svg class="i"><use href="#i-check"/></svg>事前・事後アンケートの回答と回答状況</li>
+            </ul>
+            <p class="small">詳しくは、参加時に表示される<a href="/agreement">研究参加への同意書</a>をご確認ください。研究責任者: 茨城大学 鎌田 賢</p>
+          </div>
+        </div>
       </div>
-    </nav>
-    <div class="foot">
-      <a href="https://sync-scale.web.app/">→ アプリを開く</a><br />
-      設計正典: <code style="background:rgba(148,163,184,0.15);color:#93b4f5;">systemdesign-v3.md</code><br />
-      最終更新: 2026-07-20
-    </div>
-  </aside>
+    </section>
 
-  <!-- ================= メイン ================= -->
-  <main class="main"><div class="content">
-
-  <!-- ========== 概要 ========== -->
-  <section class="section" id="sec-overview">
-    <div class="kicker">はじめに</div>
-    <h1>SyncScale プロジェクト概要</h1>
-    <p class="lead">相対見積もり（S/M/L）を用いた、学生向けタスク管理能力・メタ認知支援ツール</p>
-
-    <h2>解決する課題</h2>
-    <p>学生が抱える「締切に追われる」心理的負担の根本原因は、<strong>自身の時間見積もり能力の甘さ</strong>と<strong>着手の先延ばし</strong>にあります。従来のタスク管理ツールは「締切の管理」は支援しますが、<strong>「タスク規模ごとの着手の癖（先延ばし傾向）」を可視化する機能</strong>は存在しませんでした。</p>
-
-    <h2>目的</h2>
-    <p>学生が、タスク規模（<span class="chip s">S</span> <span class="chip m">M</span> <span class="chip l">L</span>）ごとの<strong>着手リードタイム（締切の何日前に着手したか）</strong>と、タイマーログから自動生成される<strong>実績ガントチャート</strong>を通じて、自身の「時間の使い方の癖」を客観的に自覚（メタ認知）し、セルフマネジメント能力を向上させることを目指します。</p>
-
-    <h2>アプローチ（4 ステップ）</h2>
-    <div class="table-wrap"><table>
-      <tr><th>Step</th><th>手法</th><th>担当プロダクト</th></tr>
-      <tr><td><strong>1. 自動収集</strong></td><td>LMS（manaba 等）から課題・締切を自動取得</td><td><span class="chip ext">Chrome 拡張機能</span></td></tr>
-      <tr><td><strong>2. 相対見積もり</strong></td><td>課題に対して S/M/L をラベリング</td><td><span class="chip web">Web</span> <span class="chip mob">モバイル</span></td></tr>
-      <tr><td><strong>3. 計測と振り返り</strong></td><td>タイマーで実働時間を計測、完了時にコンディション入力</td><td><span class="chip web">Web</span> <span class="chip mob">モバイル</span></td></tr>
-      <tr><td><strong>4. データの可視化</strong></td><td>着手リードタイム・実績ガントチャートを表示</td><td><span class="chip web">Web</span> <span class="chip mob">モバイル</span></td></tr>
-    </table></div>
-
-    <h2>新規性</h2>
-    <div class="cards">
-      <div class="card">
-        <h4>相対見積もり（SML）× 先延ばし可視化</h4>
-        <p>「完了/未完了」ではなく「タスク規模ごとに、いつ着手したか」に着目し、先延ばしの癖をメタ認知させます。</p>
+    <!-- 参加の流れ -->
+    <section class="block" id="join">
+      <div class="wrap">
+        <div class="sec-head">
+          <div class="sec-label">HOW TO JOIN</div>
+          <h2>参加の流れ</h2>
+          <p class="sec-desc">画面の案内に沿って進めるだけで始められます。初期設定は PC での操作をおすすめします。</p>
+        </div>
+        <ol class="steps">
+          <li class="card step"><h3>Google でログイン</h3><p>「アプリを開く」から、お持ちの Google アカウントでログインします。</p></li>
+          <li class="card step"><h3>同意書を確認して参加</h3><p>研究の説明を読み、内容に同意いただける場合のみ参加に進みます。</p></li>
+          <li class="card step"><h3>初回アンケートに回答</h3><p>研究の事前調査として、短いアンケート（Google フォーム）にご協力ください。</p></li>
+          <li class="card step"><h3>LINE オープンチャットに参加</h3><p>連絡事項やサポート、研究に関するお知らせはオープンチャットで配信します。</p></li>
+          <li class="card step"><h3>Chrome 拡張機能を追加<span class="pc">PC</span></h3><p>manaba の課題を取り込むための拡張機能を Chrome ウェブストアから追加します。</p></li>
+          <li class="card step"><h3>チュートリアルで使い方を確認</h3><p>実際の画面を操作しながら基本の使い方を確認したら、あとはふだん通り課題管理に使うだけです。</p></li>
+        </ol>
       </div>
-      <div class="card">
-        <h4>実績ガントチャートの自動生成</h4>
-        <p>従来「未来の計画」のために高コストで作るガントチャートを、タイマーログから「過去の実績」として自動生成。計画立案の負荷なしに内省機会を提供します。</p>
+    </section>
+
+    <!-- FAQ -->
+    <section class="block alt" id="faq">
+      <div class="wrap">
+        <div class="sec-head">
+          <div class="sec-label">FAQ</div>
+          <h2>よくある質問</h2>
+        </div>
+        <div class="faq">
+          <details>
+            <summary>利用にお金はかかりますか？</summary>
+            <p>無料でご利用いただけます。</p>
+          </details>
+          <details>
+            <summary>途中で参加をやめられますか？</summary>
+            <p>はい。研究期間内であれば、アプリの設定画面から「同意の撤回」を行うことでいつでもやめられます。撤回すると、収集されたデータ（タスク・ログ・個人情報）はすべて削除されます。</p>
+          </details>
+          <details>
+            <summary>Chrome 以外のブラウザでも使えますか？</summary>
+            <p>アプリ本体は他のブラウザでも利用できますが、manaba から課題を取り込む拡張機能は PC 版の Google Chrome でのみ動作します。拡張機能を使わず、課題を手入力で登録することもできます。</p>
+          </details>
+          <details>
+            <summary>スマートフォンでも使えますか？</summary>
+            <p>はい。iPhone アプリ（App Store）またはスマホのブラウザから、PC と同じアカウントでご利用いただけます。データは自動で同期されます。</p>
+          </details>
+          <details>
+            <summary>課題の内容や成績が研究者に見られますか？</summary>
+            <p>収集するのは上記「記録させていただくデータ」に挙げた項目のみで、manaba 上の成績や提出物の中身は取得しません。分析は匿名化した上で統計的に行います。</p>
+          </details>
+          <details>
+            <summary>問い合わせ先はどこですか？</summary>
+            <p>参加後は LINE オープンチャットでサポートしています。研究そのものに関するお問い合わせ先は、同意書に記載の研究責任者・研究担当者までご連絡ください。</p>
+          </details>
+        </div>
       </div>
-    </div>
+    </section>
 
-    <h2>3 つの制作物</h2>
-    <p>本プロジェクトは、3 つの制作物と共通ドキュメントで構成されたモノレポです。</p>
-    <div class="table-wrap"><table>
-      <tr><th>プロダクト</th><th>技術</th><th>バージョン</th><th>役割</th></tr>
-      <tr>
-        <td><span class="chip web">Web アプリ</span></td>
-        <td>React + Vite + Tailwind CSS</td>
-        <td><code>0.4.0</code></td>
-        <td>タスク管理・SML 見積もり・タイマー・分析・ガント・拡張機能との連携ハブ</td>
-      </tr>
-      <tr>
-        <td><span class="chip ext">Chrome 拡張機能</span></td>
-        <td>Manifest V3 + Vite</td>
-        <td><code>1.2.0</code></td>
-        <td>manaba から課題・締切を自動取得し、Web アプリ経由で Firestore へ登録</td>
-      </tr>
-      <tr>
-        <td><span class="chip mob">モバイルアプリ</span></td>
-        <td>Flutter (Dart)</td>
-        <td><code>1.0.0</code></td>
-        <td>外出先での SML 評価・タイマー計測・コンディション入力・分析・締切前通知</td>
-      </tr>
-    </table></div>
-    <p>3 つの制作物は <strong>Firebase（Firestore + Authentication）を Single Source of Truth</strong> として共有し、同一ユーザー・同一データでリアルタイムに連携します。</p>
-  </section>
-
-  <!-- ========== システム全体像 ========== -->
-  <section class="section" id="sec-architecture">
-    <div class="kicker">アーキテクチャ</div>
-    <h1>システム全体像</h1>
-    <p class="lead">3 つの制作物が Firebase を中心に連携する全体構成</p>
-
-    <h2>構成図</h2>
-    <div class="diagram-wrap">
-      <svg viewBox="0 0 1000 330" xmlns="http://www.w3.org/2000/svg" font-family="inherit">
-        <defs>
-          <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-            <path d="M 0 1 L 9 5 L 0 9 z" fill="var(--diagram-stroke)" />
-          </marker>
-        </defs>
-
-        <!-- manaba -->
-        <rect x="12" y="105" width="140" height="90" rx="10" fill="var(--diagram-box)" stroke="var(--diagram-stroke)" stroke-width="1.5"/>
-        <text x="82" y="140" text-anchor="middle" font-size="15" font-weight="700" fill="var(--heading)">manaba</text>
-        <text x="82" y="162" text-anchor="middle" font-size="11.5" fill="var(--muted)">LMS（大学の</text>
-        <text x="82" y="178" text-anchor="middle" font-size="11.5" fill="var(--muted)">課題一覧ページ）</text>
-
-        <!-- extension -->
-        <rect x="212" y="90" width="180" height="120" rx="10" fill="var(--diagram-box)" stroke="#7c3aed" stroke-width="1.8"/>
-        <text x="302" y="118" text-anchor="middle" font-size="14" font-weight="700" fill="var(--heading)">Chrome 拡張機能</text>
-        <text x="302" y="136" text-anchor="middle" font-size="11" fill="var(--muted)">Manifest V3 / v1.2.0</text>
-        <rect x="228" y="148" width="148" height="22" rx="5" fill="none" stroke="var(--diagram-stroke)" stroke-dasharray="3 3"/>
-        <text x="302" y="163" text-anchor="middle" font-size="10.5" fill="var(--muted)">content script（収集）</text>
-        <rect x="228" y="176" width="148" height="22" rx="5" fill="none" stroke="var(--diagram-stroke)" stroke-dasharray="3 3"/>
-        <text x="302" y="191" text-anchor="middle" font-size="10.5" fill="var(--muted)">chrome.storage.local</text>
-
-        <!-- web -->
-        <rect x="452" y="90" width="190" height="120" rx="10" fill="var(--diagram-box)" stroke="#2563eb" stroke-width="1.8"/>
-        <text x="547" y="118" text-anchor="middle" font-size="14" font-weight="700" fill="var(--heading)">Web アプリ</text>
-        <text x="547" y="136" text-anchor="middle" font-size="11" fill="var(--muted)">React + Vite / v0.4.0</text>
-        <text x="547" y="160" text-anchor="middle" font-size="10.5" fill="var(--muted)">インポート / SML 見積もり</text>
-        <text x="547" y="177" text-anchor="middle" font-size="10.5" fill="var(--muted)">タイマー / 分析 / ガント</text>
-        <text x="547" y="194" text-anchor="middle" font-size="10.5" fill="var(--muted)">カレンダー / チュートリアル</text>
-
-        <!-- firebase -->
-        <rect x="702" y="70" width="170" height="160" rx="10" fill="var(--diagram-box)" stroke="#f59e0b" stroke-width="1.8"/>
-        <text x="787" y="98" text-anchor="middle" font-size="14" font-weight="700" fill="var(--heading)">Firebase</text>
-        <rect x="718" y="112" width="138" height="44" rx="5" fill="none" stroke="var(--diagram-stroke)" stroke-dasharray="3 3"/>
-        <text x="787" y="130" text-anchor="middle" font-size="11" fill="var(--muted)">Firestore</text>
-        <text x="787" y="146" text-anchor="middle" font-size="9.5" fill="var(--muted)">tasks / timeLogs / …</text>
-        <rect x="718" y="164" width="138" height="44" rx="5" fill="none" stroke="var(--diagram-stroke)" stroke-dasharray="3 3"/>
-        <text x="787" y="182" text-anchor="middle" font-size="11" fill="var(--muted)">Authentication</text>
-        <text x="787" y="198" text-anchor="middle" font-size="9.5" fill="var(--muted)">Google ログイン</text>
-
-        <!-- mobile -->
-        <rect x="702" y="262" width="170" height="58" rx="10" fill="var(--diagram-box)" stroke="#0d9488" stroke-width="1.8"/>
-        <text x="787" y="286" text-anchor="middle" font-size="13.5" font-weight="700" fill="var(--heading)">モバイルアプリ</text>
-        <text x="787" y="304" text-anchor="middle" font-size="10.5" fill="var(--muted)">Flutter / v1.0.0</text>
-
-        <!-- arrows -->
-        <line x1="152" y1="150" x2="210" y2="150" stroke="var(--diagram-stroke)" stroke-width="1.5" marker-end="url(#arr)"/>
-        <text x="181" y="139" text-anchor="middle" font-size="10" fill="var(--muted)">スクレイピング</text>
-
-        <line x1="392" y1="150" x2="450" y2="150" stroke="var(--diagram-stroke)" stroke-width="1.5" marker-end="url(#arr)"/>
-        <text x="421" y="128" text-anchor="middle" font-size="10" fill="var(--muted)">postMessage</text>
-        <text x="421" y="141" text-anchor="middle" font-size="10" fill="var(--muted)">ハンドシェイク</text>
-
-        <line x1="642" y1="150" x2="700" y2="150" stroke="var(--diagram-stroke)" stroke-width="1.5" marker-start="url(#arr)" marker-end="url(#arr)"/>
-        <text x="671" y="128" text-anchor="middle" font-size="10" fill="var(--muted)">CRUD /</text>
-        <text x="671" y="141" text-anchor="middle" font-size="10" fill="var(--muted)">onSnapshot</text>
-
-        <line x1="787" y1="232" x2="787" y2="260" stroke="var(--diagram-stroke)" stroke-width="1.5" marker-start="url(#arr)" marker-end="url(#arr)"/>
-        <text x="700" y="250" text-anchor="end" font-size="10" fill="var(--muted)">リアルタイム同期</text>
-      </svg>
-    </div>
-    <p class="diagram-cap">図1: システム全体構成 — Firebase を Single Source of Truth とする 3 プロダクト連携</p>
-
-    <h2>各プロダクトの役割</h2>
-    <div class="cards">
-      <div class="card">
-        <h4><span class="chip web">Web</span> Web アプリ（React / Vite）</h4>
-        <p>タスクの一覧管理・編集・削除、着手リードタイム分析、積み上げ式実績ガントチャート、〆切カレンダー、タイマー計測・手動記録、コンディション入力、研究利用同意・オンボーディング・チュートリアル、拡張機能とのハンドシェイク連携。</p>
+    <!-- 最終CTA -->
+    <section class="block" style="padding-top: 0;">
+      <div class="wrap">
+        <div class="final">
+          <h2>今学期の課題管理を、研究と一緒に。</h2>
+          <p>ふだんの課題管理に SyncScale を使っていただくことが、学習支援の研究につながります。ご協力をお願いします。</p>
+          <a href="/" class="btn">研究に参加して使ってみる<svg class="i"><use href="#i-arrow"/></svg></a>
+        </div>
       </div>
-      <div class="card">
-        <h4><span class="chip ext">拡張</span> Chrome 拡張機能（MV3）</h4>
-        <p>manaba の課題一覧ページから課題名・締切・科目をスクレイピング。<code>chrome.storage.local</code> を介した Storage ベースのイベント駆動連携（バケツリレー方式）。Firebase には直接接続しない設計。</p>
-      </div>
-      <div class="card">
-        <h4><span class="chip mob">モバイル</span> モバイルアプリ（Flutter）</h4>
-        <p>外出先での SML 評価・タイマー計測・コンディション入力・着手リードタイム分析・実績ガント・締切前通知。同一 Firestore を参照し Web とリアルタイム同期。</p>
-      </div>
-      <div class="card">
-        <h4><span class="chip fb">Firebase</span> Firestore + Authentication</h4>
-        <p>全プロダクト共有のデータストアと Google ログイン認証。セキュリティルールで「本人のみ・同意済みのみ」の読み書きを強制。</p>
-      </div>
-    </div>
+    </section>
+  </main>
 
-    <h2>連携設計ポリシー</h2>
-    <ul>
-      <li><strong>Firebase を Single Source of Truth とする。</strong>全プロダクトが同じコレクションを参照する。</li>
-      <li><strong>Chrome 拡張機能は Firebase に直接接続しない。</strong>Web アプリの動作中タブを介したメッセージ連携のみで、拡張機能内に API キーや認証トークンを保持・露出させない。</li>
-      <li>拡張機能と Web は <code>chrome.storage.local</code> と <code>window.postMessage</code>（ハンドシェイク）でやり取りするため、ページロードのタイミング差によるデータロストが起きにくい。</li>
-      <li>Web が未ログインの状態で拡張機能からデータを受信した場合、<code>sessionStorage</code> に一時保留してログイン誘導画面（<code>/svc/ext-sync</code>）を表示し、ログイン完了後に自動でインポートを実行する。</li>
-    </ul>
-  </section>
-
-  <!-- ========== データフロー ========== -->
-  <section class="section" id="sec-dataflow">
-    <div class="kicker">アーキテクチャ</div>
-    <h1>データフロー</h1>
-    <p class="lead">課題が manaba から取得されて分析に至るまでの、データの流れの全体像</p>
-
-    <h2>① 課題インポートの流れ（拡張機能 → Web → Firestore）</h2>
-    <p>拡張機能は Firebase に直接書き込みません。<code>chrome.storage.local</code> を共有バッファとして使い、各ページが自分でストレージを参照して次の動作を行う<strong>「バケツリレー方式」のイベント駆動連携</strong>を採用しています（<code>chrome.tabs.sendMessage</code> の直接通信は使いません）。</p>
-
-    <ol class="steps">
-      <li>
-        <span class="who chip ext">拡張</span><span class="t">Background（service worker）が manaba のタブを開く</span>
-        <div class="d">ユーザーがポップアップから同期を開始すると、manaba の課題一覧ページへ誘導します。</div>
-      </li>
-      <li>
-        <span class="who chip ext">拡張</span><span class="t">content script が課題をスクレイピング</span>
-        <div class="d"><code>content.js</code> が課題名・締切・科目名・課題 URL（一意 ID）を抽出し、<code>chrome.storage.local</code> に保存します。</div>
-      </li>
-      <li>
-        <span class="who chip web">Web</span><span class="t">Web アプリが「準備完了」を宣言</span>
-        <div class="d">SyncScale の画面がマウントされると <code>window.postMessage({ type: 'SYNC_SCALE_APP_READY' })</code> を発行します。</div>
-      </li>
-      <li>
-        <span class="who chip ext">拡張</span><span class="t">web-content.js がタスクデータを送信</span>
-        <div class="d">READY を受けた <code>web-content.js</code> が <code>chrome.storage.local</code> のデータを <code>SYNC_SCALE_IMPORT_TASKS</code> メッセージで Web ページへ送ります。<code>chrome.storage.onChanged</code> により、開きっぱなしの SyncScale タブへもリアルタイムに再送されます。</div>
-      </li>
-      <li>
-        <span class="who chip web">Web</span><span class="t">受信データを一時保存し ACK を返す</span>
-        <div class="d">受信データを <code>sessionStorage.pendingImportTasks</code> に保存し、<code>SYNC_SCALE_IMPORT_ACK</code> を返信します。拡張機能はこれを受けてストレージをクリアします（二重取り込み防止）。</div>
-      </li>
-      <li>
-        <span class="who chip web">Web</span><span class="t">重複排除して Firestore に一括登録</span>
-        <div class="d">Firestore のタスク取得完了を待ってから、<code>manabaAssignmentId</code>（課題 URL）で既存タスクと突き合わせ、新規のみ <code>writeBatch</code> で一括登録します（<code>isNew: true</code>, <code>source: 'chrome_ext'</code>）。</div>
-      </li>
-      <li>
-        <span class="who chip web">Web</span><span class="t">SML 見積もりモーダルで取捨選択</span>
-        <div class="d">取り込まれた課題には規模見積もりモーダル（TaskSizeEstimateModal）が連続表示され、課題ごとに S/M/L の評価、または「この課題は追加しない」を選べます。見送った課題は論理削除（<code>isVisible: false</code>）となり、<code>manabaAssignmentId</code> が残るため次回の同期で再インポートされません。</div>
-      </li>
-    </ol>
-
-    <div class="note">
-      <p><strong>未ログイン時のフォールバック:</strong> Web が未ログインの状態でデータを受信した場合は <code>sessionStorage</code> に保留したまま <code>/svc/ext-sync</code>（ログイン誘導画面）を表示し、ログイン完了後に自動でインポートを再開します。</p>
-    </div>
-
-    <h2>② タスクのライフサイクル</h2>
-    <div class="lifecycle">
-      <div class="lc-state">
-        <div class="st">TODO</div>
-        <div class="sd">これからやる</div>
-      </div>
-      <div class="lc-arrow"><span class="a">→</span>タイマー記録時に<br /><code>startedAt</code> をセット</div>
-      <div class="lc-state">
-        <div class="st">DOING</div>
-        <div class="sd">とりかかり中</div>
-      </div>
-      <div class="lc-arrow"><span class="a">→</span>提出完了時に<br /><code>completedAt</code> をセット</div>
-      <div class="lc-state">
-        <div class="st">DONE</div>
-        <div class="sd">提出完了</div>
+  <footer>
+    <div class="wrap foot">
+      <span>© 2026 v-tnta</span>
+      <div class="foot-links">
+        <a href="/">アプリを開く</a>
+        <a href="/agreement">同意書</a>
+        <a href="/privacy">プライバシーポリシー</a>
+        <a href="/privacy/mobile">プライバシーポリシー（モバイル）</a>
       </div>
     </div>
-    <ul>
-      <li>タイマーの「きろく」時にステータスが <code>TODO</code> なら自動的に <code>DOING</code> へ更新し、<code>startedAt</code> が未設定なら計測開始時刻をセットします。事後の手動記録でも同様に補完します。</li>
-      <li><code>DONE</code> への移行時にはコンディション（good / fair / poor）と振り返りメモの入力を促し、<code>conditionLogs</code> に記録します。</li>
-      <li>「未提出に戻す」（DONE → TODO, <code>completedAt = null</code>）、論理削除（<code>isVisible: false</code>）・再表示・物理削除（関連ログのカスケード削除）が可能です。</li>
-    </ul>
+  </footer>
 
-    <h2>③ 計測データの流れ（タイマー → 分析）</h2>
-    <ol class="steps">
-      <li>
-        <span class="who chip web">Web</span><span class="who chip mob">モバイル</span><span class="t">タイマーで実働時間を計測</span>
-        <div class="d">取り組むタスクと（任意の）サブタスク名を選び Start/Stop。経過時間は「現在時刻 − 開始時刻」で毎秒再計算するため、PC のスリープでもズレません。事後の手動入力にも対応します。</div>
-      </li>
-      <li>
-        <span class="who chip fb">Firestore</span><span class="t"><code>timeLogs</code> に保存</span>
-        <div class="d">開始・終了時刻と実働秒数（<code>durationSeconds</code>）を記録。これが実績ガントチャートの元データになります。</div>
-      </li>
-      <li>
-        <span class="who chip web">Web</span><span class="who chip mob">モバイル</span><span class="t">分析画面で自動集計</span>
-        <div class="d">着手リードタイム（S/M/L 別の平均）、実績ガントチャート、カレンダーの作業実績インジケータ、サイズ別平均作業時間、よく作業する時間帯などに可視化されます（→ <a href="#analytics">分析機能</a>）。</div>
-      </li>
-    </ol>
+  <script>
+    // アプリの ThemeToggle と同じ「ライト → ダーク → 自動」の順で切り替える
+    (function () {
+      var root = document.documentElement;
+      var btn = document.getElementById('themeBtn');
+      var mq = window.matchMedia('(prefers-color-scheme: dark)');
+      var LABEL = { light: 'ライト', dark: 'ダーク', system: '自動' };
+      var NEXT = { light: 'dark', dark: 'system', system: 'light' };
+      var ICON = {
+        light: '<svg class="i" style="color:#f59e0b"><use href="#i-sun"/></svg>',
+        dark: '<svg class="i" style="color:#818cf8"><use href="#i-moon"/></svg>',
+        system: '<span class="sunmoon"><svg class="i sun"><use href="#i-sun"/></svg><svg class="i moon"><use href="#i-moon"/></svg></span>'
+      };
+      var pref = root.dataset.themePref || 'system';
 
-    <h2>④ Web ⇔ モバイルのリアルタイム同期</h2>
-    <p>Web アプリ・モバイルアプリはいずれも Firestore の同一コレクションを <code>onSnapshot</code>（リアルタイムリスナー）で購読しているため、片方での変更（タスク追加・SML 変更・タイマー記録など）はもう片方に即時反映されます。同期処理を独自に実装するのではなく、<strong>Firestore 自体を同期レイヤーとして利用</strong>しているのが特徴です。</p>
-  </section>
-
-  <!-- ========== データ構造 ========== -->
-  <section class="section" id="sec-schema">
-    <div class="kicker">アーキテクチャ</div>
-    <h1>データ構造（Firestore Schema）</h1>
-    <p class="lead">全プロダクトが共有する Firestore のコレクション定義</p>
-
-    <h2>Collection: <code>tasks</code></h2>
-    <p>タスク（課題）の本体。手動登録（<code>source: 'manual'</code>）と拡張機能からのインポート（<code>source: 'chrome_ext'</code>）の両方がここに入ります。</p>
-    <div class="table-wrap"><table>
-      <tr><th>Field</th><th>Type</th><th>説明</th></tr>
-      <tr><td><code>userId</code></td><td>string</td><td>所有ユーザー UID（アクセス制御キー）</td></tr>
-      <tr><td><code>title</code></td><td>string</td><td>タスク名</td></tr>
-      <tr><td><code>deadline</code></td><td>timestamp | null</td><td>締切日時（昇順ソートキー）</td></tr>
-      <tr><td><code>status</code></td><td>string</td><td><code>'TODO'</code>（これからやる）/ <code>'DOING'</code>（とりかかり中）/ <code>'DONE'</code>（提出完了）</td></tr>
-      <tr><td><code>isVisible</code></td><td>boolean</td><td>表示フラグ（論理削除用。default: true）</td></tr>
-      <tr><td><code>sizeLabel</code></td><td>string | null</td><td>相対見積もり <code>'S'</code> / <code>'M'</code> / <code>'L'</code></td></tr>
-      <tr><td><code>isNew</code></td><td>boolean</td><td>初回 SML 見積もり未完了フラグ（拡張機能から追加時に true）</td></tr>
-      <tr><td><code>source</code></td><td>string</td><td><code>'manual'</code> / <code>'chrome_ext'</code>（登録元）</td></tr>
-      <tr><td><code>startedAt</code></td><td>timestamp | null</td><td>最初に作業（DOING）した日時。<strong>着手リードタイム算出用</strong></td></tr>
-      <tr><td><code>completedAt</code></td><td>timestamp | null</td><td>DONE になった日時</td></tr>
-      <tr><td><code>manabaAssignmentId</code></td><td>string | null</td><td>manaba 課題の一意 ID（課題 URL）。<strong>重複排除キー</strong></td></tr>
-      <tr><td><code>manabaCourseId</code></td><td>string | null</td><td>manaba 科目 ID（科目 URL）</td></tr>
-      <tr><td><code>courseName</code></td><td>string | null</td><td>科目名</td></tr>
-      <tr><td><code>type</code></td><td>string | null</td><td>課題種別（レポート等）</td></tr>
-      <tr><td><code>isTutorialTask</code></td><td>boolean</td><td>チュートリアル用ダミータスク（default: false）</td></tr>
-      <tr><td><code>createdAt</code> / <code>updatedAt</code></td><td>timestamp</td><td>作成・更新日時（<code>serverTimestamp</code>）</td></tr>
-    </table></div>
-    <div class="note"><p><code>estimatedMinutes</code>（分単位の数値見積もり）は「時間負債」機能の廃止に伴い v3 で削除済みです。見積もりは S/M/L の相対見積もりのみを使用します。</p></div>
-
-    <h2>Collection: <code>timeLogs</code></h2>
-    <p>タイマー／手動記録による実績ログ。<strong>実績ガントチャートの元データ</strong>です。</p>
-    <div class="table-wrap"><table>
-      <tr><th>Field</th><th>Type</th><th>説明</th></tr>
-      <tr><td><code>userId</code></td><td>string</td><td>所有ユーザー UID</td></tr>
-      <tr><td><code>taskId</code></td><td>string</td><td><code>tasks</code> への参照 ID</td></tr>
-      <tr><td><code>subTaskName</code></td><td>string</td><td>具体的な作業名（任意）</td></tr>
-      <tr><td><code>startTime</code> / <code>endTime</code></td><td>timestamp</td><td>計測開始・終了時刻</td></tr>
-      <tr><td><code>durationSeconds</code></td><td>number</td><td>実働時間（秒）</td></tr>
-      <tr><td><code>createdAt</code></td><td>timestamp</td><td>ログ作成日時</td></tr>
-    </table></div>
-
-    <h2>Collection: <code>conditionLogs</code></h2>
-    <p>提出完了時のコンディション記録。</p>
-    <div class="table-wrap"><table>
-      <tr><th>Field</th><th>Type</th><th>説明</th></tr>
-      <tr><td><code>userId</code></td><td>string</td><td>所有ユーザー UID</td></tr>
-      <tr><td><code>taskId</code></td><td>string</td><td><code>tasks</code> への参照 ID</td></tr>
-      <tr><td><code>condition</code></td><td>string</td><td><code>'good'</code> / <code>'fair'</code> / <code>'poor'</code></td></tr>
-      <tr><td><code>memo</code></td><td>string</td><td>振り返りメモ（任意）</td></tr>
-      <tr><td><code>createdAt</code></td><td>timestamp</td><td>記録日時</td></tr>
-    </table></div>
-
-    <h2>Collection: <code>consents</code>（研究利用同意）</h2>
-    <p>ドキュメント ID = <code>userId</code>。研究利用への同意状態を管理します。</p>
-    <div class="table-wrap"><table>
-      <tr><th>Field</th><th>Type</th><th>説明</th></tr>
-      <tr><td><code>agreedAt</code></td><td>timestamp</td><td>同意日時</td></tr>
-      <tr><td><code>version</code></td><td>string</td><td>同意した同意書バージョン</td></tr>
-      <tr><td><code>withdrawnAt</code></td><td>timestamp（任意）</td><td>撤回日時（撤回時のみ追記）</td></tr>
-    </table></div>
-    <div class="note"><p>同意撤回時は関連データ（tasks / timeLogs / conditionLogs / onboarding 等）を一括削除し、研究記録として <code>withdrawnAt</code> のみを残します。</p></div>
-
-    <h2>Collection: <code>onboarding</code>（進捗）</h2>
-    <p>ドキュメント ID = <code>userId</code>。オンボーディングの進捗を保持します。<code>step1</code>〜<code>step4</code>（boolean）、<code>completed</code>、<code>completedAt</code>、<code>extensionGuideViewed</code>、<code>mobilePromoDismissedAt</code>、<code>mobileInstalled</code> など。</p>
-
-    <h2>Collection: <code>userSettings</code>（ユーザー設定）</h2>
-    <p>ドキュメント ID = <code>userId</code>。締切前通知の設定（<code>notificationEnabled</code> / <code>notificationMinutesBefore</code>）などを保持し、Web とスマホアプリで共有されます（実際の通知配信はスマホアプリのみ）。</p>
-
-    <h2>Collection: <code>activityLogs</code>（行動ログ）</h2>
-    <p>研究利用のための行動ログ。<strong>追記専用</strong>（update 不可）で、read / delete は同意撤回時の全削除のために本人にのみ許可されています。</p>
-  </section>
-
-  <!-- ========== Web アプリ ========== -->
-  <section class="section" id="sec-web">
-    <div class="kicker">プロダクト</div>
-    <h1>Web アプリ（React / Vite）</h1>
-    <p class="lead">タスク管理・分析のメイン画面であり、拡張機能と Firestore をつなぐ連携ハブ</p>
-
-    <h2>レイヤードアーキテクチャ</h2>
-    <p>計算ロジックは Domain 層（純粋関数）へ寄せ、Presentation 層は表示に専念する方針です。</p>
-    <pre><code>web/src/
-├── components/      # Presentation: UI（ロジックは hooks に委譲）
-│   ├── Layout.jsx, TaskForm.jsx, TaskList.jsx, TaskOverlay.jsx
-│   ├── Timer.jsx, GanttChart.jsx, Calendar.jsx
-│   ├── AnalyticsPanel.jsx          # 着手リードタイム分析
-│   ├── SizeLabelSelector.jsx, TaskSizeEstimateModal.jsx
-│   ├── ConditionInputModal.jsx, CompletedTasksModal.jsx
-│   ├── Modal.jsx                   # Radix UI Dialog ベースの共通モーダル
-│   ├── Tutorial.jsx / DynamicTutorialGuide.jsx
-│   └── （同意・拡張ガイド・モバイル誘導などのモーダル群）
-├── pages/           # 画面（HomePage / ExtSyncPage / LoginPage / AgreementPage ...）
-├── hooks/           # Application: useTasks / useTimeLogs / useConditionLogs
-│                    #              useAuth / useConsent / useOnboarding
-├── services/        # Infrastructure: taskService / timeLogService / conditionLogService
-├── domain/          # Domain: task.js / timeLog.js / taskSize.js / browser.js
-├── guards/          # ConsentGuard
-├── content/         # 文言定義（モーダル等）
-└── lib/firebase.js  # Firebase 初期化</code></pre>
-
-    <h2>ルーティング</h2>
-    <div class="table-wrap"><table>
-      <tr><th>パス</th><th>内容</th><th>保護</th></tr>
-      <tr><td><code>/agreement</code></td><td>同意書</td><td>公開</td></tr>
-      <tr><td><code>/privacy</code></td><td>プライバシーポリシー</td><td>公開</td></tr>
-      <tr><td><code>/svc/ext-sync</code></td><td>拡張機能インポート待受／ログイン誘導</td><td>公開</td></tr>
-      <tr><td><code>/login</code></td><td>ログイン</td><td>公開</td></tr>
-      <tr><td><code>/onboarding</code></td><td>オンボーディング</td><td>要ログイン＋同意</td></tr>
-      <tr><td><code>/info</code></td><td>情報</td><td>要ログイン＋同意</td></tr>
-      <tr><td><code>/svc/home</code></td><td>メインアプリ</td><td>要ログイン＋同意</td></tr>
-      <tr><td><code>/svc/mobile/</code></td><td>Flutter Web ミラー（モバイル版の Web ビルド）</td><td>アクセスは公開（利用にはログイン）</td></tr>
-      <tr><td><code>/guide/</code></td><td>本ガイドページ（静的）</td><td>公開</td></tr>
-      <tr><td><code>/</code></td><td>状態に応じてリダイレクト</td><td>—</td></tr>
-    </table></div>
-
-    <h2>主要コンポーネント</h2>
-    <div class="table-wrap"><table>
-      <tr><th>コンポーネント</th><th>役割</th></tr>
-      <tr><td><code>TaskForm</code></td><td>タスク名・締切日時・SML を入力して登録。</td></tr>
-      <tr><td><code>TaskSizeEstimateModal</code></td><td><code>isNew === true && !sizeLabel</code> のタスクに対し、連続して SML 見積もりを促すモーダル（「現在 n/N 件目」表示）。見積もりの習慣化フック。拡張機能インポート時は「この課題は追加しない」の取捨選択も可能。</td></tr>
-      <tr><td><code>TaskOverlay</code></td><td>タスク詳細。SML 変更／タイマー計測／実績ガント／コンディション確認を集約。「未提出に戻す」・論理削除・再表示・物理削除のアクションを持つ。</td></tr>
-      <tr><td><code>Timer</code></td><td>タスクとサブタスク名を選んで Start / Stop / きろく。記録時に TODO → DOING 更新と <code>startedAt</code> 補完。経過時間は「現在時刻 − 開始時刻」で毎秒再計算（スリープ起因のズレ防止）。</td></tr>
-      <tr><td><code>AnalyticsPanel</code></td><td>着手リードタイム分析ほか、分析タブ全体（→ <a href="#analytics">分析機能</a>）。</td></tr>
-      <tr><td><code>GanttChart</code></td><td>timeLogs の積み上げ式実績ガントチャート。</td></tr>
-      <tr><td><code>Calendar</code></td><td>〆切カレンダー（月／週）。作業実績インジケータ（GitHub の草風）、週表示では作業ログを実働時間ぶんの緑の帯として時間軸に表示。</td></tr>
-      <tr><td><code>Modal</code></td><td>Radix UI Dialog ベースの共通モーダル基盤（v0.4.0）。フォーカストラップ・Esc・背景スクロールロックを一元管理し、z-index の重なり順も一箇所に整理。</td></tr>
-      <tr><td><code>Tutorial / DynamicTutorialGuide</code></td><td>実データを使った動的チュートリアル（Web 15 ステップ）。</td></tr>
-    </table></div>
-
-    <h2>UI 基盤（v0.4.0 で刷新）</h2>
-    <ul>
-      <li>デザイントークンを <code>index.css</code> の <code>@theme</code> に集約（Noto Sans JP / primary / success / S・M・L 各色）。</li>
-      <li>ブラウザ標準の <code>alert()</code> / <code>confirm()</code> を全廃し、<code>sonner</code> のトースト通知へ置換。</li>
-      <li>S/M/L の色分岐ロジックを <code>domain/taskSize.js</code> に集約。アイコンは <code>lucide-react</code> に統一。</li>
-    </ul>
-  </section>
-
-  <!-- ========== Chrome 拡張機能 ========== -->
-  <section class="section" id="sec-extension">
-    <div class="kicker">プロダクト</div>
-    <h1>Chrome 拡張機能（Manifest V3）</h1>
-    <p class="lead">manaba から課題・締切を自動取得する収集レイヤー — Firebase には直接接続しない</p>
-
-    <h2>構成</h2>
-    <pre><code>chrome-extension/src/
-├── background/background.js   # service worker（タブ制御・オーケストレーション）
-├── content/content.js         # manaba 用 content script（スクレイピング）
-├── content/web-content.js     # SyncScale Web 用 content script（postMessage 連携）
-├── popup/                     # ツールバーのポップアップ UI
-└── options/                   # オプションページ</code></pre>
-
-    <h2>設計の要点</h2>
-    <ul>
-      <li><strong>Storage ベースのイベント駆動連携:</strong> <code>chrome.tabs.sendMessage</code> による直接通信を使わず、各ページが自分で <code>chrome.storage.local</code> を参照して次の動作を行う「バケツリレー方式」。ページロードのタイミング差によるデータロストが起きにくい構造です。<code>chrome.storage.onChanged</code> で SyncScale タブへリアルタイム再送も行います。</li>
-      <li><strong>Firebase へ直接接続しない:</strong> 拡張機能内に Firebase 資格情報や認証トークンを一切保持しません。Firestore への書き込みは、必ずログイン済みの Web アプリ（本人のブラウザセッション）を経由します。</li>
-      <li>取得するのは課題名・締切・科目名・課題 URL（重複排除用の一意 ID）です。</li>
-    </ul>
-
-    <h2>マニフェスト概要（v1.2.0）</h2>
-    <div class="table-wrap"><table>
-      <tr><th>項目</th><th>値</th></tr>
-      <tr><td>permissions</td><td><code>activeTab</code>, <code>storage</code>, <code>tabs</code>, <code>notifications</code></td></tr>
-      <tr><td>host_permissions</td><td><code>https://*.manaba.jp/*</code>, <code>https://*.ac.jp/*</code>, <code>https://sync-scale.web.app/*</code>, <code>http://localhost:5173/*</code></td></tr>
-      <tr><td>content_scripts ①</td><td><code>content.js</code> → manaba / ac.jp ドメイン（<code>document_idle</code>）</td></tr>
-      <tr><td>content_scripts ②</td><td><code>web-content.js</code> → sync-scale.web.app / localhost:5173</td></tr>
-      <tr><td>background</td><td><code>background.js</code>（module 型 service worker）</td></tr>
-    </table></div>
-    <div class="note"><p><code>https://*.ac.jp/*</code> は、manaba が大学のサブドメインで提供されるケース（例: <code>manaba.〇〇-u.ac.jp</code>）に対応するための権限です。学術機関ドメイン全体に及ぶ広い権限のため、将来的には必要最小限への限定を検討しています。</p></div>
-
-    <h2>連携メッセージ（ハンドシェイク）</h2>
-    <div class="table-wrap"><table>
-      <tr><th>メッセージ</th><th>方向</th><th>意味</th></tr>
-      <tr><td><code>SYNC_SCALE_APP_READY</code></td><td>Web → 拡張</td><td>Web アプリの受信準備完了を通知</td></tr>
-      <tr><td><code>SYNC_SCALE_IMPORT_TASKS</code></td><td>拡張 → Web</td><td>収集した課題データの送信</td></tr>
-      <tr><td><code>SYNC_SCALE_IMPORT_ACK</code></td><td>Web → 拡張</td><td>受領確認（拡張側はストレージをクリアし二重取り込みを防止）</td></tr>
-    </table></div>
-    <p>フローの詳細は <a href="#dataflow">データフロー</a> を参照してください。</p>
-  </section>
-
-  <!-- ========== モバイルアプリ ========== -->
-  <section class="section" id="sec-mobile">
-    <div class="kicker">プロダクト</div>
-    <h1>モバイルアプリ（Flutter）</h1>
-    <p class="lead">外出先での SML 評価・タイマー計測・分析。Web と同一の Firestore をリアルタイム共有</p>
-
-    <h2>構成</h2>
-    <pre><code>mobile-app/lib/
-├── main.dart                     # 初期化（ネイティブのみ .env を dotenv.load）
-├── firebase_options.dart         # dart-define / dotenv からキーを注入
-├── models/                       # task.dart / time_log.dart / condition_log.dart
-│                                 # analytics.dart（着手リードタイム）/ onboarding.dart
-├── screens/                      # auth_gate / home / tasks / calendar / analytics / tutorial
-├── widgets/                      # timer_panel / task_form_sheet / task_detail_sheet
-│                                 # task_size_estimate_dialog（SML 入力）/ condition_dialog
-│                                 # gantt_chart / manual_log_dialog / settings_dialog ...
-├── services/                     # auth_service / syncscale_repository
-└── state/syncscale_state.dart    # アプリ状態（タスク・ログの集約）</code></pre>
-
-    <h2>機能の要点</h2>
-    <ul>
-      <li><strong>SML 入力:</strong> <code>task_size_estimate_dialog.dart</code> / <code>task_form_sheet.dart</code> で対応。Web と同じく <code>sizeLabel</code> を Firestore に保存します。</li>
-      <li><strong>着手リードタイム:</strong> <code>analytics.dart</code> の <code>calculateLeadTimes</code> は Web 版と同一定義（deadline − startedAt）です。</li>
-      <li><strong>締切前通知:</strong> タスクの締切前にローカル通知を配信（ネイティブアプリのみ）。設定値（<code>notificationEnabled</code> / <code>notificationMinutesBefore</code>）は <code>userSettings/{uid}</code> で Web と共有されます。通知の予約同期はキューで直列化され、削除済みタスクの通知が再登録されないよう制御しています（v0.4.0）。</li>
-      <li><strong>認証:</strong> <code>auth_service.dart</code>（Google ログイン）。</li>
-      <li><strong>カレンダー:</strong> 月／週切り替え、週タイムグリッド（締切・作業ログの帯）、作業実績インジケータ。</li>
-      <li><strong>チュートリアル:</strong> 動的チュートリアル 23 ステップ（通知機能の紹介を含む）。</li>
-    </ul>
-
-    <h2>Flutter Web ミラー（<code>/svc/mobile/</code>）</h2>
-    <p>モバイルアプリは Web 向けにもビルドされ、React 版のホスティング配下（<code>/svc/mobile/</code>）に同梱されています。スマホ実機がなくてもブラウザからモバイル版の画面を体験できます。</p>
-    <ol>
-      <li>ルートで <code>npm run build:mobile-web</code> を実行すると、<code>scripts/build-flutter-web.js</code> が Flutter Web をビルドします（<code>--base-href "/svc/mobile/"</code>、Firebase キーは <code>--dart-define</code> で注入）。</li>
-      <li>成果物が <code>web/public/svc/mobile/</code> にコピーされ、React 版のビルド・デプロイに同梱されます。</li>
-    </ol>
-    <div class="note"><p>バージョン表記は <code>mobile-app/lib/constants/app_info.dart</code> の <code>kAppVersion</code> を参照し、Web 版（<code>web/package.json</code> の <code>version</code>）と揃えて管理します。</p></div>
-  </section>
-
-  <!-- ========== 分析機能 ========== -->
-  <section class="section" id="sec-analytics">
-    <div class="kicker">機能詳細</div>
-    <h1>分析機能</h1>
-    <p class="lead">「時間の使い方の癖」をメタ認知させる、本プロジェクトの中核機能</p>
-
-    <h2>着手リードタイム分析（確定仕様）</h2>
-    <p><strong>定義:</strong> タスクごとに「最初に着手した日時（<code>startedAt</code>）が、締切（<code>deadline</code>）の何日前であったか」を算出します。</p>
-    <pre><code>leadDays = (deadline − startedAt) / 86,400,000ms
-
-正の値 = 締切前に着手（余裕日数）
-負の値 = 締切後に着手（超過）</code></pre>
-    <ul>
-      <li><strong>集計:</strong> <span class="chip s">S</span> <span class="chip m">M</span> <span class="chip l">L</span> それぞれについて、<code>deadline</code> と <code>startedAt</code> がともに存在するタスクの平均日数と件数を表示します。</li>
-      <li><strong>実装:</strong> Web = <code>AnalyticsPanel.jsx#calculateLeadTimes</code>、Flutter = <code>analytics.dart#calculateLeadTimes</code>。<strong>両者の定義は一致</strong>しています。</li>
-      <li>UI では平均日数に応じて「締切の N 日前／N 日後（超過）」と、簡単な気づきのアドバイスを表示します。</li>
-    </ul>
-    <div class="note"><p>旧仕様の「登録日（createdAt）→ 着手日」の定義は採用していません。先延ばしの指標は「<strong>締切に対してどれだけ早く着手できたか</strong>」で評価します。</p></div>
-
-    <h2>実績ガントチャート（GanttChart）</h2>
-    <ul>
-      <li>タスクの <code>timeLogs</code> を<strong>積み上げ式の水平スタックバー</strong>として描画します。</li>
-      <li>横軸 = 経過時間（0 分起点、30 分ごとの目盛り）。各ログ（サブタスク）を所要時間に応じた幅で左から隙間なく連結します。</li>
-      <li>バー内にサブタスク名を表示。コンテナ幅を超える場合は自動縮小、余裕がある場合は標準スケール（約 3px/分）。</li>
-      <li>計画入力は不要で、タイマーログから「実績」を自動可視化します。</li>
-    </ul>
-
-    <h2>分析タブのその他のセクション</h2>
-    <div class="table-wrap"><table>
-      <tr><th>セクション</th><th>内容</th></tr>
-      <tr><td>期間切り替え</td><td>「今月／全期間」を切り替え、全セクションが選択期間で集計される（着手リードタイムは「その月に着手したタスク」基準、放置タスクは常に最新で判定）。</td></tr>
-      <tr><td>サイズ別の平均作業時間</td><td>S/M/L ごとの実働時間の平均。一貫性/逆転コメントは実績のあるサイズが 2 つ以上のときのみ表示。</td></tr>
-      <tr><td>よく作業する時間帯</td><td>作業時間の分布を時間帯別の単色バーで表示。</td></tr>
-      <tr><td>カレンダーの作業実績</td><td>作業ログのある日に、日セル下部へ件数ぶん（最大 3 つ）の緑のマスを表示（GitHub の草風）。</td></tr>
-    </table></div>
-  </section>
-
-  <!-- ========== 認証・セキュリティ ========== -->
-  <section class="section" id="sec-security">
-    <div class="kicker">運用</div>
-    <h1>認証・セキュリティ</h1>
-    <p class="lead">Google ログイン＋研究利用同意＋Firestore セキュリティルールによる防御</p>
-
-    <h2>認証（Google ログインのみ）</h2>
-    <ul>
-      <li>Firebase Authentication の <strong>Google ログイン（<code>signInWithPopup</code>）</strong>のみを採用。匿名認証・アカウント連携は採用していません。</li>
-      <li>認証状態は <code>useAuth</code>（AuthProvider）が <code>onAuthStateChanged</code> で監視します。</li>
-    </ul>
-
-    <h2>研究利用同意（Consent）</h2>
-    <ul>
-      <li>本ツールは研究プロジェクトの一環であり、<strong>利用には研究利用への同意が必須</strong>です。<code>consents/{uid}</code> を <code>onSnapshot</code> で監視し、未ログイン → <code>/login</code>、ログイン済み・未同意 → <code>/agreement</code> へ誘導します（ConsentGuard）。</li>
-      <li>同意の撤回時は全ユーザーデータ（tasks / timeLogs / conditionLogs / onboarding 等）を <code>writeBatch</code> で削除し、研究記録として <code>withdrawnAt</code> のみを記録します。</li>
-    </ul>
-
-    <h2>Firestore セキュリティルール</h2>
-    <p>ルールは「<strong>本人のみアクセス可能</strong>」かつ「<strong>書き込みは同意済みユーザーのみ</strong>」を強制します。</p>
-    <div class="table-wrap"><table>
-      <tr><th>コレクション</th><th>read</th><th>create / update</th><th>delete</th></tr>
-      <tr><td><code>tasks</code> / <code>timeLogs</code> / <code>conditionLogs</code></td><td>所有者のみ</td><td>所有者 かつ 同意済み</td><td>所有者のみ</td></tr>
-      <tr><td><code>consents/{uid}</code></td><td>本人のみ</td><td>create は <code>agreedAt</code>・<code>version</code> 必須。update は同意更新・撤回関連フィールドのみ</td><td>不可</td></tr>
-      <tr><td><code>onboarding/{uid}</code> / <code>userSettings/{uid}</code></td><td>本人のみ</td><td>本人 かつ 同意済み</td><td>本人のみ（撤回時の削除用）</td></tr>
-      <tr><td><code>activityLogs</code></td><td>本人のみ</td><td>create のみ（追記専用・update 不可）</td><td>本人のみ（撤回時の削除用）</td></tr>
-    </table></div>
-    <ul>
-      <li><code>isOwner(userId) = request.auth != null && request.auth.uid == userId</code></li>
-      <li>マッチしないパスは Firestore のデフォルトで deny されます。</li>
-    </ul>
-
-    <h2>Firebase 資格情報（API キー）の扱い</h2>
-    <p>重要な前提として、<strong>Firebase のクライアント API キー・OAuth クライアント ID は「クライアントに配布される＝公開される」値であり、秘匿対象（シークレット）ではありません</strong>。これらを隠してもセキュリティは得られません。実効的な保護は次の 3 点で担保します。</p>
-    <ol>
-      <li><strong>Firestore セキュリティルール</strong> — 不正な読み書きに対する実質的な防御線。</li>
-      <li><strong>API キー制限</strong> — Firebase / Google Cloud コンソールで HTTP リファラ・アプリ・対象 API を制限。</li>
-      <li><strong>Authorized domains</strong> — 認証を許可するドメインの限定。</li>
-    </ol>
-    <div class="table-wrap"><table>
-      <tr><th>プロダクト</th><th>キーの注入方法</th></tr>
-      <tr><td>Web アプリ</td><td><code>web/.env</code>（Git 管理外）の <code>VITE_*</code> をビルド時に埋め込み</td></tr>
-      <tr><td>Flutter（ネイティブ）</td><td><code>mobile-app/.env</code>（Git 管理外）を <code>flutter_dotenv</code> でアセットとして読み込み</td></tr>
-      <tr><td>Flutter（Web ビルド）</td><td><code>scripts/build-flutter-web.js</code> が <code>--dart-define</code> で埋め込み</td></tr>
-      <tr><td>Chrome 拡張機能</td><td><strong>キーを保持しない</strong>（Firebase に直接接続しない設計）</td></tr>
-    </table></div>
-    <div class="warn"><p><strong>禁止事項:</strong> 真のシークレット（サーバー専用 API キー、第三者サービスの秘密鍵など）を Web バンドル・拡張機能・Flutter のクライアント資産に置かないこと。クライアント配布物では原理的に隠せません。<code>.env</code> / <code>google-services.json</code> 等は <code>.gitignore</code> で Git 追跡から除外しています。</p></div>
-  </section>
-
-  <!-- ========== 技術スタック・ビルド ========== -->
-  <section class="section" id="sec-build">
-    <div class="kicker">運用</div>
-    <h1>技術スタック・ビルド</h1>
-    <p class="lead">npm workspaces によるモノレポ構成とビルド・デプロイの流れ</p>
-
-    <h2>技術スタック</h2>
-    <div class="table-wrap"><table>
-      <tr><th>領域</th><th>技術</th></tr>
-      <tr><td>Web</td><td>React + Vite + Tailwind CSS + React Router / Radix UI Dialog / sonner / lucide-react</td></tr>
-      <tr><td>拡張機能</td><td>Chrome Extension Manifest V3（Vite ビルド）</td></tr>
-      <tr><td>モバイル</td><td>Flutter（cloud_firestore / firebase_auth / google_sign_in / flutter_dotenv / url_launcher / intl）</td></tr>
-      <tr><td>バックエンド</td><td>Firebase Authentication（Google ログイン）+ Cloud Firestore</td></tr>
-      <tr><td>ホスティング</td><td>Firebase Hosting（プロジェクト <code>sync-scale</code>）</td></tr>
-    </table></div>
-
-    <h2>リポジトリ構成（モノレポ）</h2>
-    <pre><code>SyncScalePJ/
-├── web/                  # PC の Web アプリ (React + Vite + Firebase)
-├── chrome-extension/     # Chrome 拡張機能 (Manifest V3)
-├── mobile-app/           # スマートフォンアプリ (Flutter)
-├── shared/               # 共有アセット
-├── scripts/              # build-flutter-web.js など
-└── docs/                 # 共通ドキュメント（systemdesign-v3.md が唯一の正典）</code></pre>
-    <p>ルート <code>package.json</code> の npm workspaces（<code>web</code> / <code>chrome-extension</code> / <code>shared</code>）で管理しています。</p>
-
-    <h2>主要コマンド</h2>
-    <div class="table-wrap"><table>
-      <tr><th>コマンド</th><th>内容</th></tr>
-      <tr><td><code>npm run dev</code></td><td>Web（localhost:5173）と拡張機能の開発サーバーを同時起動</td></tr>
-      <tr><td><code>npm run build:web</code></td><td>Web アプリのビルド（<code>web/dist/</code>）</td></tr>
-      <tr><td><code>npm run build:ext</code></td><td>拡張機能のビルド</td></tr>
-      <tr><td><code>npm run build:mobile-web</code></td><td>Flutter Web をビルドし <code>web/public/svc/mobile/</code> へ配置</td></tr>
-      <tr><td><code>npm run build</code></td><td>Web + 拡張機能を一括ビルド</td></tr>
-    </table></div>
-
-    <h2>ホスティング構成（sync-scale.web.app）</h2>
-    <div class="table-wrap"><table>
-      <tr><th>パス</th><th>内容</th></tr>
-      <tr><td><code>/</code>（<code>/svc/home</code> 等）</td><td>React SPA（<code>web/dist/</code>。SPA rewrite で全パスを <code>index.html</code> へ）</td></tr>
-      <tr><td><code>/svc/mobile/</code></td><td>Flutter Web ミラー（静的ファイル）</td></tr>
-      <tr><td><code>/guide/</code></td><td>本ガイドページ（静的ファイル）</td></tr>
-    </table></div>
-    <p>Firebase Hosting は実在するファイルを優先して配信し、存在しないパスのみ SPA rewrite が適用されます。Firestore セキュリティルール（<code>web/firestore.rules</code>）も同じ <code>firebase.json</code> から一緒にデプロイされます。</p>
-
-    <h2>リリースフロー</h2>
-    <ol class="steps">
-      <li>
-        <span class="t">バージョン番号を 2 箇所で更新</span>
-        <div class="d"><code>web/package.json</code> の <code>version</code> と <code>mobile-app/lib/constants/app_info.dart</code> の <code>kAppVersion</code> を揃えます。</div>
-      </li>
-      <li>
-        <span class="t">Flutter Web ミラーを再ビルド（モバイルに変更がある場合）</span>
-        <div class="d"><code>npm run build:mobile-web</code> で <code>web/public/svc/mobile/</code> を更新します。</div>
-      </li>
-      <li>
-        <span class="t">Web をビルドしてデプロイ</span>
-        <div class="d"><code>npm run build:web</code> の後、<code>web/</code> で <code>firebase deploy</code> を実行します。</div>
-      </li>
-      <li>
-        <span class="t">ドキュメントを更新</span>
-        <div class="d"><code>docs/systemdesign-v3.md</code> の変更履歴（Changelog）と開発ログ（<code>docs/logs/devTrails.md</code>）に記録します。</div>
-      </li>
-    </ol>
-
-    <h2>コーディング方針</h2>
-    <ul>
-      <li>レイヤードアーキテクチャ（Presentation / Application / Infrastructure / Domain）。</li>
-      <li>可読性優先・日本語コメント。ローディング・エラー表示と主要処理の <code>console.log</code> を備える。</li>
-      <li>「実装を正とする」方針（実装優先）で設計書 <code>systemdesign-v3.md</code> を唯一の正典として維持する。</li>
-    </ul>
-  </section>
-
-  <!-- ========== 変更履歴 ========== -->
-  <section class="section" id="sec-changelog">
-    <div class="kicker">運用</div>
-    <h1>変更履歴</h1>
-    <p class="lead">リリース単位の主な変更概要（詳細は <code>docs/systemdesign-v3.md</code> §11 を参照）</p>
-
-    <div class="table-wrap"><table>
-      <tr><th>バージョン</th><th>日付</th><th>概要</th></tr>
-      <tr>
-        <td><code>0.4.0</code></td><td>2026/07/18</td>
-        <td>Web 版 UI 基盤の刷新 — Radix UI Dialog ベースの共通モーダル、<code>alert()</code>/<code>confirm()</code> のトースト通知（sonner）化、デザイントークンの <code>@theme</code> 集約、S/M/L 色分岐の <code>domain/taskSize.js</code> 集約、lucide-react への統一。拡張機能インポート時の「この課題は追加しない」取捨選択を追加。論理削除タスクの表示漏れ・モバイル版の削除済みタスク通知・チュートリアル中にモーダルが閉じる不具合を修正。オンボーディングに Chrome 本体のインストール案内を追加。</td>
-      </tr>
-      <tr>
-        <td><code>0.3.8</code></td><td>2026/06/20</td>
-        <td>分析タブに「今月／全期間」の期間切り替えを追加。「時間帯 × コンディション」を「よく作業する時間帯」へ簡素化。「タスク見積もりの精度」を「サイズ別の平均作業時間」へ改称。タスク一覧のスクロール不具合修正、カレンダー週表示に作業ログの帯を追加、日跨ぎログの分割表示、Flutter 版に月／週切り替えを追加。</td>
-      </tr>
-      <tr>
-        <td><code>0.3.7</code></td><td>2026/06/17</td>
-        <td>締切前通知の設定を Web 版・Flutter Web 版でも表示（設定値は <code>userSettings/{uid}</code> でスマホと共有、通知配信はスマホのみ）。カレンダーに作業実績インジケータ（GitHub の草風）を追加。</td>
-      </tr>
-      <tr>
-        <td><code>0.3.6</code></td><td>2026/06/16</td>
-        <td>チュートリアルに分析タブ紹介を追加（Web 15 / モバイル 23 ステップ）。モバイル版に通知機能紹介を追加。チュートリアル Step5 が進まない不具合を修正。</td>
-      </tr>
-      <tr>
-        <td><code>0.3.5</code></td><td>2026/06/16</td>
-        <td>Flutter 締切ピッカーの日付変更バグ修正（<code>showDatePicker</code> → <code>showTimePicker</code> の 2 段階に変更）。</td>
-      </tr>
-      <tr>
-        <td><code>0.3.4</code></td><td>2026/06/15</td>
-        <td>Web / Flutter のバージョン表記を統一。分析 4 機能を Flutter Web ミラーに反映。</td>
-      </tr>
-      <tr>
-        <td><code>0.3.3</code></td><td>—</td>
-        <td>研究利用状況の行動ログ収集・同意書 v1.1・撤回処理のチャンク分割。</td>
-      </tr>
-      <tr>
-        <td><code>0.3.2</code></td><td>—</td>
-        <td>分析 UI・着手ロジック改修。</td>
-      </tr>
-    </table></div>
-  </section>
-
-  <!-- ページ下部ナビ -->
-  <div class="pagelinks" id="pagelinks"></div>
-
-  </div></main>
-</div>
-
-<script>
-(function () {
-  var tabs = ['overview', 'architecture', 'dataflow', 'schema', 'web', 'extension', 'mobile', 'analytics', 'security', 'build', 'changelog'];
-  var labels = {
-    overview: 'プロジェクト概要', architecture: 'システム全体像', dataflow: 'データフロー',
-    schema: 'データ構造（Firestore）', web: 'Web アプリ', extension: 'Chrome 拡張機能',
-    mobile: 'モバイルアプリ', analytics: '分析機能', security: '認証・セキュリティ',
-    build: '技術スタック・ビルド', changelog: '変更履歴'
-  };
-  var links = document.querySelectorAll('#nav a[data-tab]');
-  var pagelinks = document.getElementById('pagelinks');
-
-  function show(tab) {
-    if (tabs.indexOf(tab) === -1) tab = 'overview';
-    document.querySelectorAll('.section').forEach(function (s) {
-      s.classList.toggle('active', s.id === 'sec-' + tab);
-    });
-    links.forEach(function (a) {
-      a.classList.toggle('active', a.getAttribute('data-tab') === tab);
-    });
-    document.title = labels[tab] + ' | SyncScale プロジェクトガイド';
-
-    // 前後ページリンク
-    var i = tabs.indexOf(tab);
-    var html = '';
-    if (i > 0) {
-      html += '<a href="#' + tabs[i - 1] + '"><span class="dir">← 前のトピック</span>' + labels[tabs[i - 1]] + '</a>';
-    }
-    if (i < tabs.length - 1) {
-      html += '<a class="next" href="#' + tabs[i + 1] + '"><span class="dir">次のトピック →</span>' + labels[tabs[i + 1]] + '</a>';
-    }
-    pagelinks.innerHTML = html;
-    window.scrollTo(0, 0);
-  }
-
-  function fromHash() {
-    show((location.hash || '#overview').replace('#', ''));
-  }
-  window.addEventListener('hashchange', fromHash);
-  fromHash();
-})();
-</script>
+      function apply() {
+        var dark = pref === 'dark' || (pref === 'system' && mq.matches);
+        root.classList.toggle('dark', dark);
+        root.style.colorScheme = dark ? 'dark' : 'light';
+        btn.innerHTML = ICON[pref] + '<span class="theme-label">' + LABEL[pref] + '</span>';
+        btn.title = 'テーマ切り替え: 現在は「' + LABEL[pref] + '」（クリックで切替）';
+        btn.setAttribute('aria-label', 'テーマ切り替え: 現在は' + LABEL[pref]);
+      }
+      btn.addEventListener('click', function () {
+        pref = NEXT[pref] || 'light';
+        try { localStorage.setItem('syncscale_theme', pref); } catch (e) {}
+        apply();
+      });
+      var onChange = function () { if (pref === 'system') apply(); };
+      if (mq.addEventListener) mq.addEventListener('change', onChange); else mq.addListener(onChange);
+      apply();
+    })();
+  </script>
 </body>
 </html>

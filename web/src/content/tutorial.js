@@ -34,7 +34,7 @@ export const TUTORIAL = {
   // Step 1: タスク一覧のヒント
   taskListHint: [
     { text: "タスクの" },
-    { text: "見積もり所要時間", bold: true },
+    { text: "主観的な規模感", bold: true },
     { text: "を " },
     { text: "S・M・L", bold: true },
     { text: " でラベリングでき、", br: true },
@@ -43,7 +43,7 @@ export const TUTORIAL = {
 
   // Step 2: タイマー
   timer: {
-    timerTab: "⏱ タイマー",
+    timerTab: "きろく",
     manualTab: "✏️ 手入力",
     todoLabel: "やること",
     todoPlaceholder: "例: 資料作成",

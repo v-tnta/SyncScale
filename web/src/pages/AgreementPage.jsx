@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { FileCheck, Sparkles } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import { useConsent } from "../hooks/useConsent";
 import { AGREEMENT_CONTENT } from "../content";
+import logo from "../assets/logo.png";
 
 // Googleのカラーロゴコンポーネント
 const GoogleIcon = () => (
-    <svg className="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24">
+    <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
         <path
             fill="#4285F4"
             d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -33,34 +35,21 @@ export function AgreementPage() {
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
-    // モーダルのアニメーション制御ステート
     const [modalVisible, setModalVisible] = useState(false);
     const [animationStage, setAnimationStage] = useState(0);
 
-    // 既に同意済みでログインしている場合はオンボーディングまたはホームへ飛ばす
+    // 既に同意済みでログインしている場合はルートへリダイレクト
     useEffect(() => {
         if (currentUser && hasConsented) {
             navigate("/", { replace: true });
         }
     }, [currentUser, hasConsented, navigate]);
 
-    // モーダルが開かれた際のアニメーションステージ制御
     useEffect(() => {
         if (isLoginModalOpen) {
-            // モーダル全体のフェードイン開始
-            const t0 = setTimeout(() => {
-                setModalVisible(true);
-            }, 50);
-
-            // 600ms後: 説明文フェードイン
-            const t1 = setTimeout(() => {
-                setAnimationStage(1);
-            }, 650);
-
-            // 1200ms後: Googleボタンフェードイン
-            const t2 = setTimeout(() => {
-                setAnimationStage(2);
-            }, 1250);
+            const t0 = setTimeout(() => { setModalVisible(true); }, 50);
+            const t1 = setTimeout(() => { setAnimationStage(1); }, 650);
+            const t2 = setTimeout(() => { setAnimationStage(2); }, 1250);
 
             return () => {
                 clearTimeout(t0);
@@ -80,7 +69,6 @@ export function AgreementPage() {
     const handleCloseModal = () => {
         setModalVisible(false);
         setAnimationStage(0);
-        // モーダルのフェードアウトが完了した後に開閉ステートを閉じる
         setTimeout(() => {
             setIsLoginModalOpen(false);
         }, 300);
@@ -106,99 +94,90 @@ export function AgreementPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-slate-100 to-blue-100 p-6 text-slate-800 font-sans transition-colors duration-200">
-            <div className="w-full max-w-2xl bg-white/70 backdrop-blur-xl border border-slate-200 rounded-3xl p-8 md:p-10 shadow-2xl relative overflow-hidden">
-                {/* 装飾用の光彩 */}
-                <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
-                <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 p-4 sm:p-6 text-slate-800 dark:text-slate-100 font-sans transition-colors duration-200">
+            <div className="w-full max-w-3xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 rounded-3xl p-6 sm:p-10 shadow-2xl relative overflow-hidden flex flex-col space-y-6">
+                
+                <div className="text-center space-y-2 flex flex-col items-center">
+                    <img src={logo} alt="SyncScale Logo" className="w-16 h-16 object-contain mb-1" />
+                    <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-slate-50">
+                        {AGREEMENT_CONTENT.title}
+                    </h1>
+                    <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm">
+                        本研究の内容をご確認いただき、同意の上でご利用ください。
+                    </p>
+                </div>
 
-                <div className="relative z-10 flex flex-col space-y-6">
-                    <div className="text-center space-y-2">
-                        <div className="inline-flex items-center justify-center p-3 bg-blue-500/10 rounded-2xl border border-blue-500/20 mb-2">
-                            <span className="text-3xl">📝</span>
-                        </div>
-                        <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight bg-gradient-to-r from-slate-900 to-indigo-900 bg-clip-text text-transparent">
-                            {AGREEMENT_CONTENT.title}
-                        </h1>
-                        <p className="text-slate-500 text-xs md:text-sm">
-                            本研究の内容をご確認いただき、同意の上でご利用ください。
-                        </p>
+                <div className="border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-850/60 p-5 sm:p-6 rounded-2xl text-slate-700 dark:text-slate-300 leading-relaxed text-xs sm:text-sm h-80 overflow-y-auto custom-scrollbar shadow-inner">
+                    <div className="whitespace-pre-line font-medium">
+                        {AGREEMENT_CONTENT.body}
                     </div>
+                </div>
 
-                    <div className="border border-slate-200 bg-white/50 p-6 rounded-2xl text-slate-700 leading-relaxed text-sm h-80 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent shadow-inner">
-                        <div className="whitespace-pre-line font-medium text-slate-700">
-                            {AGREEMENT_CONTENT.body}
-                        </div>
-                    </div>
-
-                    <div className="flex flex-col items-center space-y-4 pt-2">
-                        <button
-                            onClick={handleAgreeClick}
-                            disabled={loading}
-                            className="w-full py-4 px-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-2xl shadow-lg hover:shadow-blue-500/20 transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center space-x-2"
-                        >
-                            {loading ? (
-                                <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></div>
-                            ) : (
-                                <>
-                                    <span>✓</span>
-                                    <span>{AGREEMENT_CONTENT.buttonText}</span>
-                                </>
-                            )}
-                        </button>
-                    </div>
+                <div className="flex flex-col items-center pt-2">
+                    <button
+                        type="button"
+                        onClick={handleAgreeClick}
+                        disabled={loading}
+                        className="w-full py-3.5 px-6 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold rounded-2xl shadow-sm transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
+                    >
+                        {loading ? (
+                            <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></div>
+                        ) : (
+                            <>
+                                <FileCheck className="w-5 h-5" />
+                                <span>{AGREEMENT_CONTENT.buttonText}</span>
+                            </>
+                        )}
+                    </button>
                 </div>
             </div>
 
-            {/* Googleログインを促すリッチで段階的なアニメーションモーダル */}
+            {/* Googleログイン案内モーダル */}
             {isLoginModalOpen && (
                 <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 transition-opacity duration-300 ${modalVisible ? 'opacity-100' : 'opacity-0'}`}>
-                    {/* バックドロップ */}
                     <div 
-                        className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" 
+                        className="absolute inset-0 bg-black/60 backdrop-blur-xs" 
                         onClick={handleCloseModal}
                     ></div>
 
-                    {/* モーダルコンテンツ */}
-                    <div className={`relative w-full max-w-lg bg-white rounded-3xl p-8 md:p-10 shadow-2xl border border-slate-100/80 flex flex-col space-y-6 transform transition-all duration-500 ease-out ${modalVisible ? 'scale-100 translate-y-0' : 'scale-95 translate-y-4'}`}>
+                    <div className={`relative w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col space-y-6 transform transition-all duration-500 ease-out ${modalVisible ? 'scale-100 translate-y-0' : 'scale-95 translate-y-4'}`}>
                         
-                        {/* 1. タイトル（モーダル出現と同時に表示） */}
-                        <div className="text-center space-y-2">
-                            <div className="inline-flex items-center justify-center p-3.5 bg-blue-500/10 rounded-2xl border border-blue-500/20 mb-2">
-                                <span className="text-3xl">🎉</span>
+                        <div className="text-center space-y-2 flex flex-col items-center">
+                            <div className="w-12 h-12 bg-blue-100 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center mb-1 shadow-xs">
+                                <Sparkles className="w-6 h-6" />
                             </div>
-                            <h2 className="text-xl md:text-2xl font-black text-slate-950">
-                                研究への同意、ありがとうございます。
+                            <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-slate-50">
+                                研究への同意、ありがとうございます
                             </h2>
                         </div>
 
-                        {/* 2. 説明テキスト（Stage 1 以上でふわっとフェードイン） */}
-                        <div className={`space-y-4 leading-relaxed text-sm text-slate-650 font-medium transition-all duration-700 ease-out transform ${
+                        <div className={`space-y-3 text-xs sm:text-sm text-slate-600 dark:text-slate-300 font-medium transition-all duration-700 ease-out transform ${
                             animationStage >= 1 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
                         }`}>
-                            <p className="text-center">
+                            <p className="text-center leading-relaxed">
                                 本研究のシステム（SyncScale）を利用するには、Googleアカウントでのログインが必要です。
                             </p>
-                            <p className="p-3.5 bg-blue-50 rounded-2xl border border-blue-100 text-slate-500 text-xs font-semibold text-center leading-relaxed">
+                            <p className="p-3 bg-blue-50 dark:bg-blue-950/40 rounded-xl border border-blue-100 dark:border-blue-900 text-slate-500 dark:text-slate-400 text-xs text-center leading-relaxed">
                                 ※ ログインをもって、同意情報の記録とデータの暗号化保存（アカウント作成）が正式に開始されます。
                             </p>
                         </div>
 
-                        {/* 3. ストア・ログインボタン（Stage 2 以上でふわっとフェードイン） */}
-                        <div className={`flex flex-col space-y-4 pt-2 transition-all duration-700 ease-out transform ${
+                        <div className={`flex flex-col space-y-3 pt-1 transition-all duration-700 ease-out transform ${
                             animationStage >= 2 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
                         }`}>
                             <button
+                                type="button"
                                 onClick={handleLoginAndConsent}
-                                className="flex items-center justify-center gap-3 w-full py-4 px-6 border border-slate-200 hover:border-slate-350 bg-white hover:bg-slate-50 text-slate-700 font-bold rounded-2xl transition duration-300 shadow-sm hover:shadow-md text-base"
+                                className="flex items-center justify-center gap-3 w-full py-3.5 px-6 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 font-bold rounded-2xl transition duration-200 shadow-xs hover:shadow-sm text-sm"
                             >
                                 <GoogleIcon />
                                 <span>Googleでログインして開始</span>
                             </button>
                             
                             <button
+                                type="button"
                                 onClick={handleCloseModal}
-                                className="text-xs font-bold text-slate-400 hover:text-slate-650 hover:bg-slate-50 px-4 py-2.5 rounded-xl transition self-center"
+                                className="text-xs font-bold text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 py-1.5 transition self-center"
                             >
                                 キャンセル
                             </button>
