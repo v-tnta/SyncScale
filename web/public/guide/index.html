@@ -151,9 +151,9 @@
     .shot-dark { display: none !important; }
     :root.dark .shot-light { display: none !important; }
     :root.dark .shot-dark { display: block !important; }
-    .hero-shot { margin-top: 48px; border-radius: 1.1rem; }
-    @media (min-width: 900px) { .hero-shot { margin-top: 64px; } }
-    .caption { text-align: center; font-size: .78rem; color: var(--muted); margin-top: .8rem; }
+    .hero-shot { margin: 32px auto 0; max-width: 1040px; border-radius: 1.1rem; text-align: left; }
+    @media (min-width: 900px) { .hero-shot { margin-top: 40px; } }
+    .caption { text-align: center; font-size: .78rem; color: var(--muted); margin: .8rem 0 1.6rem; }
 
     .spot { display: grid; gap: 24px; align-items: center; }
     .spot + .spot { margin-top: 56px; }
@@ -297,6 +297,12 @@
         <div>
           <span class="eyebrow"><svg class="i"><use href="#i-flask"/></svg>茨城大学 研究プロジェクト ・ 参加者募集中</span>
           <h1>課題の「重さ」と<br>「かけた時間」を、<br><span class="accent">見える化する。</span></h1>
+          <figure class="hero-shot frame">
+            <div class="frame-bar" aria-hidden="true"><i></i><i></i><i></i><span>sync-scale.web.app</span></div>
+            <img class="shot-light" src="/guide/img/home-light.jpg" width="1800" height="1125" alt="SyncScale のホーム画面。左にS/M/Lの色分けがされたタスク一覧、右に締切カレンダーが並ぶ" fetchpriority="high" />
+            <img class="shot-dark" src="/guide/img/home-dark.jpg" width="1800" height="1125" alt="SyncScale のホーム画面（ダークテーマ）" loading="lazy" />
+          </figure>
+          <p class="caption">ホーム画面（表示はデモデータ）。課題の一覧と締切カレンダーを 1 画面で確認できます。</p>
           <p class="lead">
             SyncScale は、大学の課題を <strong>S / M / L のざっくり見積もり</strong>で登録し、<strong>実際にかけた作業時間</strong>を記録していくタスク管理ツールです。
             自分の取り組み方のクセに気づき、無理のない計画につなげることを目指しています。
@@ -307,14 +313,6 @@
           </div>
           <p class="hero-note">Google アカウントでログイン → 同意書を確認して参加できます。参加は任意で、いつでも撤回できます。</p>
         </div>
-      </div>
-      <div class="wrap">
-        <figure class="hero-shot frame">
-          <div class="frame-bar" aria-hidden="true"><i></i><i></i><i></i><span>sync-scale.web.app</span></div>
-          <img class="shot-light" src="/guide/img/home-light.jpg" width="1800" height="1125" alt="SyncScale のホーム画面。左にS/M/Lの色分けがされたタスク一覧、右に締切カレンダーが並ぶ" fetchpriority="high" />
-          <img class="shot-dark" src="/guide/img/home-dark.jpg" width="1800" height="1125" alt="SyncScale のホーム画面（ダークテーマ）" loading="lazy" />
-        </figure>
-        <p class="caption">ホーム画面（表示はデモデータ）。課題の一覧と締切カレンダーを 1 画面で確認できます。</p>
       </div>
     </section>
 
