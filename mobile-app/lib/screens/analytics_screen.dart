@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/analytics.dart';
 import '../state/syncscale_state.dart';
+import '../theme/sc_colors.dart';
 
 // 一夜漬け度ゲージ・直前集中タスクの色
 const _poorColor = Color(0xFFFB7185);
@@ -87,7 +88,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       child: Container(
         padding: const EdgeInsets.all(4),
         decoration: BoxDecoration(
-          color: const Color(0xFFF1F5F9),
+          color: context.sc.surfaceAlt,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
@@ -109,7 +110,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
         decoration: BoxDecoration(
-          color: selected ? Colors.white : Colors.transparent,
+          color: selected
+              ? context.pick(Colors.white, context.sc.borderStrong)
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
           boxShadow: selected
               ? [
@@ -126,7 +129,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w700,
-            color: selected ? Colors.black87 : Colors.black45,
+            color: selected ? context.sc.ink87 : context.sc.ink45,
           ),
         ),
       ),
@@ -162,7 +165,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               const SizedBox(height: 6),
               Text(
                 description,
-                style: const TextStyle(fontSize: 11, color: Colors.black45),
+                style: TextStyle(fontSize: 11, color: context.sc.ink45),
               ),
             ],
             const SizedBox(height: 16),
@@ -197,10 +200,10 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                   const SizedBox(height: 6),
                   Text(
                     '${item.averageDays.toStringAsFixed(1)}日',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: Colors.black87,
+                      color: context.sc.ink87,
                     ),
                   ),
                 ],
@@ -219,14 +222,14 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     // 実績のあるサイズ（count>0）が2つ以上あるときだけ、一貫性/逆転のコメントを出す。
     // 1つ以下では比較できないため、コメントは表示しない。
     String? message;
-    Color messageColor = const Color(0xFF059669);
+    Color messageColor = context.pick(const Color(0xFF059669), const Color(0xFF6EE7B7));
     if (validCount >= 2) {
       if (consistent) {
         message = '✅ サイズが大きいほど作業時間も長く、サイズ感が実態と合っています。';
-        messageColor = const Color(0xFF059669);
+        messageColor = context.pick(const Color(0xFF059669), const Color(0xFF6EE7B7));
       } else {
         message = '⚠️ サイズの大小と実際の作業時間が逆転しています。ラベルの付け方を見直すヒントになります。';
-        messageColor = const Color(0xFFB45309);
+        messageColor = context.pick(const Color(0xFFB45309), const Color(0xFFFCD34D));
       }
     }
 
@@ -253,18 +256,18 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                       const SizedBox(height: 6),
                       Text(
                         item.count > 0 ? _formatMinutes(item.avgMinutes) : '—',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
-                          color: Colors.black87,
+                          color: context.sc.ink87,
                         ),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         item.count > 0 ? '平均 / ${item.count}件' : 'データなし',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 10,
-                          color: Colors.black38,
+                          color: context.sc.ink38,
                         ),
                       ),
                     ],
@@ -296,16 +299,16 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 '全体の一夜漬け度',
-                style: TextStyle(fontSize: 12, color: Colors.black54),
+                style: TextStyle(fontSize: 12, color: context.sc.ink54),
               ),
               Text(
                 '$overallPct%',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w900,
-                  color: Colors.black87,
+                  color: context.sc.ink87,
                 ),
               ),
             ],
@@ -316,14 +319,14 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             child: LinearProgressIndicator(
               value: cramming.overallRatio!.clamp(0.0, 1.0),
               minHeight: 10,
-              backgroundColor: const Color(0xFFE2E8F0),
+              backgroundColor: context.sc.border,
               valueColor: const AlwaysStoppedAnimation(_poorColor),
             ),
           ),
           const SizedBox(height: 8),
           Text(
             '対象 ${cramming.taskCount}件中 ${cramming.crammedTaskCount}件が「直前集中型」（50%以上）',
-            style: const TextStyle(fontSize: 10, color: Colors.black38),
+            style: TextStyle(fontSize: 10, color: context.sc.ink38),
           ),
           const SizedBox(height: 16),
           // サイズ別
@@ -346,17 +349,17 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                         item.ratio == null
                             ? '—'
                             : '${(item.ratio! * 100).round()}%',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.w800,
-                          color: Colors.black87,
+                          color: context.sc.ink87,
                         ),
                       ),
                       Text(
                         '${item.count}件',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 10,
-                          color: Colors.black38,
+                          color: context.sc.ink38,
                         ),
                       ),
                     ],
@@ -366,12 +369,12 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           ),
           if (topTasks.isNotEmpty) ...[
             const SizedBox(height: 16),
-            const Text(
+            Text(
               '直前集中だったタスク',
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.bold,
-                color: Colors.black45,
+                color: context.sc.ink45,
               ),
             ),
             const SizedBox(height: 6),
@@ -385,10 +388,10 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                         t.title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: Colors.black87,
+                          color: context.sc.ink87,
                         ),
                       ),
                     ),
@@ -467,7 +470,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               ),
               Text(
                 band.range,
-                style: const TextStyle(fontSize: 9, color: Colors.black38),
+                style: TextStyle(fontSize: 9, color: context.sc.ink38),
               ),
             ],
           ),
@@ -478,7 +481,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             borderRadius: BorderRadius.circular(5),
             child: Container(
               height: 22,
-              color: const Color(0xFFF1F5F9),
+              color: context.sc.surfaceAlt,
               child: hasData
                   ? Align(
                       alignment: Alignment.centerLeft,
@@ -497,10 +500,10 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           child: Text(
             hasData ? _formatMinutes(band.total) : '—',
             textAlign: TextAlign.right,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.bold,
-              color: Colors.black45,
+              color: context.sc.ink45,
             ),
           ),
         ),
@@ -516,17 +519,19 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         width: double.infinity,
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: const Color(0xFFECFDF5),
+          color: context.pick(const Color(0xFFECFDF5), const Color(0x66022C22)),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFA7F3D0)),
+          border: Border.all(
+            color: context.pick(const Color(0xFFA7F3D0), const Color(0xFF065F46)),
+          ),
         ),
-        child: const Text(
+        child: Text(
           '✅ 放置されているタスクはありません。順調です！',
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF047857),
+            color: context.pick(const Color(0xFF047857), const Color(0xFF6EE7B7)),
           ),
         ),
       );
@@ -562,10 +567,10 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                           t.title,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: Colors.black87,
+                            color: context.sc.ink87,
                           ),
                         ),
                         if (t.isOverdue)
@@ -629,17 +634,17 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
+        color: context.sc.surfaceSubtle,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: context.sc.border),
       ),
       child: Text(
         message,
         textAlign: TextAlign.center,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w600,
-          color: Colors.black45,
+          color: context.sc.ink45,
         ),
       ),
     );

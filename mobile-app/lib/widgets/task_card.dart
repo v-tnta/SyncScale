@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/task.dart';
+import '../theme/sc_colors.dart';
 import 'formatters.dart';
 
 class TaskCard extends StatelessWidget {
@@ -29,7 +30,7 @@ class TaskCard extends StatelessWidget {
                 width: 4,
                 height: 72,
                 decoration: BoxDecoration(
-                  color: _sizeColor(task.sizeLabel),
+                  color: _sizeColor(context, task.sizeLabel),
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
@@ -60,7 +61,7 @@ class TaskCard extends StatelessWidget {
                         if (task.sizeLabel != null &&
                             task.sizeLabel!.isNotEmpty)
                           _ChipText(label: task.sizeLabel!),
-                        _statusChip(task.status),
+                        _statusChip(context, task.status),
                       ],
                     ),
                   ],
@@ -75,16 +76,16 @@ class TaskCard extends StatelessWidget {
     );
   }
 
-  Widget _statusChip(TaskStatus status) {
+  Widget _statusChip(BuildContext context, TaskStatus status) {
     Color? textColor;
     Color? backgroundColor;
 
     if (status == TaskStatus.doing) {
-      textColor = const Color(0xFFEA580C);
-      backgroundColor = const Color(0xFFFFEDD5);
+      textColor = context.pick(const Color(0xFFEA580C), const Color(0xFFFDBA74));
+      backgroundColor = context.pick(const Color(0xFFFFEDD5), const Color(0x99431407));
     } else if (status == TaskStatus.done) {
-      textColor = const Color(0xFF16A34A);
-      backgroundColor = const Color(0xFFDCFCE7);
+      textColor = context.pick(const Color(0xFF16A34A), const Color(0xFF86EFAC));
+      backgroundColor = context.pick(const Color(0xFFDCFCE7), const Color(0x99052E16));
     }
 
     return _ChipText(
@@ -94,7 +95,7 @@ class TaskCard extends StatelessWidget {
     );
   }
 
-  Color _sizeColor(String? sizeLabel) {
+  Color _sizeColor(BuildContext context, String? sizeLabel) {
     switch (sizeLabel) {
       case 'S':
         return const Color(0xFF06B6D4);
@@ -103,7 +104,7 @@ class TaskCard extends StatelessWidget {
       case 'L':
         return const Color(0xFFEF4444);
       default:
-        return const Color(0xFFCBD5E1);
+        return context.pick(const Color(0xFFCBD5E1), context.pick(const Color(0xFF475569), context.sc.textMuted));
     }
   }
 }
@@ -125,8 +126,14 @@ class _ChipText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = textColor ?? (danger ? const Color(0xFFB91C1C) : const Color(0xFF334155));
-    final background = backgroundColor ?? (danger ? const Color(0xFFFEE2E2) : const Color(0xFFF1F5F9));
+    final color = textColor ??
+        (danger
+            ? context.pick(const Color(0xFFB91C1C), const Color(0xFFFCA5A5))
+            : context.sc.text);
+    final background = backgroundColor ??
+        (danger
+            ? context.pick(const Color(0xFFFEE2E2), const Color(0x99450A0A))
+            : context.sc.surfaceAlt);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),

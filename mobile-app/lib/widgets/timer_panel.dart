@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../models/task.dart';
 import '../models/time_log.dart';
 import '../state/syncscale_state.dart';
+import '../theme/sc_colors.dart';
 
 class TimerPanel extends StatefulWidget {
   const TimerPanel({super.key, required this.task});
@@ -64,17 +65,19 @@ class _TimerPanelState extends State<TimerPanel> {
               height: 72,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: Colors.grey.shade50,
-                border: Border.all(color: Colors.grey.shade300),
+                color: context.pick(Colors.grey.shade50, context.sc.surfaceSubtle),
+                border: Border.all(
+                  color: context.pick(Colors.grey.shade300, context.sc.borderStrong),
+                ),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
                 _formatHHMMSS(_elapsedSeconds),
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 36,
                   fontWeight: FontWeight.w900,
                   fontFamily: 'monospace',
-                  color: Colors.black87,
+                  color: context.sc.ink87,
                   letterSpacing: 1.5,
                 ),
               ),

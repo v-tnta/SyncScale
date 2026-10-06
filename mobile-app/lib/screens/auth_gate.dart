@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../state/syncscale_state.dart';
 import 'home_screen.dart';
+import 'consent_screen.dart';
 import 'tutorial_screen.dart';
 
 class AuthGate extends StatelessWidget {
@@ -16,6 +17,12 @@ class AuthGate extends StatelessWidget {
     }
 
     if (appState.isAuthenticated) {
+      if (appState.consentLoading) {
+        return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      }
+      if (!appState.hasConsented) {
+        return const ConsentScreen();
+      }
       return const HomeScreen();
     }
 

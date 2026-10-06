@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../models/time_log.dart';
 import 'formatters.dart';
+import '../theme/sc_colors.dart';
 
 class GanttChart extends StatelessWidget {
   const GanttChart({super.key, required this.logs});
@@ -17,9 +18,9 @@ class GanttChart extends StatelessWidget {
           ..sort((a, b) => a.startTime!.compareTo(b.startTime!));
 
     if (visibleLogs.isEmpty) {
-      return const Text(
+      return Text(
         '作業ログが入ると、ここに実績ガントチャートが表示されます。',
-        style: TextStyle(color: Colors.black54),
+        style: TextStyle(color: context.sc.ink54),
       );
     }
 
@@ -69,7 +70,7 @@ class GanttChart extends StatelessWidget {
                         children: [
                           Container(
                             decoration: BoxDecoration(
-                              color: const Color(0xFFE5E7EB),
+                              color: context.pick(const Color(0xFFE5E7EB), context.sc.surfaceAlt),
                               borderRadius: BorderRadius.circular(4),
                             ),
                           ),
@@ -93,7 +94,7 @@ class GanttChart extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   '${formatDateTime(log.startTime)} - ${formatDateTime(log.endTime)}',
-                  style: const TextStyle(fontSize: 12, color: Colors.black54),
+                  style: TextStyle(fontSize: 12, color: context.sc.ink54),
                 ),
               ],
             ),

@@ -23,7 +23,7 @@ Future<String?> showTaskSizeEstimateDialog({
               style: const TextStyle(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 12),
-            const Text('この課題の重さを直感で選んでください。'),
+            const Text('課題やタスクの規模感を、あなたが感じるボリューム感で選択してください。'),
           ],
         ),
         actions: [

@@ -1,8 +1,10 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../services/auth_service.dart';
 import '../state/syncscale_state.dart';
 import 'formatters.dart';
+import '../theme/sc_colors.dart';
 
 class SettingsDialog extends StatefulWidget {
   const SettingsDialog({super.key});
@@ -33,7 +35,11 @@ class _SettingsDialogState extends State<SettingsDialog> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('エラーが発生しました: $e')),
+          SnackBar(
+            content: Text(
+              e is ReauthenticationCancelled ? e.toString() : 'エラーが発生しました: $e',
+            ),
+          ),
         );
       }
     } finally {
@@ -56,7 +62,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: context.sc.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -78,18 +84,18 @@ class _SettingsDialogState extends State<SettingsDialog> {
             onChanged: (value) => _toggleNotification(appState, value),
           ),
           if (enabled) ...[
-            const Divider(height: 1, color: Color(0xFFE2E8F0)),
+            Divider(height: 1, color: context.sc.border),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     '何分前に通知するか',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF475569),
+                      color: context.pick(const Color(0xFF475569), context.sc.textMuted),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -120,16 +126,16 @@ class _SettingsDialogState extends State<SettingsDialog> {
           ],
           // Web版では実際の通知が届かないため、その旨を明記する
           if (kIsWeb) ...[
-            const Divider(height: 1, color: Color(0xFFE2E8F0)),
+            Divider(height: 1, color: context.sc.border),
             Container(
               width: double.infinity,
-              color: const Color(0xFFFFFBEB),
+              color: context.pick(const Color(0xFFFFFBEB), const Color(0x66451A03)),
               padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
-              child: const Text(
+              child: Text(
                 '📱 通知はスマートフォンアプリ（インストール版）でのみ届きます。こちらでは設定の保存のみ行えます。',
                 style: TextStyle(
                   fontSize: 11,
-                  color: Color(0xFFB45309),
+                  color: context.pick(const Color(0xFFB45309), const Color(0xFFFCD34D)),
                   height: 1.4,
                 ),
               ),
@@ -210,7 +216,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
         Dialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
           elevation: 16,
-          backgroundColor: Colors.white,
+          backgroundColor: context.sc.surface,
           child: ClipRRect(
             borderRadius: BorderRadius.circular(24),
             child: SingleChildScrollView(
@@ -225,7 +231,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Row(
+                        Row(
                           children: [
                             Text('⚙️', style: TextStyle(fontSize: 20)),
                             SizedBox(width: 8),
@@ -234,7 +240,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w900,
-                                color: Color(0xFF0F172A),
+                                color: context.sc.heading,
                               ),
                             ),
                           ],
@@ -247,15 +253,15 @@ class _SettingsDialogState extends State<SettingsDialog> {
                         ),
                       ],
                     ),
-                    const Divider(height: 24, color: Color(0xFFE2E8F0)),
+                    Divider(height: 24, color: context.sc.border),
 
                     if (appState.currentUser != null) ...[
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFF8FAFC),
+                          color: context.sc.surfaceSubtle,
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                          border: Border.all(color: context.sc.border),
                         ),
                         child: Row(
                           children: [
@@ -270,7 +276,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
                                         return Container(
                                           width: 48,
                                           height: 48,
-                                          color: const Color(0xFFF1F5F9),
+                                          color: context.sc.surfaceAlt,
                                           child: const Icon(Icons.person, size: 24, color: Colors.grey),
                                         );
                                       },
@@ -278,7 +284,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
                                   : Container(
                                       width: 48,
                                       height: 48,
-                                      color: const Color(0xFFF1F5F9),
+                                      color: context.sc.surfaceAlt,
                                       child: const Icon(Icons.person, size: 24, color: Colors.grey),
                                     ),
                             ),
@@ -289,19 +295,19 @@ class _SettingsDialogState extends State<SettingsDialog> {
                                 children: [
                                   Text(
                                     appState.currentUser!.displayName ?? 'ユーザー',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 15,
                                       fontWeight: FontWeight.bold,
-                                      color: Color(0xFF0F172A),
+                                      color: context.sc.heading,
                                     ),
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
                                     appState.currentUser!.email ?? 'メールアドレス未設定',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 12,
-                                      color: Color(0xFF64748B),
+                                      color: context.sc.textMuted,
                                     ),
                                     overflow: TextOverflow.ellipsis,
                                   ),
@@ -332,7 +338,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
                       ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
-                        side: const BorderSide(color: Color(0xFFE2E8F0)),
+                        side: BorderSide(color: context.sc.border),
                       ),
                       onTap: () async {
                         final confirm = await showDialog<bool>(
@@ -378,7 +384,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
                       ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
-                        side: const BorderSide(color: Color(0xFFE2E8F0)),
+                        side: BorderSide(color: context.sc.border),
                       ),
                       onTap: () async {
                         final uri = Uri.parse('/info');
@@ -390,13 +396,13 @@ class _SettingsDialogState extends State<SettingsDialog> {
                       },
                     ),
                     const SizedBox(height: 24),
-                    const Divider(height: 1, color: Color(0xFFE2E8F0)),
+                    Divider(height: 1, color: context.sc.border),
                     const SizedBox(height: 16),
 
                     // ログアウトボタン
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF1E293B), // slate-800
+                        backgroundColor: context.pick(const Color(0xFF1E293B), const Color(0xFF334155)), // slate-800
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
@@ -415,7 +421,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
                     ),
                     const SizedBox(height: 10),
 
-                    // 同意の撤回ボタン
+                    // 同意の撤回・アカウント削除ボタン（App Store ガイドライン 5.1.1(v)）
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFEF4444), // red-600
@@ -430,9 +436,9 @@ class _SettingsDialogState extends State<SettingsDialog> {
                         final confirm1 = await showDialog<bool>(
                           context: context,
                           builder: (context) => AlertDialog(
-                            title: const Text('⚠️ 同意撤回の確認'),
+                            title: const Text('⚠️ 同意の撤回とアカウント削除'),
                             content: const Text(
-                              '研究内容への同意を撤回し、本当にデータをすべて削除しますか？\n\n※この操作を実行すると、あなたのタスク、時間ログ、コンディションログ、利用状況ログが完全に削除され、復元することはできなくなります。',
+                              '研究内容への同意を撤回し、アカウントを削除しますか？\n\n※この操作を実行すると、あなたのタスク、時間ログ、コンディションログ、利用状況ログと、ログイン用のアカウントが完全に削除され、復元することはできなくなります。\n\n※研究倫理上の記録として、同意・撤回の記録（日時と同意書のバージョン）のみ保存されます。\n\n※削除の前に、本人確認のため再度サインインを求められることがあります。',
                             ),
                             actions: [
                               TextButton(
@@ -455,9 +461,9 @@ class _SettingsDialogState extends State<SettingsDialog> {
                           final confirm2 = await showDialog<bool>(
                             context: context,
                             builder: (context) => AlertDialog(
-                              title: const Text('⚠️ 同意撤回の最終確認'),
+                              title: const Text('⚠️ アカウント削除の最終確認'),
                               content: const Text(
-                                '本当に本当によろしいですか？削除されたデータは二度と戻りません。',
+                                '本当に本当によろしいですか？削除されたデータとアカウントは二度と戻りません。',
                               ),
                               actions: [
                                 TextButton(
@@ -477,16 +483,20 @@ class _SettingsDialogState extends State<SettingsDialog> {
 
                           if (confirm2 == true) {
                             if (!context.mounted) return;
-                            Navigator.of(context).pop(); // 設定ダイアログを閉じる
-                            await _runAction('同意を撤回し、データを削除中...', () async {
+                            // 本人確認のキャンセルや失敗をこのダイアログ上で伝えるため、
+                            // 設定ダイアログは削除が成功してから閉じる
+                            await _runAction('データとアカウントを削除中...', () async {
                               await appState.withdrawConsent();
                               await appState.logout();
+                              if (context.mounted) {
+                                Navigator.of(context).pop();
+                              }
                             });
                           }
                         }
                       },
                       child: const Text(
-                        '研究同意の撤回',
+                        '同意の撤回・アカウント削除',
                         style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
                       ),
                     ),
@@ -499,7 +509,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
         if (_isTransitioning)
           Positioned.fill(
             child: Container(
-              color: Colors.white.withAlpha(204),
+              color: context.pick(Colors.white.withAlpha(204), context.sc.surface.withAlpha(204)),
               child: Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -508,10 +518,10 @@ class _SettingsDialogState extends State<SettingsDialog> {
                     const SizedBox(height: 16),
                     Text(
                       _loadingText,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF475569),
+                        color: context.pick(const Color(0xFF475569), context.sc.textMuted),
                         decoration: TextDecoration.none,
                       ),
                     ),

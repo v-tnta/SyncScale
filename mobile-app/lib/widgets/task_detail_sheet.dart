@@ -9,6 +9,7 @@ import 'formatters.dart';
 import 'manual_log_dialog.dart';
 import 'task_form_sheet.dart';
 import 'timer_panel.dart';
+import '../theme/sc_colors.dart';
 
 Future<void> showTaskDetailSheet(BuildContext context, Task task) {
   final appState = SyncScaleScope.of(context);
@@ -252,9 +253,11 @@ class _TaskDetailSheetState extends State<TaskDetailSheet> {
                             return Card(
                               margin: const EdgeInsets.only(bottom: 8),
                               elevation: 0,
-                              color: Colors.grey.shade50,
+                              color: context.pick(Colors.grey.shade50, context.sc.surfaceSubtle),
                               shape: RoundedRectangleBorder(
-                                side: BorderSide(color: Colors.grey.shade200),
+                                side: BorderSide(
+                                  color: context.pick(Colors.grey.shade200, context.sc.border),
+                                ),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Padding(
@@ -281,7 +284,7 @@ class _TaskDetailSheetState extends State<TaskDetailSheet> {
                                             formatDateTime(log.startTime),
                                             style: TextStyle(
                                               fontSize: 12,
-                                              color: Colors.grey.shade600,
+                                              color: context.pick(Colors.grey.shade600, context.sc.textMuted),
                                             ),
                                           ),
                                         ],
@@ -452,13 +455,13 @@ class _SizeSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final options = [
-      {'value': 'S', 'label': 'S (すぐ)', 'color': const Color(0xFF06B6D4)},
+      {'value': 'S', 'label': 'S（小さい）', 'color': const Color(0xFF06B6D4)},
       {
         'value': 'M',
-        'label': 'M (半日〜1日)',
+        'label': 'M（中くらい）',
         'color': const Color(0xFFF97316),
       },
-      {'value': 'L', 'label': 'L (数日)', 'color': const Color(0xFFEF4444)},
+      {'value': 'L', 'label': 'L（大きい）', 'color': const Color(0xFFEF4444)},
     ];
 
     return Row(
@@ -482,9 +485,9 @@ class _SizeSelector extends StatelessWidget {
                     ),
                     decoration: BoxDecoration(
                       color:
-                          isSelected ? color.withAlpha(31) : Colors.white,
+                          isSelected ? color.withAlpha(31) : context.sc.surface,
                       border: Border.all(
-                        color: isSelected ? color : Colors.grey.shade300,
+                        color: isSelected ? color : context.pick(Colors.grey.shade300, context.sc.borderStrong),
                         width: isSelected ? 2 : 1,
                       ),
                       borderRadius: BorderRadius.circular(8),
@@ -493,7 +496,7 @@ class _SizeSelector extends StatelessWidget {
                       child: Text(
                         label,
                         style: TextStyle(
-                          color: isSelected ? color : Colors.grey.shade600,
+                          color: isSelected ? color : context.pick(Colors.grey.shade600, context.sc.textMuted),
                           fontWeight: FontWeight.bold,
                           fontSize: 12,
                         ),
@@ -532,7 +535,7 @@ class _ConditionPanel extends StatelessWidget {
         final emoji = _conditionEmoji(log.condition);
 
         return Card(
-          color: const Color(0xFFFDF8E2),
+          color: context.pick(const Color(0xFFFDF8E2), const Color(0x66422006)),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Row(

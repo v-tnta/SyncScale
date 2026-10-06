@@ -27,6 +27,9 @@ class SyncScaleState extends ChangeNotifier {
 
   User? currentUser;
   bool authLoading = true;
+  bool consentLoading = true;
+  bool hasConsented = false;
+  String? consentErrorMessage;
   bool dataLoading = false;
   String? errorMessage;
   List<Task> tasks = const [];
@@ -36,6 +39,7 @@ class SyncScaleState extends ChangeNotifier {
   UserSettings? userSettings;
 
   StreamSubscription<User?>? _authSubscription;
+  StreamSubscription<bool>? _consentSubscription;
   StreamSubscription<List<Task>>? _taskSubscription;
   StreamSubscription<List<TimeLog>>? _timeLogSubscription;
   StreamSubscription<List<ConditionLog>>? _conditionLogSubscription;
@@ -61,11 +65,15 @@ class SyncScaleState extends ChangeNotifier {
   List<Task> get incompleteTasks {
     if (isTutorialActive) {
       return tasks
-          .where((task) => task.status != TaskStatus.done && task.isTutorialTask)
+          .where(
+            (task) => task.status != TaskStatus.done && task.isTutorialTask,
+          )
           .toList();
     } else {
       return tasks
-          .where((task) => task.status != TaskStatus.done && !task.isTutorialTask)
+          .where(
+            (task) => task.status != TaskStatus.done && !task.isTutorialTask,
+          )
           .toList();
     }
   }
@@ -73,11 +81,15 @@ class SyncScaleState extends ChangeNotifier {
   List<Task> get completedTasks {
     if (isTutorialActive) {
       return tasks
-          .where((task) => task.status == TaskStatus.done && task.isTutorialTask)
+          .where(
+            (task) => task.status == TaskStatus.done && task.isTutorialTask,
+          )
           .toList();
     } else {
       return tasks
-          .where((task) => task.status == TaskStatus.done && !task.isTutorialTask)
+          .where(
+            (task) => task.status == TaskStatus.done && !task.isTutorialTask,
+          )
           .toList();
     }
   }
@@ -88,6 +100,7 @@ class SyncScaleState extends ChangeNotifier {
         _unbindUserData();
         authLoading = false;
         currentUser = null;
+        consentLoading = false;
         notifyListeners();
         return;
       }
@@ -100,6 +113,11 @@ class SyncScaleState extends ChangeNotifier {
   }
 
   void _unbindUserData() {
+    _consentSubscription?.cancel();
+    _consentSubscription = null;
+    hasConsented = false;
+    consentLoading = true;
+    consentErrorMessage = null;
     _taskSubscription?.cancel();
     _taskSubscription = null;
     _timeLogSubscription?.cancel();
@@ -119,6 +137,29 @@ class SyncScaleState extends ChangeNotifier {
   }
 
   void _bindUserData(String userId) {
+    _consentSubscription?.cancel();
+    hasConsented = false;
+    consentLoading = true;
+    consentErrorMessage = null;
+    _consentSubscription = repository
+        .watchConsent(userId)
+        .listen(
+          (value) {
+            final wasConsented = hasConsented;
+            hasConsented = value;
+            consentLoading = false;
+            consentErrorMessage = null;
+            if (value && !wasConsented) {
+              _recordSessionStart(userId);
+            }
+            notifyListeners();
+          },
+          onError: (Object error) {
+            consentLoading = false;
+            consentErrorMessage = '同意情報を取得できませんでした: $error';
+            notifyListeners();
+          },
+        );
     _taskSubscription?.cancel();
     _timeLogSubscription?.cancel();
     _conditionLogSubscription?.cancel();
@@ -127,21 +168,6 @@ class SyncScaleState extends ChangeNotifier {
 
     dataLoading = true;
     errorMessage = null;
-
-    if (!kIsWeb) {
-      repository.markMobileAsInstalled(userId).catchError((e) {
-        debugPrint('Failed to mark mobile as installed: $e');
-      });
-    }
-
-    // セッション開始（アプリを開いた）を記録。
-    // Firebase Auth はセッションを永続化するため「ログインイベント」はほぼ発生しない。
-    // そのため利用状況の把握には、起動ごとの session_start を記録する。
-    // ※未同意ユーザーの書き込みは Firestore セキュリティルール側で拒否される
-    if (!_sessionStartLogged) {
-      _sessionStartLogged = true;
-      repository.logActivity(userId, 'session_start');
-    }
 
     _onboardingSubscription = repository
         .watchOnboarding(userId)
@@ -162,7 +188,8 @@ class SyncScaleState extends ChangeNotifier {
         .listen(
           (newSettings) {
             debugPrint(
-                'userSettings fetched: enabled=${newSettings?.notificationEnabled}');
+              'userSettings fetched: enabled=${newSettings?.notificationEnabled}',
+            );
             userSettings = newSettings;
             _syncReminders(); // 通知設定が変わった可能性があるため再スケジュール
             notifyListeners();
@@ -227,17 +254,40 @@ class SyncScaleState extends ChangeNotifier {
         );
   }
 
+  void _recordSessionStart(String userId) {
+    if (!kIsWeb) {
+      repository.markMobileAsInstalled(userId).catchError((Object error) {
+        debugPrint('Failed to mark mobile as installed: $error');
+      });
+    }
+    if (!_sessionStartLogged) {
+      _sessionStartLogged = true;
+      repository.logActivity(userId, 'session_start');
+    }
+  }
+
   Future<void> login() async {
     debugPrint('Google login tapped');
+    await _signIn(authService.loginWithGoogle);
+  }
+
+  /// Sign in with Apple（iOS のみ）。
+  /// App Store ガイドライン 4.8 が求める、Googleサインインと同等のログイン手段。
+  Future<void> loginWithApple() async {
+    debugPrint('Apple login tapped');
+    await _signIn(authService.loginWithApple);
+  }
+
+  Future<void> _signIn(Future<void> Function() signIn) async {
     authLoading = true;
     notifyListeners();
     try {
-      await authService.loginWithGoogle();
+      await signIn();
       // ログインが成功しても、authStateChanges が通知されるまで少し時間がかかる場合があるため
       // ここで loading を false にせず、authStateChanges のリスナーに任せるか、
       // あるいは明示的にチェックします。
     } catch (error) {
-      errorMessage = 'ログインに失敗しました: $error';
+      errorMessage = _loginErrorMessage(error);
       authLoading = false;
       notifyListeners();
       rethrow;
@@ -248,6 +298,15 @@ class SyncScaleState extends ChangeNotifier {
         notifyListeners();
       }
     }
+  }
+
+  String _loginErrorMessage(Object error) {
+    if (error is FirebaseAuthException &&
+        error.code == 'account-exists-with-different-credential') {
+      // 同じメールアドレスを Google と Apple の両方で使った場合に発生する
+      return 'このメールアドレスは別のログイン方法で登録済みです。最初に使ったログイン方法でサインインしてください。';
+    }
+    return 'ログインに失敗しました: $error';
   }
 
   Future<void> logout() async {
@@ -270,6 +329,13 @@ class SyncScaleState extends ChangeNotifier {
       'source': 'manual',
       'isTutorialTask': task.isTutorialTask,
     });
+  }
+
+  Future<void> recordConsent() async {
+    final user = currentUser;
+    if (user == null) return;
+    await repository.recordConsent(user.uid);
+    // Firestore の監視結果で hasConsented が更新されてからホームへ進む。
   }
 
   Future<void> updateTask(String taskId, Map<String, dynamic> updates) async {
@@ -295,7 +361,8 @@ class SyncScaleState extends ChangeNotifier {
       logActivity('sml_estimate', {
         'taskId': taskId,
         'sizeLabel': newSizeLabel,
-        'isFirstEstimate': prevTask?.sizeLabel == null || prevTask!.sizeLabel!.isEmpty,
+        'isFirstEstimate':
+            prevTask?.sizeLabel == null || prevTask!.sizeLabel!.isEmpty,
       });
     }
     final newStatus = updates['status'];
@@ -428,7 +495,9 @@ class SyncScaleState extends ChangeNotifier {
     16: GlobalKey(debugLabel: 'tutorial_step_16'), // 完了タスクカード
     17: GlobalKey(debugLabel: 'tutorial_step_17'), // 詳細の振り返り全体
     18: GlobalKey(debugLabel: 'tutorial_step_18'), // 詳細を閉じる
-    19: GlobalKey(debugLabel: 'tutorial_step_19'), // NavigationBar 全体（カレンダータブ案内用）
+    19: GlobalKey(
+      debugLabel: 'tutorial_step_19',
+    ), // NavigationBar 全体（カレンダータブ案内用）
     20: GlobalKey(debugLabel: 'tutorial_step_20'), // カレンダー全体
     21: GlobalKey(debugLabel: 'tutorial_step_21'), // NavigationBar 全体（分析タブ案内用）
     22: GlobalKey(debugLabel: 'tutorial_step_22'), // 分析タブ全体
@@ -452,11 +521,22 @@ class SyncScaleState extends ChangeNotifier {
     }
   }
 
+  String? _currentFormSizeLabel;
+  String? get currentFormSizeLabel => _currentFormSizeLabel;
+  set currentFormSizeLabel(String? value) {
+    if (_currentFormSizeLabel != value) {
+      _currentFormSizeLabel = value;
+      notifyListeners();
+    }
+  }
+
   bool get isTutorialActive {
     if (tutorialStep != null && tutorialStep! >= 1 && tutorialStep! <= 24) {
       return true;
     }
-    return onboarding != null && onboarding!.step3 == true && onboarding!.step4 == false;
+    return onboarding != null &&
+        onboarding!.step3 == true &&
+        onboarding!.step4 == false;
   }
 
   void initTutorialIfNeeded() {
@@ -543,12 +623,28 @@ class SyncScaleState extends ChangeNotifier {
     await _run(() => repository.resetTutorial(user.uid));
   }
 
+  /// 研究同意の撤回とアカウント削除。
+  ///
+  /// 1. 先に再認証（キャンセルされた場合はここで中断し、何も削除しない）
+  /// 2. Firestore のデータを削除。ただし consents/{uid} は withdrawnAt を
+  ///    記録したうえで**研究記録として残す**（削除しない）
+  /// 3. 最後に Firebase Auth のアカウント自体を削除
+  ///    （App Store ガイドライン 5.1.1(v)。Apple ユーザーはトークンも失効）
   Future<void> withdrawConsent() async {
     final user = currentUser;
     if (user == null) {
       return;
     }
-    await _run(() => repository.withdrawConsent(user.uid));
+    await _run(() async {
+      final appleAuthorizationCode = await authService.prepareAccountDeletion();
+      await repository.withdrawConsent(user.uid);
+      await authService.deleteAccount(
+        appleAuthorizationCode: appleAuthorizationCode,
+      );
+      tasks = const [];
+      timeLogs = const [];
+      conditionLogs = const [];
+    });
   }
 
   Future<void> dismissMobilePromo() async {
@@ -560,21 +656,9 @@ class SyncScaleState extends ChangeNotifier {
   }
 
   bool get isMobilePromoOpen {
-    if (!kIsWeb) return false;
-    if (isTutorialActive) return false;
-    final o = onboarding;
-    if (o == null || !o.completed) return false;
-    if (o.mobileInstalled == true) return false;
-
-    final dismissedAt = userSettings?.mobilePromoDismissedAt;
-    if (dismissedAt != null) {
-      final now = DateTime.now();
-      final diff = now.difference(dismissedAt);
-      if (diff.inHours < 24) {
-        return false;
-      }
-    }
-    return true;
+    // iOS / Android アプリの公開準備が整うまで、Webモバイル版を含め
+    // インストール促進モーダルは一律で自動表示しない。
+    return false;
   }
 
   // ===== 締切前通知 =====
@@ -590,7 +674,10 @@ class SyncScaleState extends ChangeNotifier {
   ///
   /// 有効化（enabled=true）への切り替え時は OS の通知権限を要求する。
   /// 主要な権限が拒否された場合は false を返す（設定値自体は保存する）。
-  Future<bool> setNotificationSettings({bool? enabled, int? minutesBefore}) async {
+  Future<bool> setNotificationSettings({
+    bool? enabled,
+    int? minutesBefore,
+  }) async {
     final user = currentUser;
     if (user == null) {
       return false;
@@ -603,11 +690,13 @@ class SyncScaleState extends ChangeNotifier {
       permissionGranted = await notificationService.requestPermissions();
     }
 
-    await _run(() => repository.updateNotificationSettings(
-          user.uid,
-          enabled: enabled,
-          minutesBefore: minutesBefore,
-        ));
+    await _run(
+      () => repository.updateNotificationSettings(
+        user.uid,
+        enabled: enabled,
+        minutesBefore: minutesBefore,
+      ),
+    );
 
     // Firestore の onboarding ストリーム経由でも再同期されるが、即時反映のため
     // 楽観的に新しい値でスケジュールし直す。
