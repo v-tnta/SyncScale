@@ -1,7 +1,7 @@
 # App Store Connect 提出情報（iOS / SyncScale）
 
-対象バージョン: **0.4.1 (build 2)** / Bundle ID: **com.v-tnta.syncscale** / Team ID: **QFTQ5ALH6N** / 対応デバイス: **iPhone のみ**
-最終更新: 2026-09-13
+対象バージョン: **1.0.0 (build 6)** / Bundle ID: **com.v-tnta.syncscale** / Team ID: **QFTQ5ALH6N** / 対応デバイス: **iPhone のみ**
+最終更新: 2026-10-07
 
 ---
 
@@ -13,7 +13,7 @@
 | 2 | **アカウント削除**（ガイドライン 5.1.1(v)） | ✅ 実装済み | 設定 →「同意の撤回・アカウント削除」で、本人確認 → Firestore データ削除 → Apple トークン失効 → `currentUser.delete()` までアプリ内で完結。**`consents/{uid}` は研究記録として残す**（`withdrawnAt` を追記。ルールも `delete: false`）。**残り作業は §2.5-1 の Apple 失効用の Firebase Console 設定と実機確認**。 |
 | 3 | **審査用デモアカウント** | ⚠️ 要判断 | Sign in with Apple があるため、審査員は自分の Apple ID でサインインできる。資格情報欄を空欄にし、審査メモに明記する方針でも通ることが多いが、弾かれた場合に備えて Email/Password の審査用アカウントを用意しておくと安全。 |
 | 4 | **iPad 対応** | ✅ 対応済み | `TARGETED_DEVICE_FAMILY = 1`（iPhone のみ）に変更。ビルド済み `Runner.app` の `UIDeviceFamily` が `[1]` であることを確認済み。iPad 用スクリーンショットは不要。 |
-| 5 | `ITSAppUsesNonExemptEncryption` 未設定 | ⚠️ 要追加 | Info.plist に `<false/>` を入れると毎回の輸出コンプライアンス質問が消える（HTTPS のみなので免除対象）。 |
+| 5 | `ITSAppUsesNonExemptEncryption` | ✅ 追加済み | Info.plist に `<false/>` を入れると毎回の輸出コンプライアンス質問が消える（HTTPS のみなので免除対象）。 |
 | 6 | `PrivacyInfo.xcprivacy`（アプリ本体）未作成 | ⚠️ 推奨 | Pods 側は 19 個あるがアプリターゲットには無い。Required Reason API 未申告で ITMS-91053 警告メールが来る場合がある。 |
 | 7 | メタデータに「manaba」を書くか | ⚠️ 注意 | manaba は第三者（朝日ネット）の登録商標。アプリ名・サブタイトル・キーワードには入れず、説明文では「大学の学習管理システム（LMS）」と一般名で記述するのが安全。 |
 | 8 | Xcode バージョン | 要確認 | 現在の App Store 提出は Xcode 16 以降（iOS 18 SDK）でのビルドが必須。 |
@@ -48,7 +48,7 @@
 
 ---
 
-## 2. バージョン情報（0.4.1）
+## 2. バージョン情報（1.0.0）
 
 ### プロモーションテキスト（170字以内 / 審査なしで後から変更可）
 
@@ -121,6 +121,13 @@ SyncScaleは、大学の課題を「見積もり」と「実績」の両面か�
 ・S/M/Lの相対見積もり、タイマー計測、実績ガントチャートに対応しました
 ・締切前のリマインダー通知を追加しました
 ・PC版・Chrome拡張機能とのデータ連携に対応しました
+```
+
+1.0.0 で既に公開済みのバージョンがある場合の例:
+
+```
+・ダークモードに対応しました。画面右上のボタンで「ライト／ダーク／自動（端末の設定に合わせる）」を切り替えられます
+・画面全体のデザインを調整しました
 ```
 
 ---

@@ -199,11 +199,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-          if (kIsWeb)
-            const Padding(
-              padding: EdgeInsets.only(left: 4, right: 2),
-              child: ThemeToggleButton(),
-            ),
+          const Padding(
+            padding: EdgeInsets.only(left: 4, right: 2),
+            child: ThemeToggleButton(),
+          ),
           IconButton(
             key: (isTutorial && appState.tutorialStep == 23)
                 ? appState.tutorialKeys[23]

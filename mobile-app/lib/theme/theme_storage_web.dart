@@ -3,7 +3,7 @@ import 'package:web/web.dart' as web;
 /// React 版（web/src/hooks/useTheme.jsx）と同じキー
 const _key = 'syncscale_theme';
 
-String? readThemePreference() {
+Future<String?> readThemePreference() async {
   try {
     return web.window.localStorage.getItem(_key);
   } catch (_) {
@@ -11,7 +11,7 @@ String? readThemePreference() {
   }
 }
 
-void writeThemePreference(String value) {
+Future<void> writeThemePreference(String value) async {
   try {
     web.window.localStorage.setItem(_key, value);
   } catch (_) {

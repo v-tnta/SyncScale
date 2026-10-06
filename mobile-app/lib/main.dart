@@ -41,6 +41,8 @@ Future<void> main() async {
     notificationService: notificationService,
   )..start();
 
+  await themeController.load();
+
   runApp(SyncScaleScope(state: appState, child: const SyncScaleApp()));
 }
 
