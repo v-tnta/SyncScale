@@ -22,7 +22,7 @@ const DynamicTutorialGuide = ({
     // 1から15までの細分化されたステップ (15ステップの表示 + 16: 完了画面)
     const [tutorialTaskId, setTutorialTaskId] = useState(null);
     const prevTasks = useRef(tasks);
-    const hasAddedLog = useRef(false);
+    const prevTimeLogs = useRef(timeLogs);
 
     // ターゲット要素の矩形座標 (clip-path / ツールチップ配置に使用)
     const [targetRect, setTargetRect] = useState(null);
@@ -84,56 +84,25 @@ const DynamicTutorialGuide = ({
         }, 300);
 
         return () => clearInterval(interval);
-    }, [step]);
+    }, [step, setStep]);
 
-    // Step 10: 「きろく」ボタンのクリックを直接検知して次へ進む
+    // Step 10: 実際に作業ログが保存されたことを検知して次へ進む。
+    // ボタンのクリックだけでは、入力エラーや保存失敗でも進んでしまうため、
+    // Firestore 反映後の timeLogs を完了条件にする。
     useEffect(() => {
-        if (step !== 10) return;
-
-        const handleSaveClick = () => {
-            const durationInput = document.querySelector('#tutorial-manual-duration input');
-            const durationValue = durationInput ? durationInput.value.trim() : "";
-            
-            if (!durationValue || isNaN(Number(durationValue)) || Number(durationValue) <= 0) {
-                // 時間が未入力、または0以下の場合は進行しない
-                return;
-            }
-
-            // 少し待ってから進む（保存処理が完了するのを待つ）
-            setTimeout(() => {
-                hasAddedLog.current = true;
+        if (step === 10 && timeLogs.length > prevTimeLogs.current.length) {
+            const addedLogs = timeLogs.filter(
+                log => !prevTimeLogs.current.some(previous => previous.id === log.id)
+            );
+            const savedForTutorialTask = addedLogs.some(
+                log => !selectedTask || log.taskId === selectedTask.id
+            );
+            if (savedForTutorialTask) {
                 setStep(11);
-            }, 500);
-        };
-
-        // ボタンが動的に出現するため、MutationObserverで監視
-        const attachListener = () => {
-            const saveBtn = document.getElementById('tutorial-manual-save-button');
-            if (saveBtn) {
-                saveBtn.addEventListener('click', handleSaveClick);
-                return true;
             }
-            return false;
-        };
-
-        // 即時試行
-        if (!attachListener()) {
-            // ボタンがまだない場合はポーリングで待つ
-            const poll = setInterval(() => {
-                if (attachListener()) clearInterval(poll);
-            }, 200);
-            return () => {
-                clearInterval(poll);
-                const btn = document.getElementById('tutorial-manual-save-button');
-                if (btn) btn.removeEventListener('click', handleSaveClick);
-            };
         }
-
-        return () => {
-            const btn = document.getElementById('tutorial-manual-save-button');
-            if (btn) btn.removeEventListener('click', handleSaveClick);
-        };
-    }, [step]);
+        prevTimeLogs.current = timeLogs;
+    }, [timeLogs, selectedTask, step, setStep]);
 
     // Step 4: タスクが追加されたかを検知
     useEffect(() => {
@@ -146,7 +115,7 @@ const DynamicTutorialGuide = ({
             }
         }
         prevTasks.current = tasks;
-    }, [tasks, step]);
+    }, [tasks, step, setStep]);
 
     // Step 5: 対象のタスク詳細が開かれたかを検知
     // タイトル文字列の完全一致だけに依存すると、日本語IMEの確定タイミング等で
@@ -161,7 +130,7 @@ const DynamicTutorialGuide = ({
         if (isTutorialTaskDetail) {
             setStep(6);
         }
-    }, [selectedTask, step, tutorialTaskId]);
+    }, [selectedTask, step, tutorialTaskId, setStep]);
 
     // Step 11: 提出完了モーダルが開いたかを検知
     // Step 5 と同様、タイトル一致だけに頼らず isTutorialTask / tutorialTaskId でも判定する。
@@ -174,7 +143,7 @@ const DynamicTutorialGuide = ({
         if (isTutorialTaskCompleting) {
             setStep(12);
         }
-    }, [taskToComplete, step, tutorialTaskId]);
+    }, [taskToComplete, step, tutorialTaskId, setStep]);
 
     // Step 12: 「記録して提出完了」ボタンのクリックを直接検知して次へ進む
     useEffect(() => {
@@ -210,21 +179,21 @@ const DynamicTutorialGuide = ({
             const btn = document.getElementById('tutorial-condition-submit');
             if (btn) btn.removeEventListener('click', handleConditionSubmit);
         };
-    }, [step]);
+    }, [step, setStep]);
 
     // Step 13: 完了モーダルが開かれたかを検知
     useEffect(() => {
         if (step === 13 && isCompletedModalOpen) {
             setStep(14);
         }
-    }, [isCompletedModalOpen, step]);
+    }, [isCompletedModalOpen, step, setStep]);
 
     // Step 14: 完了モーダルが閉じられたかを検知
     useEffect(() => {
         if (step === 14 && !isCompletedModalOpen) {
             setStep(15);
         }
-    }, [isCompletedModalOpen, step]);
+    }, [isCompletedModalOpen, step, setStep]);
 
     // 「次へ進む」の妥当性チェック
     const isNextEnabled = useCallback(() => {
@@ -234,9 +203,9 @@ const DynamicTutorialGuide = ({
             return !!deadlineEl;
         }
         if (step === 3) {
-            // 規模感が選択されているか（SizeLabelSelectorが表示されていればOK）
+            // 規模感が明示的に選択されているか
             const sizeEl = document.getElementById('tutorial-size-selector');
-            return !!sizeEl;
+            return !!sizeEl?.querySelector('button[aria-pressed="true"]');
         }
         return true;
     }, [step]);
@@ -398,25 +367,25 @@ const DynamicTutorialGuide = ({
             <div
                 data-tutorial-guide
                 style={getTooltipStyle()}
-                className="bg-white/95 backdrop-blur-md border border-blue-100 rounded-2xl shadow-2xl p-5 md:p-6 transition-all duration-300"
+                className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-blue-100 dark:border-slate-800 rounded-2xl shadow-2xl p-5 md:p-6 transition-all duration-300"
             >
                 <div className="flex flex-col space-y-3">
                     {/* ヘッダー */}
                     <div className="flex justify-between items-center">
-                        <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full border border-blue-100 uppercase tracking-wider">
+                        <span className="text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 px-2.5 py-1 rounded-full border border-blue-100 dark:border-blue-900/50 uppercase tracking-wider">
                             {TUTORIAL_GUIDE_UI.badge}
                         </span>
-                        <span className="text-xs font-bold text-slate-400">
+                        <span className="text-xs font-bold text-slate-400 dark:text-slate-500">
                             {step <= 15 ? `${step} / 15` : TUTORIAL_GUIDE_UI.doneLabel}
                         </span>
                     </div>
 
                     {/* タイトルと説明 */}
                     <div className="space-y-1">
-                        <h3 className="font-extrabold text-slate-900 text-sm md:text-base leading-tight">
+                        <h3 className="font-extrabold text-slate-900 dark:text-slate-100 text-sm md:text-base leading-tight">
                             {guide.title}
                         </h3>
-                        <p className="text-slate-600 text-xs md:text-sm leading-relaxed whitespace-pre-line">
+                        <p className="text-slate-600 dark:text-slate-300 text-xs md:text-sm leading-relaxed whitespace-pre-line">
                             {guide.desc}
                         </p>
                     </div>
@@ -427,7 +396,7 @@ const DynamicTutorialGuide = ({
                             <button
                                 onClick={handleNextStep}
                                 disabled={!isNextEnabled()}
-                                className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-extrabold rounded-xl shadow-md transition duration-250 text-center text-sm"
+                                className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 dark:disabled:bg-slate-700 disabled:cursor-not-allowed text-white font-extrabold rounded-xl shadow-md transition duration-250 text-center text-sm"
                             >
                                 {TUTORIAL_GUIDE_UI.nextButtonText}
                             </button>
@@ -448,7 +417,7 @@ const DynamicTutorialGuide = ({
 
                     {/* 進捗プログレスバー */}
                     {step <= 15 && (
-                        <div className="w-full bg-slate-100 rounded-full h-1 mt-1">
+                        <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1 mt-1">
                             <div
                                 className="bg-blue-600 h-1 rounded-full transition-all duration-500"
                                 style={{ width: `${(step / 15) * 100}%` }}

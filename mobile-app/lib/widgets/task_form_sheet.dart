@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/task.dart';
 import '../state/syncscale_state.dart';
 import 'formatters.dart';
+import '../theme/sc_colors.dart';
 
 Future<void> showTaskFormSheet(BuildContext context, {Task? task}) {
   final appState = SyncScaleScope.of(context);
@@ -58,6 +59,7 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
         if (appState.tutorialStep == 1) {
           appState.setTutorialStep(2);
         }
+        appState.currentFormSizeLabel = _sizeLabel;
       } catch (_) {}
     });
   }
@@ -77,6 +79,7 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
     try {
       final appState = SyncScaleScope.of(context);
       appState.currentFormTitle = '';
+      appState.currentFormSizeLabel = null;
     } catch (_) {}
     super.dispose();
   }
@@ -127,14 +130,19 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
               label: Text('締切: ${formatDateTime(_deadline)}'),
             ),
             const SizedBox(height: 12),
+            Text(
+              '課題やタスクの規模感を、あなたが感じるボリューム感で選択してください。',
+              style: TextStyle(fontSize: 12, color: context.sc.ink54),
+            ),
+            const SizedBox(height: 8),
             SegmentedButton<String>(
               key: appState.isTutorialActive ? appState.tutorialKeys[4] : null,
               emptySelectionAllowed: true,
               selected: _sizeLabel == null ? <String>{} : {_sizeLabel!},
               onSelectionChanged: (selection) {
-                setState(
-                  () => _sizeLabel = selection.isEmpty ? null : selection.first,
-                );
+                final selected = selection.isEmpty ? null : selection.first;
+                setState(() => _sizeLabel = selected);
+                appState.currentFormSizeLabel = selected;
               },
               segments: const [
                 ButtonSegment(value: 'S', label: Text('S')),
@@ -200,6 +208,12 @@ class _TaskFormSheetState extends State<TaskFormSheet> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('タスク名を入力してください。')));
+      return;
+    }
+    if (!_isEditing && _sizeLabel == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('課題の規模感（S/M/L）を選んでください。')),
+      );
       return;
     }
 

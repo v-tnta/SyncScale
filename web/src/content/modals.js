@@ -42,15 +42,15 @@ export const CONSENT_WITHDRAW_MODAL = {
 // モバイルアプリインストール促進（MobileAppPromoModal.jsx）
 // ========================================
 export const MOBILE_APP_PROMO_MODAL = {
-  title: "モバイルアプリインストールのお願い",
+  title: "モバイル版のご案内",
   paragraphs: [
     "SyncScaleは、タスク管理と実働時間の記録を組み合わせることで効果を発揮するシステムです。",
-    "外出先やスマートフォンからも手軽に時間計測やコンディションの入力を行っていただけるよう、便利なスマホアプリをご用意しています。ぜひインストールしてご活用ください。",
-    "以下のストアボタンより、アプリをインストールしてGoogleアカウントでログインしてください。",
+    "外出先やスマートフォンからも、Webモバイル版で時間計測やコンディションの入力を行えます。",
+    "iOSアプリをApp Storeで公開しました。Androidアプリは現在準備中です。",
   ],
-  iosButtonText: "App Store からダウンロード (iOS)",
-  androidButtonText: "Google Play からダウンロード (Android)",
-  laterButtonText: "あとで通知する",
+  iosButtonText: "App Storeからダウンロード",
+  androidButtonText: "Androidアプリ（準備中）",
+  closeButtonText: "閉じる",
 };
 
 // ========================================
@@ -100,11 +100,11 @@ export const EXTENSION_GUIDE_MODAL = {
 export const TASK_SIZE_ESTIMATE_MODAL = {
   titleMultiple: "複数の新しい課題があります！",
   titleSingle: "新しい課題が見つかりました！",
-  question: "この課題の規模（S/M/L）はどれくらいですか？",
+  question: "課題やタスクの規模感を、あなたが感じるボリューム感で選択してください。",
   sizeOptions: [
-    { value: "S", color: "bg-cyan-100 text-cyan-700 hover:bg-cyan-200 border-cyan-300", desc: "すぐ終わる" },
-    { value: "M", color: "bg-orange-100 text-orange-700 hover:bg-orange-200 border-orange-300", desc: "半日〜1日" },
-    { value: "L", color: "bg-red-100 text-red-700 hover:bg-red-200 border-red-300", desc: "数日かかる" },
+    { value: "S", color: "bg-cyan-100 text-cyan-700 hover:bg-cyan-200 border-cyan-300", desc: "小さい" },
+    { value: "M", color: "bg-orange-100 text-orange-700 hover:bg-orange-200 border-orange-300", desc: "中くらい" },
+    { value: "L", color: "bg-red-100 text-red-700 hover:bg-red-200 border-red-300", desc: "大きい" },
   ],
   submitButtonText: "決定して次へ",
   declineButtonText: "この課題は追加しない",

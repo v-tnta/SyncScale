@@ -23,6 +23,7 @@ try {
   const potentialPaths = [
     path.join(homeDir, 'development/flutter/bin', os.platform() === 'win32' ? 'flutter.bat' : 'flutter'),
     path.join(homeDir, 'src/flutter/bin', os.platform() === 'win32' ? 'flutter.bat' : 'flutter'),
+    path.join(homeDir, 'Documents/flutter/bin', os.platform() === 'win32' ? 'flutter.bat' : 'flutter'),
     path.join('C:/src/flutter/bin', 'flutter.bat'),
     path.join('C:/development/flutter/bin', 'flutter.bat'),
   ];

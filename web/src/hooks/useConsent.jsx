@@ -55,7 +55,7 @@ export function ConsentProvider({ children }) {
         try {
             const docSnap = await getDoc(docRef);
             if (docSnap.exists()) {
-                // 再同意（撤回後の復帰、または同意書バージョン更新後の再同意）
+                // 既存の同意記録がある場合の再同意
                 const prev = docSnap.data();
                 const updates = {
                     agreedAt: serverTimestamp(),
@@ -143,9 +143,8 @@ export function ConsentProvider({ children }) {
         }
     };
 
-    // 同意済み かつ 撤回していない かつ 現行バージョンの同意書に同意している
-    // （同意書が改訂された場合、既存ユーザーは再同意するまで未同意扱いになる）
-    const hasConsented = consent !== null && !consent.withdrawnAt && consent.version === AGREEMENT_CONTENT.version;
+    // 同意書のバージョンは記録として保持し、既存の同意は撤回まで有効とする。
+    const hasConsented = consent !== null && Boolean(consent.agreedAt) && !consent.withdrawnAt;
 
     const value = {
         consent,

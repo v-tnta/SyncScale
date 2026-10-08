@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.0.0+1
+version: 1.0.0+6
 
 environment:
   sdk: ^3.7.2
@@ -36,13 +36,22 @@ dependencies:
   firebase_auth: ^6.5.1
   firebase_core: ^4.9.0
   flutter_dotenv: ^6.0.1
+  google_fonts: ^6.3.3
   google_sign_in: ^7.2.0
+  flutter_svg: ^2.2.4
   intl: ^0.20.2
+  package_info_plus: ^8.3.0
   url_launcher: ^6.3.2
   # 締切前のローカル通知（ネイティブ iOS/Android のみ。Web では非対応）
   flutter_local_notifications: ^18.0.1
   timezone: ^0.9.4
   flutter_timezone: ^3.0.1
+  sign_in_with_apple: ^8.2.0
+  crypto: ^3.0.7
+  # Web 版で React 版と同じ localStorage のテーマ設定を読み書きするため
+  web: ^1.1.1
+  # ネイティブ版（iOS/Android）のテーマ設定の保存先
+  shared_preferences: ^2.5.6
 
 
 dev_dependencies:
@@ -69,6 +78,7 @@ flutter:
 
   assets:
     - assets/images/logo.png
+    - assets/store_badges/app_store_badge_ja.svg
     # flutter_dotenv はネイティブ(iOS/Android)実行時に .env をアセットとして読み込むため必須。
     # （Web ビルドは build-flutter-web.js の --dart-define で値を埋め込むため .env は使用しない）
     - .env

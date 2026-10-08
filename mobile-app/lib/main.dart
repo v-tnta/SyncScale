@@ -10,6 +10,8 @@ import 'services/auth_service.dart';
 import 'services/notification_service.dart';
 import 'services/syncscale_repository.dart';
 import 'state/syncscale_state.dart';
+import 'theme/app_theme.dart';
+import 'theme/theme_controller.dart';
 import 'widgets/tutorial_guide_overlay.dart';
 
 Future<void> main() async {
@@ -39,6 +41,8 @@ Future<void> main() async {
     notificationService: notificationService,
   )..start();
 
+  await themeController.load();
+
   runApp(SyncScaleScope(state: appState, child: const SyncScaleApp()));
 }
 
@@ -47,32 +51,14 @@ class SyncScaleApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = ColorScheme.fromSeed(
-      seedColor: const Color(0xFF2563EB),
-      brightness: Brightness.light,
-    );
-
-    return MaterialApp(
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: themeController,
+      builder: (context, themeMode, _) => MaterialApp(
       title: 'SyncScale',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: colorScheme,
-        scaffoldBackgroundColor: const Color(0xFFF7F8FB),
-        appBarTheme: const AppBarTheme(
-          centerTitle: false,
-          backgroundColor: Color(0xFFF7F8FB),
-          surfaceTintColor: Colors.transparent,
-        ),
-        cardTheme: CardThemeData(
-          elevation: 0,
-          color: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-            side: const BorderSide(color: Color(0xFFE5E7EB)),
-          ),
-        ),
-      ),
+      theme: buildAppTheme(Brightness.light),
+      darkTheme: buildAppTheme(Brightness.dark),
+      themeMode: themeMode,
       home: const AuthGate(),
       builder: (context, child) {
         return Stack(
@@ -82,6 +68,7 @@ class SyncScaleApp extends StatelessWidget {
           ],
         );
       },
+      ),
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart' show debugPrint, kIsWeb;
 
+import '../constants/agreement.dart';
 import '../constants/app_info.dart';
 import '../models/condition_log.dart';
 import '../models/onboarding.dart';
@@ -13,6 +14,39 @@ class SyncScaleRepository {
     : _firestore = firestore ?? FirebaseFirestore.instance;
 
   final FirebaseFirestore _firestore;
+
+  Stream<bool> watchConsent(String userId) =>
+      _firestore.collection('consents').doc(userId).snapshots().map((snapshot) {
+        final data = snapshot.data();
+        return data != null &&
+            data.containsKey('agreedAt') &&
+            !data.containsKey('withdrawnAt');
+      });
+
+  Future<void> recordConsent(String userId) async {
+    final reference = _firestore.collection('consents').doc(userId);
+    final previous = await reference.get();
+    if (!previous.exists) {
+      await reference.set({
+        'agreedAt': FieldValue.serverTimestamp(),
+        'version': agreementVersion,
+      });
+      return;
+    }
+
+    final data = previous.data()!;
+    final updates = <String, dynamic>{
+      'agreedAt': FieldValue.serverTimestamp(),
+      'version': agreementVersion,
+      'withdrawnAt': FieldValue.delete(),
+    };
+    if (data['version'] != agreementVersion && data['agreedAt'] != null) {
+      updates['previousConsents'] = FieldValue.arrayUnion([
+        {'version': data['version'], 'agreedAt': data['agreedAt']},
+      ]);
+    }
+    await reference.update(updates);
+  }
 
   Stream<List<Task>> watchTasks(String userId) {
     final query = _firestore
@@ -107,7 +141,10 @@ class SyncScaleRepository {
     });
   }
 
-  Future<List<ConditionLog>> getConditionLogs(String userId, String taskId) async {
+  Future<List<ConditionLog>> getConditionLogs(
+    String userId,
+    String taskId,
+  ) async {
     final snapshot =
         await _firestore
             .collection('conditionLogs')
@@ -130,11 +167,9 @@ class SyncScaleRepository {
   }
 
   Stream<Onboarding?> watchOnboarding(String userId) {
-    return _firestore
-        .collection('onboarding')
-        .doc(userId)
-        .snapshots()
-        .map((snapshot) {
+    return _firestore.collection('onboarding').doc(userId).snapshots().map((
+      snapshot,
+    ) {
       if (!snapshot.exists || snapshot.data() == null) {
         return null;
       }
@@ -144,11 +179,9 @@ class SyncScaleRepository {
 
   /// ユーザー設定（通知設定・モバイルプロモ非表示）を監視する。
   Stream<UserSettings?> watchUserSettings(String userId) {
-    return _firestore
-        .collection('userSettings')
-        .doc(userId)
-        .snapshots()
-        .map((snapshot) {
+    return _firestore.collection('userSettings').doc(userId).snapshots().map((
+      snapshot,
+    ) {
       if (!snapshot.exists || snapshot.data() == null) {
         return null;
       }
@@ -234,7 +267,9 @@ class SyncScaleRepository {
     for (var i = 0; i < refs.length; i += _batchChunkSize) {
       final batch = _firestore.batch();
       final end =
-          (i + _batchChunkSize < refs.length) ? i + _batchChunkSize : refs.length;
+          (i + _batchChunkSize < refs.length)
+              ? i + _batchChunkSize
+              : refs.length;
       for (final ref in refs.sublist(i, end)) {
         batch.delete(ref);
       }
@@ -247,10 +282,11 @@ class SyncScaleRepository {
     final refsToDelete = <DocumentReference>[];
     const collections = ['tasks', 'timeLogs', 'conditionLogs', 'activityLogs'];
     for (final name in collections) {
-      final snap = await _firestore
-          .collection(name)
-          .where('userId', isEqualTo: userId)
-          .get();
+      final snap =
+          await _firestore
+              .collection(name)
+              .where('userId', isEqualTo: userId)
+              .get();
       for (final doc in snap.docs) {
         refsToDelete.add(doc.reference);
       }
@@ -271,10 +307,16 @@ class SyncScaleRepository {
     // 2. チャンク分割しながら全データを削除
     await _deleteRefsInChunks(refsToDelete);
 
-    // 3. 最後に consents/{userId} に withdrawnAt を記録（研究記録として残す）
+    // 3. 最後に consents/{userId} に withdrawnAt を記録（研究記録として残す。削除はしない）。
+    //    同意記録がないユーザーは記録するものがないので何もしない
+    //    （update は not-found で失敗し、アカウント削除まで進めなくなるため）。
+    //    削除の再試行時は、最初の撤回日時を上書きしない
     final consentRef = _firestore.collection('consents').doc(userId);
-    await consentRef.update({
-      'withdrawnAt': FieldValue.serverTimestamp(),
-    });
+    final consentSnap = await consentRef.get();
+    final alreadyWithdrawn =
+        consentSnap.data()?.containsKey('withdrawnAt') ?? false;
+    if (consentSnap.exists && !alreadyWithdrawn) {
+      await consentRef.update({'withdrawnAt': FieldValue.serverTimestamp()});
+    }
   }
 }

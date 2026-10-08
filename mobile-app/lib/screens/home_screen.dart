@@ -1,7 +1,11 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import '../constants/app_info.dart';
 import '../state/syncscale_state.dart';
+import '../theme/sc_colors.dart';
 import '../widgets/task_form_sheet.dart';
 import '../widgets/mobile_app_promo_dialog.dart';
 import '../widgets/notification_permission_dialog.dart';
@@ -11,6 +15,7 @@ import 'analytics_screen.dart';
 import 'calendar_screen.dart';
 import 'tasks_screen.dart';
 import '../widgets/settings_dialog.dart';
+import '../widgets/theme_toggle_button.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -25,6 +30,23 @@ class _HomeScreenState extends State<HomeScreen> {
   SyncScaleState? _appState;
   bool _isPromoDialogOpen = false;
   bool _isNotificationDialogOpen = false;
+  String _displayVersion = kAppVersion;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDisplayVersion();
+  }
+
+  Future<void> _loadDisplayVersion() async {
+    try {
+      final packageInfo = await PackageInfo.fromPlatform();
+      if (!mounted) return;
+      setState(() => _displayVersion = packageInfo.version);
+    } catch (_) {
+      // 取得できない環境では、既存の定数をフォールバックとして表示する。
+    }
+  }
 
   @override
   void didChangeDependencies() {
@@ -96,6 +118,13 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> _showMobilePromo() async {
+    if (_isPromoDialogOpen || !mounted) return;
+    _isPromoDialogOpen = true;
+    await MobileAppPromoDialog.show(context);
+    _isPromoDialogOpen = false;
+  }
+
   @override
   Widget build(BuildContext context) {
     final appState = SyncScaleScope.of(context);
@@ -110,34 +139,70 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          children: [
-            Image.asset(
-              'assets/images/logo.png',
-              width: 56, // 以前の 48 からさらに一回り大きく変更
-              height: 56, // 以前の 48 からさらに一回り大きく変更
-              fit: BoxFit.contain,
-            ),
-            const SizedBox(width: 8),
-            const Text(
-              'SyncScale',
-              style: TextStyle(
-                fontWeight: FontWeight.w900,
-                letterSpacing: -0.5,
+        titleSpacing: 8,
+        title: FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Row(
+            children: [
+              Image.asset(
+                'assets/images/logo.png',
+                width: 56, // 以前の 48 からさらに一回り大きく変更
+                height: 56, // 以前の 48 からさらに一回り大きく変更
+                fit: BoxFit.contain,
               ),
-            ),
-            const SizedBox(width: 6),
-            const Text(
-              'v$kAppVersion',
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey,
-                fontWeight: FontWeight.w500,
+              const SizedBox(width: 8),
+              Text(
+                'SyncScale',
+                style: GoogleFonts.notoSansJp(
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -0.5,
+                ),
               ),
-            ),
-          ],
+              const SizedBox(width: 6),
+              Text(
+                'v$_displayVersion',
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
         ),
         actions: [
+          if (kIsWeb)
+            Padding(
+              padding: const EdgeInsets.only(right: 2),
+              child: OutlinedButton.icon(
+                onPressed: _showMobilePromo,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: context.sc.text,
+                  backgroundColor: context.sc.surface,
+                  side: BorderSide(
+                    color: context.isDark
+                        ? context.sc.borderStrong
+                        : context.sc.border,
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 9),
+                  minimumSize: const Size(0, 36),
+                  visualDensity: VisualDensity.compact,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                icon: const Icon(Icons.smartphone, size: 17),
+                label: const Text(
+                  'モバイル版',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+                ),
+              ),
+            ),
+          const Padding(
+            padding: EdgeInsets.only(left: 4, right: 2),
+            child: ThemeToggleButton(),
+          ),
           IconButton(
             key: (isTutorial && appState.tutorialStep == 23)
                 ? appState.tutorialKeys[23]

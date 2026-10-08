@@ -6,6 +6,7 @@ import '../models/task.dart';
 import '../models/time_log.dart';
 import '../state/syncscale_state.dart';
 import '../widgets/task_detail_sheet.dart';
+import '../theme/sc_colors.dart';
 
 // カレンダー日基準で days 日後の日付を返す。DateTime.add(Duration(days:...)) は
 // 絶対時間の加算のため夏時間の切り替え日をまたぐとズレる（23時間/25時間になる）が、
@@ -82,7 +83,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
       child: Container(
         padding: const EdgeInsets.all(4),
         decoration: BoxDecoration(
-          color: const Color(0xFFF1F5F9),
+          color: context.sc.surfaceAlt,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
@@ -104,7 +105,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
         decoration: BoxDecoration(
-          color: selected ? Colors.white : Colors.transparent,
+          color: selected
+              ? context.pick(Colors.white, context.sc.borderStrong)
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
           boxShadow: selected
               ? [
@@ -121,7 +124,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w700,
-            color: selected ? Colors.black87 : Colors.black45,
+            color: selected ? context.sc.ink87 : context.sc.ink45,
           ),
         ),
       ),
@@ -244,7 +247,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
             // 前月の余りセル
             return Container(
               decoration: BoxDecoration(
-                color: Colors.grey.shade50,
+                color: context.pick(Colors.grey.shade50, context.sc.surfaceSubtle),
                 borderRadius: BorderRadius.circular(4),
               ),
             );
@@ -275,10 +278,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
           return Container(
             decoration: BoxDecoration(
-              color: isToday ? Colors.blue.shade50 : Colors.white,
+              color: isToday ? context.pick(Colors.blue.shade50, context.sc.primarySoft) : context.pick(Colors.white, context.sc.surface),
               borderRadius: BorderRadius.circular(4),
               border: Border.all(
-                color: isToday ? Colors.blue.shade300 : Colors.grey.shade200,
+                color: isToday ? context.pick(Colors.blue.shade300, const Color(0xFF3B82F6)) : context.pick(Colors.grey.shade200, context.sc.border),
                 width: isToday ? 1.5 : 1,
               ),
             ),
@@ -294,12 +297,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                       color: isToday
-                          ? Colors.blue.shade800
+                          ? context.pick(Colors.blue.shade800, const Color(0xFF93C5FD))
                           : (cellDate.weekday == DateTime.sunday
-                              ? Colors.red
+                              ? context.pick(Colors.red, const Color(0xFFF87171))
                               : (cellDate.weekday == DateTime.saturday
-                                  ? Colors.blue
-                                  : Colors.black87)),
+                                  ? context.pick(Colors.blue, const Color(0xFF60A5FA))
+                                  : context.sc.ink87)),
                     ),
                   ),
                 ),
@@ -456,8 +459,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final isSunday = day.weekday == DateTime.sunday;
     final isSaturday = day.weekday == DateTime.saturday;
     final dowColor = isSunday
-        ? Colors.red
-        : (isSaturday ? Colors.blue : Colors.black54);
+        ? context.pick(Colors.red, const Color(0xFFF87171))
+        : (isSaturday
+            ? context.pick(Colors.blue, const Color(0xFF60A5FA))
+            : context.sc.ink54);
     const weekdayLabels = ['日', '月', '火', '水', '木', '金', '土'];
     final label = weekdayLabels[day.weekday % 7];
 
@@ -476,7 +481,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
       margin: const EdgeInsets.symmetric(horizontal: 1),
       padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
       decoration: BoxDecoration(
-        color: isToday ? Colors.blue.shade50 : Colors.transparent,
+        color: isToday ? context.pick(Colors.blue.shade50, context.sc.primarySoft) : Colors.transparent,
         borderRadius: BorderRadius.circular(4),
       ),
       child: Column(
@@ -486,7 +491,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
             style: TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.bold,
-              color: isToday ? Colors.blue.shade700 : dowColor,
+              color: isToday ? context.pick(Colors.blue.shade700, const Color(0xFF60A5FA)) : dowColor,
             ),
           ),
           Text(
@@ -494,7 +499,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.bold,
-              color: isToday ? Colors.blue.shade800 : Colors.black87,
+              color: isToday ? context.pick(Colors.blue.shade800, const Color(0xFF93C5FD)) : context.sc.ink87,
             ),
           ),
           // 締切タスク（最大2件＋件数）
@@ -526,10 +531,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
               padding: const EdgeInsets.only(top: 2),
               child: Text(
                 '+$extra',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 8,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black45,
+                  color: context.sc.ink45,
                 ),
               ),
             ),
@@ -574,8 +579,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: isToday ? Colors.blue.shade50.withValues(alpha: 0.4) : null,
-        border: Border(left: BorderSide(color: Colors.grey.shade200)),
+        color: isToday ? context.pick(context.pick(Colors.blue.shade50, context.sc.primarySoft).withValues(alpha: 0.4), context.sc.primarySoft) : null,
+        border: Border(left: BorderSide(color: context.pick(Colors.grey.shade200, context.sc.border))),
       ),
       child: SizedBox(
         height: _hourHeight * 24,
@@ -588,7 +593,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 (_) => Container(
                   height: _hourHeight,
                   decoration: BoxDecoration(
-                    border: Border(top: BorderSide(color: Colors.grey.shade200)),
+                    border: Border(top: BorderSide(color: context.pick(Colors.grey.shade200, context.sc.border))),
                   ),
                 ),
               ),

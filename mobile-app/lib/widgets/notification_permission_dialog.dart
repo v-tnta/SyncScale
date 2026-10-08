@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../state/syncscale_state.dart';
+import '../theme/sc_colors.dart';
 
 /// チュートリアル完了直後に表示する「通知を許可しますか？」モーダル。
 ///
@@ -24,7 +25,7 @@ class NotificationPermissionDialog extends StatelessWidget {
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       elevation: 16,
-      backgroundColor: Colors.white,
+      backgroundColor: context.sc.surface,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(24),
         child: Container(
@@ -39,30 +40,30 @@ class NotificationPermissionDialog extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFEFF6FF), // blue-50
+                    color: context.sc.primarySoft, // blue-50
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: const Color(0xFFDBEAFE)), // blue-100
+                    border: Border.all(color: context.pick(const Color(0xFFDBEAFE), context.sc.primarySoftBorder)), // blue-100
                   ),
                   child: const Text('🔔', style: TextStyle(fontSize: 32)),
                 ),
               ),
               const SizedBox(height: 20),
-              const Text(
+              Text(
                 '通知を許可しますか？',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w900,
-                  color: Color(0xFF0F172A),
+                  color: context.sc.heading,
                 ),
               ),
               const SizedBox(height: 12),
-              const Text(
+              Text(
                 'タスクの締切が近づいたら通知でお知らせします。\n提出忘れを防ぐために、通知をオンにすることをおすすめします。\n（あとから設定でいつでも変更できます）',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 13,
-                  color: Color(0xFF475569),
+                  color: context.pick(const Color(0xFF475569), context.sc.textMuted),
                   height: 1.6,
                 ),
               ),
@@ -102,11 +103,11 @@ class NotificationPermissionDialog extends StatelessWidget {
               const SizedBox(height: 8),
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text(
+                child: Text(
                   'あとで',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF64748B),
+                    color: context.sc.textMuted,
                   ),
                 ),
               ),

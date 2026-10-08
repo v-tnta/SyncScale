@@ -89,27 +89,27 @@ const DateTimePicker = ({ id, value, onChange, disabled, isTutorialActive }) => 
                 id={id}
                 type="button"
                 onClick={() => !disabled && setIsOpen(!isOpen)}
-                className={`w-full text-left p-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white flex justify-between items-center ${
+                className={`w-full text-left px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 text-sm flex justify-between items-center transition-colors ${
                     disabled ? "cursor-default" : ""
                 }`}
             >
-                <span>{formatDisplay()}</span>
-                <span className="text-gray-400">▼</span>
+                <span className="font-semibold text-xs sm:text-sm">{formatDisplay()}</span>
+                <span className="text-slate-400 text-xs">▼</span>
             </button>
 
             {/* ピッカーモーダル/ドロップダウン */}
             {isOpen && (
-                <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-xl p-2">
-                    <div className="flex justify-end mb-2 border-b pb-2">
+                <div className="absolute z-50 mt-1 w-full bg-white dark:bg-slate-850 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl p-3">
+                    <div className="flex justify-end mb-2 border-b border-slate-100 dark:border-slate-800 pb-2">
                         <button 
                             type="button" 
                             onClick={() => setIsOpen(false)}
-                            className="text-blue-600 font-bold text-sm px-2"
+                            className="text-blue-600 dark:text-blue-400 font-bold text-xs sm:text-sm px-2 hover:underline"
                         >
                             {DATETIME_PICKER.doneButton}
                         </button>
                     </div>
-                    <div className="h-48">
+                    <div className="h-48 text-slate-800 dark:text-slate-100">
                         <Picker
                             value={pickerValue}
                             onChange={handlePickerChange}

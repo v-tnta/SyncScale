@@ -27,14 +27,14 @@ export function ConsentWithdrawModal({ isOpen, onClose, onConfirm }) {
             cancelText={CONSENT_WITHDRAW_MODAL.cancelText}
             onConfirm={handleConfirm}
             onCancel={onClose}
-            confirmButtonClass="text-white bg-red-600 hover:bg-red-700 shadow-sm"
-            cancelButtonClass="text-slate-600 bg-slate-100 hover:bg-slate-200"
+            confirmButtonClass="text-white bg-red-600 hover:bg-red-700 shadow-xs"
+            cancelButtonClass="text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700"
         >
-            <div className="space-y-4 text-slate-700 text-sm">
+            <div className="space-y-4 text-slate-700 dark:text-slate-200 text-sm">
                 <p>
                     {CONSENT_WITHDRAW_MODAL.lead}
                 </p>
-                <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl text-xs space-y-2">
+                <div className="p-4 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 text-red-700 dark:text-red-300 rounded-xl text-xs space-y-2">
                     <p className="font-bold">{CONSENT_WITHDRAW_MODAL.noticeHeading}</p>
                     <ul className="list-disc list-inside space-y-1">
                         {CONSENT_WITHDRAW_MODAL.notices.map((notice, i) => (
@@ -42,7 +42,7 @@ export function ConsentWithdrawModal({ isOpen, onClose, onConfirm }) {
                         ))}
                     </ul>
                 </div>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
                     {CONSENT_WITHDRAW_MODAL.footnote}
                 </p>
             </div>

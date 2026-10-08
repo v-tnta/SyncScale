@@ -1,6 +1,10 @@
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 import '../state/syncscale_state.dart';
+import '../theme/sc_colors.dart';
 
 class TutorialScreen extends StatelessWidget {
   const TutorialScreen({super.key});
@@ -10,7 +14,12 @@ class TutorialScreen extends StatelessWidget {
     final appState = SyncScaleScope.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('SyncScale')),
+      appBar: AppBar(
+        title: Text(
+          'SyncScale',
+          style: GoogleFonts.notoSansJp(fontWeight: FontWeight.w900),
+        ),
+      ),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(20),
@@ -26,7 +35,7 @@ class TutorialScreen extends StatelessWidget {
             Text(
               'S/M/Lの相対見積もり、タイマー計測、完了時のコンディション記録を使って、自分の段取りの癖を振り返れます。',
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: Colors.black54,
+                color: context.sc.ink54,
                 height: 1.5,
               ),
             ),
@@ -47,19 +56,23 @@ class TutorialScreen extends StatelessWidget {
               body: '見積もりと実績のズレ、着手の遅れ方を可視化します。',
             ),
             const SizedBox(height: 20),
-            FilledButton.icon(
-              onPressed: () async {
-                try {
-                  await appState.login();
-                } catch (error) {
-                  if (!context.mounted) return;
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('ログインに失敗しました: $error')),
-                  );
-                }
-              },
-              icon: const Icon(Icons.login),
-              label: const Text('Googleでログイン'),
+            // Sign in with Apple は iOS のみ（App Store ガイドライン 4.8）。
+            // dart:io の Platform は Web ビルドで使えないため defaultTargetPlatform で判定する。
+            if (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS) ...[
+              SignInWithAppleButton(
+                text: 'Appleでサインイン',
+                height: 48,
+                onPressed: () => _signIn(context, appState.loginWithApple),
+              ),
+              const SizedBox(height: 12),
+            ],
+            SizedBox(
+              height: 48,
+              child: FilledButton.icon(
+                onPressed: () => _signIn(context, appState.login),
+                icon: const Icon(Icons.login),
+                label: const Text('Googleでログイン'),
+              ),
             ),
             if (appState.errorMessage != null) ...[
               const SizedBox(height: 12),
@@ -70,6 +83,24 @@ class TutorialScreen extends StatelessWidget {
             ],
           ],
         ),
+      ),
+    );
+  }
+}
+
+Future<void> _signIn(
+  BuildContext context,
+  Future<void> Function() signIn,
+) async {
+  final appState = SyncScaleScope.of(context);
+  try {
+    await signIn();
+  } catch (_) {
+    // エラー文言は SyncScaleState 側で日本語化済み
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(appState.errorMessage ?? 'ログインに失敗しました'),
       ),
     );
   }
@@ -106,7 +137,7 @@ class _FeatureTile extends StatelessWidget {
                     style: const TextStyle(fontWeight: FontWeight.w700),
                   ),
                   const SizedBox(height: 4),
-                  Text(body, style: const TextStyle(color: Colors.black54)),
+                  Text(body, style: TextStyle(color: context.sc.ink54)),
                 ],
               ),
             ),

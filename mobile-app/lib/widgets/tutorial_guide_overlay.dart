@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../state/syncscale_state.dart';
+import '../theme/sc_colors.dart';
 
 class TutorialGuideOverlayWrapper extends StatelessWidget {
   const TutorialGuideOverlayWrapper({super.key});
@@ -354,11 +355,11 @@ class _TutorialGuideOverlayState extends State<TutorialGuideOverlay> {
       elevation: 16,
       shadowColor: Colors.black.withAlpha(76),
       borderRadius: BorderRadius.circular(20),
-      color: Colors.white.withAlpha(242),
+      color: context.pick(Colors.white.withAlpha(242), context.sc.surface.withAlpha(250)),
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.blue.shade100, width: 1.5),
+          border: Border.all(color: context.pick(Colors.blue.shade100, context.sc.primarySoftBorder), width: 1.5),
         ),
         padding: const EdgeInsets.all(18),
         child: Column(
@@ -371,16 +372,16 @@ class _TutorialGuideOverlayState extends State<TutorialGuideOverlay> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: Colors.blue.shade50,
+                    color: context.pick(Colors.blue.shade50, context.sc.primarySoft),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.blue.shade100),
+                    border: Border.all(color: context.pick(Colors.blue.shade100, context.sc.primarySoftBorder)),
                   ),
                   child: Text(
                     'チュートリアルガイド',
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
-                      color: Colors.blue.shade700,
+                      color: context.pick(Colors.blue.shade700, const Color(0xFF60A5FA)),
                       letterSpacing: 0.5,
                     ),
                   ),
@@ -398,10 +399,10 @@ class _TutorialGuideOverlayState extends State<TutorialGuideOverlay> {
             const SizedBox(height: 12),
             Text(
               details.title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 15,
                 fontWeight: FontWeight.w800,
-                color: Color(0xFF1E293B),
+                color: context.pick(const Color(0xFF1E293B), context.sc.heading),
                 height: 1.3,
               ),
             ),
@@ -410,7 +411,7 @@ class _TutorialGuideOverlayState extends State<TutorialGuideOverlay> {
               details.desc,
               style: TextStyle(
                 fontSize: 13,
-                color: Colors.blueGrey.shade600,
+                color: context.pick(Colors.blueGrey.shade600, context.sc.textMuted),
                 height: 1.5,
               ),
             ),
@@ -432,6 +433,12 @@ class _TutorialGuideOverlayState extends State<TutorialGuideOverlay> {
                       );
                       return;
                     }
+                  }
+                  if (step == 4 && appState.currentFormSizeLabel == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('課題の規模感（S/M/L）を選んでください。')),
+                    );
+                    return;
                   }
                   if (step == 24) {
                     await appState.completeTutorial();
@@ -456,7 +463,7 @@ class _TutorialGuideOverlayState extends State<TutorialGuideOverlay> {
                 child: LinearProgressIndicator(
                   value: step / 23,
                   minHeight: 4,
-                  backgroundColor: Colors.grey.shade100,
+                  backgroundColor: context.pick(Colors.grey.shade100, context.sc.surfaceAlt),
                   valueColor: AlwaysStoppedAnimation<Color>(Colors.blue.shade600),
                 ),
               ),
@@ -490,7 +497,7 @@ class _TutorialGuideOverlayState extends State<TutorialGuideOverlay> {
       case 4:
         return const _StepDetails(
           title: '4/20. 規模感を選択しましょう 📊',
-          desc: '課題の規模感（S/M/L）を選択してみましょう。\nご自身の思う基準で結構です！',
+          desc: '課題やタスクの規模感を、あなたが感じるボリューム感で選択してください。',
           showNext: true,
         );
       case 5:

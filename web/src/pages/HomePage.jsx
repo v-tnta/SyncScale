@@ -1,27 +1,23 @@
 import React from 'react'
 import { toast } from 'sonner'
 import Layout from '../components/Layout'
-import TaskForm from '../components/TaskForm'
 import TaskList from '../components/TaskList'
 import TaskOverlay from '../components/TaskOverlay'
 import CompletedTasksModal from '../components/CompletedTasksModal'
 import ConditionInputModal from '../components/ConditionInputModal'
 import TaskSizeEstimateModal from '../components/TaskSizeEstimateModal'
 import DynamicTutorialGuide from '../components/DynamicTutorialGuide'
-import MobileAppPromoModal from '../components/MobileAppPromoModal'
 import { DebugLogger } from '../components/DebugLogger'
 import { useTasks } from '../hooks/useTasks'
 import { useTimeLogs } from '../hooks/useTimeLogs'
 import { useConditionLogs } from '../hooks/useConditionLogs'
-import { useAuth } from '../hooks/useAuth'
 import { useOnboarding } from '../hooks/useOnboarding'
 import { useActivityLog } from '../hooks/useActivityLog'
 import ExtensionGuideModal from '../components/ExtensionGuideModal'
 import { TASK_SIZE_ESTIMATE_MODAL } from '../content'
 
 export function HomePage() {
-  const { currentUser } = useAuth();
-  const { onboarding, userSettings, completeStep, dismissMobilePromo, viewExtensionGuide } = useOnboarding();
+  const { onboarding, completeStep, viewExtensionGuide } = useOnboarding();
   const { tasks, addTask, addTasksBatch, updateTask, deleteTask, completelyDeleteTask, loading, error } = useTasks();
   const { timeLogs } = useTimeLogs();
   const { addLog: addConditionLog, conditionLogs } = useConditionLogs({ subscribe: true });
@@ -145,39 +141,6 @@ export function HomePage() {
       }
     }
   }, [isTutorialActive, tasks, loading, completelyDeleteTask]);
-
-  // モバイルアプリプロモを表示するか判定
-  const isMobilePromoOpen = React.useMemo(() => {
-    if (!onboarding || !onboarding.completed) return false;
-    if (onboarding.mobileInstalled) return false;
-    if (isExtensionGuideOpen) return false; // 拡張機能ガイド表示中は非表示
-    if (isTutorialActive) return false; // チュートリアル中は非表示
-
-    if (userSettings?.mobilePromoDismissedAt) {
-      let dismissedTime;
-      const dismissed = userSettings.mobilePromoDismissedAt;
-      
-      if (dismissed && typeof dismissed.toDate === 'function') {
-        dismissedTime = dismissed.toDate();
-      } else if (dismissed && dismissed.seconds) {
-        dismissedTime = new Date(dismissed.seconds * 1000);
-      } else {
-        dismissedTime = new Date(dismissed);
-      }
-      
-      if (isNaN(dismissedTime.getTime())) {
-        return true; // パースに失敗した場合は表示する
-      }
-      
-      const now = new Date();
-      const diffMs = now - dismissedTime;
-      const diffHours = diffMs / (1000 * 60 * 60);
-      if (diffHours < 24) { // 24時間以内なら非表示
-        return false;
-      }
-    }
-    return true;
-  }, [onboarding, userSettings, isExtensionGuideOpen, isTutorialActive]);
 
   const handleTutorialComplete = async (tutorialTaskId) => {
     try {
@@ -370,30 +333,25 @@ export function HomePage() {
 
   return (
     <Layout tasks={filteredTasks} onTaskClick={handleTaskClick} timeLogs={timeLogs} conditionLogs={conditionLogs}>
-      <div className="flex flex-col gap-8">
-        {/* 上部: 新規タスク追加 */}
-        <div>
-          <TaskForm addTask={handleAddTask} disabled={isTutorialActive && tutorialStep < 4} isTutorialActive={isTutorialActive} />
-        </div>
-
-        {/* 下部: タスク一覧 */}
-        <div>
-          <TaskList
-            tasks={incompleteTasks}
-            timeLogs={timeLogs}
-            loading={loading}
-            error={error}
-            onTaskClick={handleTaskClick}
-            onUpdateTask={updateTask}
-            onDeleteTask={deleteTask}
-            onCompleteRequest={handleCompleteRequest}
-            onOpenCompletedModal={() => {
-              setIsCompletedModalOpen(true);
-              logEvent('completed_list_view', {});
-            }}
-            isTutorialActive={isTutorialActive}
-          />
-        </div>
+      <div className="flex flex-col h-full min-h-0">
+        <TaskList
+          tasks={incompleteTasks}
+          completedTasksCount={completedTasks.length}
+          timeLogs={timeLogs}
+          loading={loading}
+          error={error}
+          onTaskClick={handleTaskClick}
+          onUpdateTask={updateTask}
+          onDeleteTask={deleteTask}
+          onCompleteRequest={handleCompleteRequest}
+          onOpenCompletedModal={() => {
+            setIsCompletedModalOpen(true);
+            logEvent('completed_list_view', {});
+          }}
+          isTutorialActive={isTutorialActive}
+          tutorialStep={tutorialStep}
+          addTask={handleAddTask}
+        />
 
         {/* タスク詳細モーダル */}
         <TaskOverlay
@@ -454,12 +412,6 @@ export function HomePage() {
         />
       )}
 
-      {/* モバイルアプリ案内プロモ */}
-      <MobileAppPromoModal
-        isOpen={isMobilePromoOpen}
-        onClose={dismissMobilePromo}
-      />
-
       {/* Chrome拡張機能解説モーダル */}
       <ExtensionGuideModal
         isOpen={isExtensionGuideOpen}
@@ -476,9 +428,9 @@ export function HomePage() {
       />
 
       {isTransitioning && (
-        <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-[200] flex flex-col items-center justify-center gap-4">
+        <div className="fixed inset-0 bg-white/80 dark:bg-slate-950/80 backdrop-blur-sm z-[200] flex flex-col items-center justify-center gap-4">
           <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-          <p className="font-bold text-gray-700">サービスに戻ります...</p>
+          <p className="font-bold text-gray-700 dark:text-slate-200">サービスに戻ります...</p>
         </div>
       )}
     </Layout>

@@ -95,32 +95,30 @@ const GanttChart = ({ logs = [], taskSize = 'M' }) => {
 
     return (
         <div ref={containerRef} className="mt-6 w-full pb-4">
-            <h3 className="text-sm font-bold text-gray-600 mb-2 sticky left-0">{GANTT_CHART.heading}</h3>
-
             {/* チャートコンテナ */}
             <div
                 className="relative min-h-[100px]"
                 style={{ width: '100%' }} // 幅はコンテナいっぱい
             >
                 {/* 1. 目盛り (X軸) */}
-                <div className="absolute top-0 w-full h-6 border-b border-gray-300">
+                <div className="absolute top-0 w-full h-6 border-b border-slate-300 dark:border-slate-700">
                     {ticks.map((tick) => (
                         <div
                             key={tick}
-                            className="absolute bottom-0 text-xs text-gray-400 transform -translate-x-1/2 transition-all duration-300"
+                            className="absolute bottom-0 text-[11px] font-bold text-slate-400 dark:text-slate-500 transform -translate-x-1/2 transition-all duration-300"
                             style={{ left: `${tick * pixelsPerMin}px` }}
                         >
-                            <div className="h-2 w-px bg-gray-300 mx-auto mb-1"></div>
+                            <div className="h-2 w-px bg-slate-300 dark:bg-slate-700 mx-auto mb-1"></div>
                             {tick % 60 === 0 && tick !== 0 ? tick / 60 + 'h' : tick !== 0 ? tick + 'm' : '0'}
                         </div>
                     ))}
                 </div>
 
                 {/* 2. スタックバーエリア */}
-                <div className="absolute top-8 left-0 h-12 bg-gray-100 rounded-lg border border-gray-200 flex overflow-hidden transition-all duration-300"
+                <div className="absolute top-8 left-0 h-12 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 flex overflow-hidden transition-all duration-300 shadow-inner"
                     style={{ width: `${ticks[ticks.length - 1] * pixelsPerMin}px` }} // バー全体の幅も動的に
                 >
-                    {sortedLogs.map((log, index) => {
+                    {sortedLogs.map((log) => {
                         // 1分未満の作業でも視認できるように最低1分とする
                         const durationMin = Math.max(1, Math.round((log.durationSeconds || 0) / 60));
 
@@ -152,7 +150,7 @@ const GanttChart = ({ logs = [], taskSize = 'M' }) => {
                     {ticks.map((tick) => (
                         <div
                             key={tick}
-                            className="absolute top-0 h-14 w-px bg-gray-200 border-l border-dashed border-gray-300 transition-all duration-300"
+                            className="absolute top-0 h-14 w-px bg-slate-200 dark:bg-slate-800 border-l border-dashed border-slate-300 dark:border-slate-700 transition-all duration-300"
                             style={{ left: `${tick * pixelsPerMin}px` }}
                         ></div>
                     ))}

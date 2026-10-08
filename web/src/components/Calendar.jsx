@@ -1,15 +1,34 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { Calendar as BigCalendar, momentLocalizer } from 'react-big-calendar'
 import moment from 'moment'
 import 'react-big-calendar/lib/css/react-big-calendar.css'
 
 // momentのロケール設定 (日本語)
 import 'moment/locale/ja'
-import { getSizeHexColor } from '../domain/taskSize'
+import { getSizeHexColor, getSizeContrastHexColor } from '../domain/taskSize'
 import { CALENDAR } from '../content'
 moment.locale('ja')
 
 const localizer = momentLocalizer(moment)
+
+const JAPANESE_WEEKDAYS = ['日', '月', '火', '水', '木', '金', '土']
+const formatJapaneseDay = (date, includeYear = false) => {
+    const year = includeYear ? `${date.getFullYear()}年` : ''
+    return `${year}${date.getMonth() + 1}月${date.getDate()}日(${JAPANESE_WEEKDAYS[date.getDay()]})`
+}
+
+// カレンダー内の年月日を日本語表記で固定
+const calendarFormats = {
+    dateFormat: (date) => `${date.getDate()}`,
+    dayFormat: (date) => formatJapaneseDay(date),
+    weekdayFormat: (date) => JAPANESE_WEEKDAYS[date.getDay()],
+    monthHeaderFormat: 'YYYY年M月',
+    dayHeaderFormat: (date) => formatJapaneseDay(date, true),
+    dayRangeHeaderFormat: ({ start, end }, culture, activeLocalizer) =>
+        `${activeLocalizer.format(start, 'YYYY年M月D日', culture)} ～ ${activeLocalizer.format(end, 'M月D日', culture)}`,
+    agendaDateFormat: (date) => formatJapaneseDay(date),
+    timeGutterFormat: 'H:mm',
+}
 
 // Firestore Timestamp / Date / 文字列のいずれでも Date に正規化する
 const toDate = (value) => {
@@ -20,17 +39,33 @@ const toDate = (value) => {
     return isNaN(d.getTime()) ? null : d;
 };
 
-// 視認できる最低の帯の高さ（分）。1〜2分の作業でも細い線にならないようにする。
+// 視認できる最低の帯の高さ（分）
 const MIN_WORKLOG_MINUTES = 10;
 
-const Calendar = ({ tasks, onEventClick, timeLogs = [] }) => {
-    // 制御用ステート (ナビゲーションを正しく機能させるため)
+const Calendar = ({ tasks = [], onEventClick, timeLogs = [] }) => {
     const [view, setView] = useState('month');
     const [date, setDate] = useState(new Date());
 
-    // 「作業を行った日」ごとの作業ログ件数（GitHubの草風インジケータ用）
     const dayKey = (d) => `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
-    const activityCountByDay = React.useMemo(() => {
+
+    // 未完了タスクの抽出
+    const activeTasks = useMemo(() => tasks.filter(t => t.status !== 'DONE'), [tasks]);
+
+    // 日付ごとの未完了締切タスクのマップ
+    const deadlineTasksByDay = useMemo(() => {
+        const map = new Map();
+        for (const task of activeTasks) {
+            const d = toDate(task.deadline);
+            if (!d) continue;
+            const key = dayKey(d);
+            if (!map.has(key)) map.set(key, []);
+            map.get(key).push(task);
+        }
+        return map;
+    }, [activeTasks]);
+
+    // 作業ログ件数（月表示での草風ドット用）
+    const activityCountByDay = useMemo(() => {
         const map = new Map();
         for (const log of timeLogs) {
             const raw = log.startTime || log.endTime || log.createdAt;
@@ -43,8 +78,70 @@ const Calendar = ({ tasks, onEventClick, timeLogs = [] }) => {
         return map;
     }, [timeLogs]);
 
-    // 日付セルの下部に、その日の作業件数ぶん（最大3つ）緑のマスを表示する
-    const components = React.useMemo(() => ({
+    // 日付ヘッダーコンポーネント（S/M/L円背景、分割円、今日ハイライト）
+    const CustomDateHeader = ({ date: cellDate, label, isOffRange }) => {
+        const key = dayKey(cellDate);
+        const dayTasks = deadlineTasksByDay.get(key) || [];
+
+        const today = new Date();
+        const isToday = dayKey(today) === key;
+        const hasDeadline = dayTasks.length > 0;
+
+        let deadlineBgStyle = null;
+        if (hasDeadline) {
+            // ユニークなサイズ一覧
+            const sizes = Array.from(new Set(dayTasks.map(t => (t.sizeLabel || '').toUpperCase())));
+            const colors = sizes.map(s => getSizeContrastHexColor(s));
+            if (colors.length === 1) {
+                deadlineBgStyle = { backgroundColor: colors[0] };
+            } else {
+                // 複数サイズの場合は conic-gradient で円を等分割
+                const sliceDeg = 360 / colors.length;
+                const stops = colors.map((c, i) => `${c} ${i * sliceDeg}deg ${(i + 1) * sliceDeg}deg`).join(', ');
+                deadlineBgStyle = { background: `conic-gradient(${stops})` };
+            }
+        }
+
+        const numberContent = hasDeadline ? (
+            <span
+                style={deadlineBgStyle}
+                className="w-5.5 h-5.5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-white text-[11px] sm:text-xs font-black shadow-xs shrink-0 select-none transition-transform hover:scale-110"
+                title={`締切課題 ${dayTasks.length}件:\n${dayTasks.map(t => `・${t.title} (${t.sizeLabel || '未設定'})`).join('\n')}`}
+            >
+                {label}
+            </span>
+        ) : (
+            <span className={`text-[11px] sm:text-xs font-bold px-1.5 py-0.5 rounded ${
+                isOffRange 
+                    ? 'text-slate-300 dark:text-slate-600' 
+                    : isToday 
+                    ? 'text-blue-600 dark:text-blue-400 font-black' 
+                    : 'text-slate-700 dark:text-slate-300'
+            }`}>
+                {label}
+            </span>
+        );
+
+        return (
+            <div className="flex items-center justify-center pt-1 pb-0.5 px-0.5">
+                {isToday ? (
+                    <div className={`p-0.5 rounded-lg flex items-center justify-center ${
+                        hasDeadline ? 'bg-blue-100/80 dark:bg-blue-950/70 ring-1 ring-blue-300 dark:ring-blue-700' : 'bg-blue-50 dark:bg-blue-950/40'
+                    }`}>
+                        {numberContent}
+                    </div>
+                ) : (
+                    numberContent
+                )}
+            </div>
+        );
+    };
+
+    // 月表示の日付セル下部に作業ログの点（緑色の点）を表示
+    const components = useMemo(() => ({
+        month: {
+            dateHeader: CustomDateHeader,
+        },
         dateCellWrapper: ({ children, value }) => {
             const count = activityCountByDay.get(dayKey(value)) || 0;
             if (count <= 0) return children;
@@ -59,7 +156,7 @@ const Calendar = ({ tasks, onEventClick, timeLogs = [] }) => {
                         right: 0,
                         display: 'flex',
                         justifyContent: 'center',
-                        gap: '2px',
+                        gap: '3px',
                         pointerEvents: 'none',
                         zIndex: 1,
                     }}
@@ -67,7 +164,7 @@ const Calendar = ({ tasks, onEventClick, timeLogs = [] }) => {
                     {Array.from({ length: dotCount }).map((_, i) => (
                         <span
                             key={i}
-                            style={{ width: '8px', height: '8px', borderRadius: '2px', backgroundColor: '#22c55e' }}
+                            style={{ width: '6px', height: '6px', borderRadius: '2px', backgroundColor: '#22c55e' }}
                         />
                     ))}
                 </div>
@@ -79,12 +176,10 @@ const Calendar = ({ tasks, onEventClick, timeLogs = [] }) => {
                 dots
             );
         },
-    }), [activityCountByDay]);
+    }), [activityCountByDay, deadlineTasksByDay]);
 
-    // 週表示では、作業ログを「実働時間分の長方形（緑の帯）」として時間軸上に表示する。
-    // timeLogs は startTime に対して durationSeconds の長さで終端を決める（ピンポイントの細い線にしない）。
-    // 日を跨ぐ作業（例: 23:00〜翌2:00）は深夜0:00で分割し、各日にその日ぶんの帯を描画する。
-    const workLogEvents = React.useMemo(() => {
+    // 週表示での作業時間ログ帯の生成
+    const workLogEvents = useMemo(() => {
         if (view !== 'week') return [];
         const segments = [];
         for (const log of timeLogs) {
@@ -96,30 +191,22 @@ const Calendar = ({ tasks, onEventClick, timeLogs = [] }) => {
             if (!end || end.getTime() <= start.getTime()) {
                 end = new Date(start.getTime() + durationMs);
             }
-            // 実働0秒（タイマー開始直後の記録など）でも帯を表示する。月表示の作業実績
-            // インジケータはこうしたログも件数に数えるため、週表示でも一致させる
-            // （視認できる最低限の高さは下の MIN_WORKLOG_MINUTES クランプで確保される）。
             if (end.getTime() <= start.getTime()) {
                 end = new Date(start.getTime() + 60 * 1000);
             }
 
             const name = log.subTaskName || CALENDAR.workLog.defaultName;
 
-            // 開始日から終了日まで、日付境界（深夜0:00）ごとに帯を切り出す
             let segStart = start;
             while (segStart.getTime() < end.getTime()) {
-                // segStart の翌日の0:00
                 const dayEnd = new Date(
                     segStart.getFullYear(), segStart.getMonth(), segStart.getDate() + 1, 0, 0, 0, 0
                 );
-                // 翌日まで続く作業はこの日の終端で打ち切る。終端を 0:00 ちょうどにすると
-                // react-big-calendar が「日跨ぎ＝終日イベント」と誤認するため 23:59:59.999 に丸める。
                 const dayBoundaryMs = dayEnd.getTime() - 1;
                 const reachesBoundary = end.getTime() >= dayEnd.getTime();
                 const segEndMs = reachesBoundary ? dayBoundaryMs : end.getTime();
                 const minutes = Math.max(1, Math.round((segEndMs - segStart.getTime()) / 60000));
 
-                // 視認できる最低の高さを確保（短い作業でも帯として見えるように）。ただし日付境界は超えない。
                 let displayEndMs = segEndMs;
                 const minEndMs = segStart.getTime() + MIN_WORKLOG_MINUTES * 60 * 1000;
                 if (displayEndMs < minEndMs) {
@@ -134,66 +221,46 @@ const Calendar = ({ tasks, onEventClick, timeLogs = [] }) => {
                     isWorkLog: true,
                 });
 
-                segStart = dayEnd; // 次の日の0:00から続ける
+                segStart = dayEnd;
             }
         }
         return segments;
     }, [timeLogs, view]);
 
-    // 完了したタスクを除外し、カレンダーイベント形式に変換
-    const activeTasks = tasks.filter(t => t.status !== 'DONE');
+    // 締切イベントの生成
+    const deadlineEvents = useMemo(() => {
+        return activeTasks.map(task => {
+            const d = toDate(task.deadline);
+            if (!d) return null;
 
-    const deadlineEvents = activeTasks.map(task => {
-        let start = new Date();
-        let end = new Date();
+            return {
+                title: task.title,
+                start: d,
+                end: d,
+                allDay: true,
+                resource: task,
+                status: task.status,
+                sizeLabel: task.sizeLabel
+            };
+        }).filter(Boolean);
+    }, [activeTasks]);
 
-        if (task.deadline) {
-            if (task.deadline.seconds) {
-                // Firestore Timestamp
-                start = new Date(task.deadline.seconds * 1000);
-            } else if (task.deadline instanceof Date) {
-                // Date Object
-                start = task.deadline;
-            } else {
-                // String or other
-                const d = new Date(task.deadline);
-                if (!isNaN(d.getTime())) {
-                    start = d;
-                }
-            }
-            // 締切日＝その日の終わりまで、あるいはその日一日
-            end = start;
-        } else {
-            return null;
-        }
-
-        return {
-            title: task.title,
-            start: start,
-            end: end,
-            allDay: true, // 締切ベースなので終日扱い
-            resource: task,
-            // 完了したタスクの色を変えるなどのためのプロパティ
-            status: task.status,
-            sizeLabel: task.sizeLabel
-        };
-    }).filter(event => event !== null); // null (締切なし) を除外
-
-    // 締切イベント＋（週表示のみ）作業ログの帯を合成
-    const events = [...deadlineEvents, ...workLogEvents];
+    // 締切イベント＋作業ログの帯を合成
+    const events = useMemo(() => [...deadlineEvents, ...workLogEvents], [deadlineEvents, workLogEvents]);
 
     // イベントスタイル (色分け)
     const eventPropGetter = (event) => {
-        // 作業ログの帯は緑色（GitHubの草と同系色）で表示する
         if (event.isWorkLog) {
             return {
                 style: {
                     backgroundColor: '#22c55e',
-                    borderRadius: '4px',
-                    opacity: 0.85,
+                    borderRadius: '6px',
+                    opacity: 0.9,
                     color: 'white',
                     border: '0px',
                     display: 'block',
+                    fontSize: '11px',
+                    fontWeight: 'bold',
                 }
             };
         }
@@ -203,46 +270,35 @@ const Calendar = ({ tasks, onEventClick, timeLogs = [] }) => {
         return {
             style: {
                 backgroundColor,
-                borderRadius: '4px',
-                opacity: event.status === 'DONE' ? 0.4 : 0.85,
+                borderRadius: '6px',
+                opacity: event.status === 'DONE' ? 0.4 : 0.9,
                 color: 'white',
                 border: '0px',
                 display: 'block',
-                textDecoration: event.status === 'DONE' ? 'line-through' : 'none'
+                textDecoration: event.status === 'DONE' ? 'line-through' : 'none',
+                fontSize: '12px',
+                fontWeight: '600',
             }
         };
     };
 
-    // ナビゲーションハンドラ
-    const onNavigate = (newDate) => {
-        setDate(newDate);
-    };
-
-    const onView = (newView) => {
-        setView(newView);
-    };
-
     return (
-        <div className="syncscale-calendar h-[660px] bg-white p-4 rounded-lg shadow-md">
+        <div className="syncscale-calendar h-full min-h-[500px] bg-white dark:bg-slate-900 p-3 sm:p-4 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xs flex flex-col transition-colors duration-200">
             <BigCalendar
                 localizer={localizer}
                 events={events}
                 startAccessor="start"
                 endAccessor="end"
-                style={{ height: '100%' }}
-                // Controlled props
+                style={{ height: '100%', flex: 1 }}
                 view={view}
-                onView={onView}
+                onView={setView}
                 date={date}
-                onNavigate={onNavigate}
-                // Views configuration (remove 'day')
+                onNavigate={setDate}
                 views={['month', 'week']}
-                // 週表示: 0:00〜24:00 を1時間刻みで圧縮表示し、スクロールなしで一望できるようにする。
-                // 先頭ラベルは「0:00」（深夜）になるよう時間軸フォーマットを指定する。
                 step={60}
                 timeslots={1}
                 scrollToTime={new Date(1970, 0, 1, 0, 0, 0)}
-                formats={{ timeGutterFormat: 'H:mm' }}
+                formats={calendarFormats}
                 onSelectEvent={(event) => { if (event.resource) onEventClick(event.resource); }}
                 eventPropGetter={eventPropGetter}
                 components={components}

@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
-import { X } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Modal } from './Modal';
 import { EXTENSION_GUIDE_MODAL } from '../content';
 
 /**
  * Chrome拡張機能の使い方解説モーダル
  * チュートリアル完了後、モバイルプロモの前に表示される。
- * 他のモーダルと一貫した白背景ヘッダー、グレー・青基調のテーマカラー。
  */
 const ExtensionGuideModal = ({ isOpen, onClose }) => {
     const [currentSlide, setCurrentSlide] = useState(0);
@@ -32,94 +31,95 @@ const ExtensionGuideModal = ({ isOpen, onClose }) => {
     };
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title={EXTENSION_GUIDE_MODAL.headerTitle} maxWidth="max-w-lg" zIndex={95}>
+        <Modal 
+            isOpen={isOpen} 
+            onClose={onClose} 
+            title={EXTENSION_GUIDE_MODAL.headerTitle} 
+            maxWidth="max-w-lg" 
+            zIndex={95}
+            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 rounded-3xl shadow-2xl overflow-hidden"
+        >
             <div className="flex flex-col">
                 {/* ヘッダー */}
-                <div className="flex justify-between items-center p-6 border-b border-gray-100 shrink-0">
-                    <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
+                <div className="flex justify-between items-center p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 shrink-0">
+                    <h2 className="text-lg sm:text-xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
                         <span>🧩</span> {EXTENSION_GUIDE_MODAL.headerTitle}
                     </h2>
                     <button
+                        type="button"
                         onClick={onClose}
-                        className="text-gray-400 hover:text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-full p-2 transition"
+                        className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full p-2 transition"
                     >
                         <X className="w-5 h-5" strokeWidth={2.2} />
                     </button>
                 </div>
 
                 {/* コンテンツ */}
-                <div className="p-6">
+                <div className="p-5 sm:p-6">
                     {/* アイコンとタイトル */}
                     <div className="text-center mb-5">
-                        <span className="text-5xl mb-3 block">{currentData.icon}</span>
-                        <h3 className="text-lg font-bold text-gray-800 mb-2">
+                        <span className="text-4xl sm:text-5xl mb-2.5 block">{currentData.icon}</span>
+                        <h3 className="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-100 mb-1.5">
                             {currentData.title}
                         </h3>
-                        <p className="text-sm text-gray-500 leading-relaxed max-w-sm mx-auto">
+                        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed max-w-sm mx-auto">
                             {currentData.description}
                         </p>
                     </div>
 
-                    {/* スライド画像（素材は 4:3、未設定のスライドはプレースホルダー） */}
-                    <div className="bg-gray-50 border border-gray-200 rounded-xl aspect-[4/3] overflow-hidden flex items-center justify-center mb-6">
-                        {currentData.image ? (
+                    {/* スクリーンショット画像エリア */}
+                    {currentData.image && (
+                        <div className="mb-5 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-750 bg-slate-50 dark:bg-slate-800 shadow-inner">
                             <img
                                 src={currentData.image}
-                                alt={currentData.imageAlt}
-                                className="w-full h-full object-cover"
+                                alt={currentData.title}
+                                className="w-full h-auto max-h-56 object-contain mx-auto"
                             />
-                        ) : (
-                            <div className="text-center">
-                                <svg className="w-10 h-10 text-gray-300 mx-auto mb-2" fill="none" stroke="currentColor" strokeWidth="1.5" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z" />
-                                </svg>
-                                <p className="text-xs text-gray-400 font-medium">{currentData.imagePlaceholder}</p>
-                            </div>
-                        )}
-                    </div>
+                        </div>
+                    )}
 
-                    {/* スライドインジケーター */}
-                    <div className="flex justify-center gap-2 mb-5">
-                        {slides.map((_, i) => (
+                    {/* スライドインジケーター (ドット) */}
+                    <div className="flex justify-center gap-2 mb-6">
+                        {slides.map((_, index) => (
                             <button
-                                key={i}
-                                onClick={() => setCurrentSlide(i)}
-                                className={`w-2 h-2 rounded-full transition-all duration-350 ${
-                                    i === currentSlide
-                                        ? 'bg-blue-600 w-5'
-                                        : 'bg-gray-200 hover:bg-gray-300'
+                                key={index}
+                                type="button"
+                                onClick={() => setCurrentSlide(index)}
+                                className={`h-2 rounded-full transition-all ${
+                                    currentSlide === index
+                                        ? 'w-6 bg-blue-600'
+                                        : 'w-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300'
                                 }`}
+                                aria-label={`スライド ${index + 1}`}
                             />
                         ))}
                     </div>
 
                     {/* ナビゲーションボタン */}
-                    <div className="flex gap-3">
-                        {!isFirstSlide && (
-                            <button
-                                onClick={handlePrev}
-                                className="flex-1 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition text-sm"
-                            >
-                                {EXTENSION_GUIDE_MODAL.prevButtonText}
-                            </button>
-                        )}
+                    <div className="flex justify-between items-center gap-3">
                         <button
-                            onClick={handleNext}
-                            className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-100 transition text-sm"
+                            type="button"
+                            onClick={handlePrev}
+                            disabled={isFirstSlide}
+                            className={`flex items-center gap-1 px-4 py-2 text-xs sm:text-sm font-bold rounded-xl transition ${
+                                isFirstSlide
+                                    ? 'text-slate-300 dark:text-slate-650 cursor-not-allowed'
+                                    : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                            }`}
                         >
-                            {isLastSlide ? EXTENSION_GUIDE_MODAL.finishButtonText : EXTENSION_GUIDE_MODAL.nextButtonText}
+                            <ChevronLeft className="w-4 h-4" />
+                            <span>前へ</span>
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={handleNext}
+                            className="flex items-center gap-1 px-6 py-2.5 text-xs sm:text-sm font-bold bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-xl shadow-xs transition"
+                        >
+                            <span>{isLastSlide ? 'はじめる' : '次へ'}</span>
+                            {!isLastSlide && <ChevronRight className="w-4 h-4" />}
                         </button>
                     </div>
-
-                    {/* スキップリンク */}
-                    {!isLastSlide && (
-                        <button
-                            onClick={onClose}
-                            className="w-full mt-3 text-xs text-gray-400 hover:text-gray-600 transition text-center"
-                        >
-                            {EXTENSION_GUIDE_MODAL.skipButtonText}
-                        </button>
-                    )}
                 </div>
             </div>
         </Modal>

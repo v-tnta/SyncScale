@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../state/syncscale_state.dart';
 import '../widgets/task_card.dart';
 import '../widgets/task_detail_sheet.dart';
+import '../theme/sc_colors.dart';
 
 class TasksScreen extends StatelessWidget {
   const TasksScreen({super.key});
@@ -121,7 +122,7 @@ class _EmptyMessage extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Center(
-          child: Text(text, style: const TextStyle(color: Colors.black54)),
+          child: Text(text, style: TextStyle(color: context.sc.ink54)),
         ),
       ),
     );

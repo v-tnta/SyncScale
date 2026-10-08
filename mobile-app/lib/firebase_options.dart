@@ -77,8 +77,8 @@ class SyncScaleFirebaseOptions {
         projectId: 'sync-scale',
         storageBucket: 'sync-scale.firebasestorage.app',
         androidClientId: '66964728618-1c375ckrvho6mklk072u871hd4n4t3ha.apps.googleusercontent.com',
-        iosClientId: '66964728618-tcrq9t43b44cil433f0a1gtsesk53ogi.apps.googleusercontent.com',
-        iosBundleId: 'com.example.mobileApp',
+        iosClientId: '66964728618-rkp54jpdr69bfig1vt2k7tk12n3f0sj3.apps.googleusercontent.com',
+        iosBundleId: 'com.v-tnta.syncscale',
       );
 
   static FirebaseOptions get macos => FirebaseOptions(

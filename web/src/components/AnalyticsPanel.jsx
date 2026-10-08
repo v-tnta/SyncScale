@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import { X, TrendingUp } from "lucide-react";
 import {
     calculateLeadTimes,
     calculateEstimationAccuracy,
@@ -28,25 +29,25 @@ function formatMinutes(totalMinutes) {
 }
 
 const SIZE_COLORS = {
-    S: { text: 'text-cyan-600', lightBg: 'bg-cyan-50', border: 'border-cyan-200' },
-    M: { text: 'text-orange-600', lightBg: 'bg-orange-50', border: 'border-orange-200' },
-    L: { text: 'text-red-600', lightBg: 'bg-red-50', border: 'border-red-200' },
+    S: { text: 'text-cyan-600 dark:text-cyan-400', lightBg: 'bg-cyan-50 dark:bg-cyan-950/40', border: 'border-cyan-200 dark:border-cyan-800' },
+    M: { text: 'text-orange-600 dark:text-orange-400', lightBg: 'bg-orange-50 dark:bg-orange-950/40', border: 'border-orange-200 dark:border-orange-800' },
+    L: { text: 'text-red-600 dark:text-red-400', lightBg: 'bg-red-50 dark:bg-red-950/40', border: 'border-red-200 dark:border-red-800' },
 };
 const getSizeColor = (size) =>
-    SIZE_COLORS[size] || { text: 'text-blue-600', lightBg: 'bg-blue-50', border: 'border-blue-200' };
+    SIZE_COLORS[size] || { text: 'text-blue-600 dark:text-blue-400', lightBg: 'bg-blue-50 dark:bg-blue-950/40', border: 'border-blue-200 dark:border-blue-800' };
 
 const SIZE_DESCRIPTION = ANALYTICS_PANEL.sizeDescription;
 
-// 各分析セクションの共通ラッパ
-function Section({ icon, title, description, children }) {
+// 各分析カードの共通ラッパ（5カードごとに明確に区切る）
+function AnalyticsCard({ icon, title, description, children }) {
     return (
-        <div className="space-y-3">
+        <div className="bg-slate-50/70 dark:bg-slate-850/70 border border-slate-200/90 dark:border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xs space-y-3.5">
             <div>
-                <h4 className="text-sm font-black text-gray-700 flex items-center gap-1.5">
-                    <span>{icon}</span> {title}
+                <h4 className="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
+                    <span className="text-base">{icon}</span> {title}
                 </h4>
                 {description && (
-                    <p className="text-[11px] text-gray-400 leading-relaxed mt-1">{description}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mt-1">{description}</p>
                 )}
             </div>
             {children}
@@ -71,7 +72,7 @@ export function AnalyticsPanel({ isOpen, onClose, tasks = [], timeLogs = [] }) {
     const inRange = (d) =>
         !!d && (!range || (d.getTime() >= range.start.getTime() && d.getTime() < range.end.getTime()));
 
-    // 選択期間で作業ログを絞り込む（基準は startTime → endTime → createdAt）
+    // 選択期間で作業ログを絞り込む
     const scopedTimeLogs = useMemo(() => {
         if (!range) return timeLogs;
         return timeLogs.filter(log => inRange(toDateSafe(log.startTime || log.endTime || log.createdAt)));
@@ -83,15 +84,10 @@ export function AnalyticsPanel({ isOpen, onClose, tasks = [], timeLogs = [] }) {
         return tasks.filter(task => inRange(toDateSafe(task.startedAt)));
     }, [tasks, range]);
 
-    // フックは早期 return より前で呼ぶ（React Hooks のルール）。
-    // isOpen による早期 return の後に useMemo を置くと、開閉のたびに
-    // 呼ばれるフック数が変わり「Rendered more hooks than during the previous render」で
-    // クラッシュするため、必ず return より上で呼ぶ。
     const leadTimes = useMemo(() => calculateLeadTimes(scopedTasksForLead), [scopedTasksForLead]);
     const estimation = useMemo(() => calculateEstimationAccuracy(tasks, scopedTimeLogs), [tasks, scopedTimeLogs]);
     const cramming = useMemo(() => calculateCrammingScores(tasks, scopedTimeLogs), [tasks, scopedTimeLogs]);
     const workByTime = useMemo(() => calculateWorkTimeByTimeOfDay(tasks, scopedTimeLogs), [tasks, scopedTimeLogs]);
-    // 放置タスクは「今まさに止まっているか」を示すため、期間に関わらず常に最新状態で判定する
     const stalledTasks = useMemo(() => detectStalledTasks(tasks, timeLogs), [tasks, timeLogs]);
 
     const estimationConsistent = useMemo(() => isEstimationConsistent(estimation), [estimation]);
@@ -106,39 +102,44 @@ export function AnalyticsPanel({ isOpen, onClose, tasks = [], timeLogs = [] }) {
         <>
             {/* バックドロップ */}
             <div
-                className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[90] transition-opacity"
+                className="fixed inset-0 bg-black/50 backdrop-blur-xs z-[90] transition-opacity"
                 onClick={onClose}
             ></div>
 
-            {/* モーダル本体。z-index は SettingsPanel と揃える */}
-            <div className="fixed inset-0 flex items-center justify-center z-[95] p-4 pointer-events-none">
-                <div className="w-full max-w-lg bg-white border border-gray-200 text-gray-800 shadow-2xl rounded-3xl p-6 flex flex-col justify-between font-sans pointer-events-auto relative max-h-[90vh] overflow-y-auto animate-fade-in-up">
-                    <div className="space-y-7">
+            {/* モーダル本体 */}
+            <div className="fixed inset-0 flex items-center justify-center z-[95] p-3 sm:p-4 pointer-events-none">
+                <div className="w-full max-w-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 shadow-2xl rounded-3xl p-5 sm:p-7 flex flex-col justify-between font-sans pointer-events-auto relative max-h-[90vh] overflow-y-auto animate-fade-in-up">
+                    <div className="space-y-6">
                         {/* ヘッダー */}
-                        <div className="border-b border-gray-200 pb-4 sticky -top-6 bg-white/95 backdrop-blur-sm pt-1 z-10 space-y-3">
+                        <div className="border-b border-slate-200 dark:border-slate-800 pb-4 sticky -top-5 sm:-top-7 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm pt-1 z-10 space-y-3">
                             <div className="flex justify-between items-center">
-                                <h3 className="text-xl font-black flex items-center gap-2 text-gray-900">
-                                    <span>📈</span> {ANALYTICS_PANEL.header}
+                                <h3 className="text-xl font-black flex items-center gap-2 text-slate-900 dark:text-slate-50">
+                                    <TrendingUp className="w-5 h-5 text-blue-600 dark:text-blue-400" strokeWidth={2.5} />
+                                    <span>{ANALYTICS_PANEL.header}</span>
                                 </h3>
                                 <button
+                                    type="button"
                                     onClick={onClose}
-                                    className="text-gray-400 hover:text-gray-700 p-1 hover:bg-gray-100 rounded-lg text-sm transition"
+                                    className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition"
+                                    title="閉じる"
+                                    aria-label="閉じる"
                                 >
-                                    ✕
+                                    <X className="w-5 h-5" />
                                 </button>
                             </div>
                             {/* 集計期間の切り替え（今月／全期間） */}
-                            <div className="flex items-center gap-1 bg-gray-100 rounded-xl p-1 w-fit">
+                            <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 rounded-xl p-1 w-fit">
                                 {[
                                     { key: 'month', label: ANALYTICS_PANEL.period.month },
                                     { key: 'all', label: ANALYTICS_PANEL.period.all },
                                 ].map((opt) => (
                                     <button
                                         key={opt.key}
+                                        type="button"
                                         onClick={() => setPeriod(opt.key)}
                                         className={`px-4 py-1.5 rounded-lg text-xs font-bold transition ${period === opt.key
-                                            ? 'bg-white text-gray-900 shadow-sm'
-                                            : 'text-gray-500 hover:text-gray-700'
+                                            ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-50 shadow-xs'
+                                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                                             }`}
                                     >
                                         {opt.label}
@@ -147,13 +148,13 @@ export function AnalyticsPanel({ isOpen, onClose, tasks = [], timeLogs = [] }) {
                             </div>
                         </div>
 
-                        {/* ── 着手リードタイム ─────────────────────────── */}
-                        <Section
+                        {/* ── 1. 着手リードタイム ─────────────────────────── */}
+                        <AnalyticsCard
                             icon={ANALYTICS_PANEL.leadTime.icon}
                             title={ANALYTICS_PANEL.leadTime.title}
                             description={ANALYTICS_PANEL.leadTime.description}
                         >
-                            <div className="space-y-3">
+                            <div className="space-y-2.5">
                                 {leadTimes.map((item) => {
                                     const colors = getSizeColor(item.sizeLabel);
                                     const hasData = item.count > 0;
@@ -161,111 +162,112 @@ export function AnalyticsPanel({ isOpen, onClose, tasks = [], timeLogs = [] }) {
                                     return (
                                         <div
                                             key={item.sizeLabel}
-                                            className={`border ${colors.border} ${colors.lightBg} p-3.5 rounded-2xl flex justify-between items-center shadow-sm`}
+                                            className={`border ${colors.border} ${colors.lightBg} p-3 rounded-xl flex justify-between items-center shadow-2xs`}
                                         >
                                             <div className="flex items-center gap-3">
-                                                <span className={`text-lg font-black ${colors.text} bg-white border ${colors.border} w-8 h-8 rounded-full flex items-center justify-center shadow-sm`}>
+                                                <span className={`text-base font-black ${colors.text} bg-white dark:bg-slate-850 border ${colors.border} w-7 h-7 rounded-full flex items-center justify-center shadow-xs`}>
                                                     {item.sizeLabel}
                                                 </span>
-                                                <span className="text-sm font-bold text-gray-700">
+                                                <span className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200">
                                                     {SIZE_DESCRIPTION[item.sizeLabel]}
                                                 </span>
                                             </div>
                                             <div className="text-right">
                                                 {hasData ? (
-                                                    <span className="text-lg font-black text-gray-800">
+                                                    <span className="text-base sm:text-lg font-black text-slate-800 dark:text-slate-100">
                                                         {isBeforeDeadline ? (
-                                                            <>{ANALYTICS_PANEL.leadTime.beforeDeadlinePrefix}{item.averageDays.toFixed(1)} <span className="text-xs font-bold text-gray-500">{ANALYTICS_PANEL.leadTime.beforeDeadlineUnit}</span></>
+                                                            <>{ANALYTICS_PANEL.leadTime.beforeDeadlinePrefix}{item.averageDays.toFixed(1)} <span className="text-xs font-bold text-slate-500 dark:text-slate-400">{ANALYTICS_PANEL.leadTime.beforeDeadlineUnit}</span></>
                                                         ) : (
                                                             <>{ANALYTICS_PANEL.leadTime.afterDeadlinePrefix}{Math.abs(item.averageDays).toFixed(1)} <span className="text-xs font-bold text-red-500">{ANALYTICS_PANEL.leadTime.afterDeadlineUnit}</span></>
                                                         )}
                                                     </span>
                                                 ) : (
-                                                    <span className="text-sm font-bold text-gray-400">{ANALYTICS_PANEL.noData}</span>
+                                                    <span className="text-xs font-bold text-slate-400 dark:text-slate-500">{ANALYTICS_PANEL.noData}</span>
                                                 )}
-                                                <p className="text-[10px] text-gray-400 font-semibold mt-0.5">{ANALYTICS_PANEL.leadTime.countLabel(item.count)}</p>
+                                                <p className="text-[10px] text-slate-400 dark:text-slate-500 font-semibold mt-0.5">{ANALYTICS_PANEL.leadTime.countLabel(item.count)}</p>
                                             </div>
                                         </div>
                                     );
                                 })}
                             </div>
-                        </Section>
+                        </AnalyticsCard>
 
-                        <hr className="border-gray-100" />
-
-                        {/* ── 1. 見積もり精度：SML × 実働時間 ──────────── */}
-                        <Section
+                        {/* ── 2. 見積もり精度：SML × 実働時間 ──────────── */}
+                        <AnalyticsCard
                             icon={ANALYTICS_PANEL.estimation.icon}
                             title={ANALYTICS_PANEL.estimation.title}
                             description={ANALYTICS_PANEL.estimation.description}
                         >
-                            <div className="grid grid-cols-3 gap-2">
+                            <div className="grid grid-cols-3 gap-2 sm:gap-3">
                                 {estimation.map((item) => {
                                     const colors = getSizeColor(item.sizeLabel);
                                     const hasData = item.count > 0;
                                     return (
                                         <div
                                             key={item.sizeLabel}
-                                            className={`border ${colors.border} ${colors.lightBg} p-3 rounded-2xl flex flex-col items-center text-center shadow-sm`}
+                                            className={`border ${colors.border} ${colors.lightBg} p-3 rounded-xl flex flex-col items-center text-center shadow-2xs`}
                                         >
-                                            <span className={`text-base font-black ${colors.text} bg-white border ${colors.border} w-7 h-7 rounded-full flex items-center justify-center shadow-sm mb-2`}>
+                                            <span className={`text-sm font-black ${colors.text} bg-white dark:bg-slate-850 border ${colors.border} w-7 h-7 rounded-full flex items-center justify-center shadow-xs mb-1.5`}>
                                                 {item.sizeLabel}
                                             </span>
                                             {hasData ? (
                                                 <>
-                                                    <span className="text-sm font-black text-gray-800 leading-tight">
+                                                    <span className="text-xs sm:text-sm font-black text-slate-800 dark:text-slate-100 leading-tight">
                                                         {formatMinutes(item.avgMinutes)}
                                                     </span>
-                                                    <span className="text-[10px] text-gray-400 font-semibold mt-0.5">{ANALYTICS_PANEL.estimation.avgLabel(item.count)}</span>
+                                                    <span className="text-[10px] text-slate-400 dark:text-slate-500 font-semibold mt-0.5">{ANALYTICS_PANEL.estimation.avgLabel(item.count)}</span>
                                                 </>
                                             ) : (
-                                                <span className="text-xs font-bold text-gray-400 mt-1">{ANALYTICS_PANEL.noData}</span>
+                                                <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500 mt-1">{ANALYTICS_PANEL.noData}</span>
                                             )}
                                         </div>
                                     );
                                 })}
                             </div>
-                            {/* 実績のあるサイズ（count>0）が2つ以上あるときだけ、一貫性/逆転のコメントを表示する */}
                             {estimation.filter(e => e.count > 0).length >= 2 && (
-                                <div className={`p-3 rounded-2xl text-center border ${estimationConsistent ? 'bg-emerald-50 border-emerald-200/60' : 'bg-amber-50 border-amber-200/60'}`}>
-                                    <p className={`text-xs font-bold leading-relaxed ${estimationConsistent ? 'text-emerald-700' : 'text-amber-700'}`}>
+                                <div className={`p-3 rounded-xl text-center border ${
+                                    estimationConsistent 
+                                        ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800' 
+                                        : 'bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800'
+                                }`}>
+                                    <p className={`text-xs font-bold leading-relaxed ${
+                                        estimationConsistent ? 'text-emerald-700 dark:text-emerald-300' : 'text-amber-700 dark:text-amber-300'
+                                    }`}>
                                         {estimationConsistent
                                             ? ANALYTICS_PANEL.estimation.consistentMessage
                                             : ANALYTICS_PANEL.estimation.inconsistentMessage}
                                     </p>
                                 </div>
                             )}
-                        </Section>
+                        </AnalyticsCard>
 
-                        <hr className="border-gray-100" />
-
-                        {/* ── 2. 一夜漬け度 ────────────────────────────── */}
-                        <Section
+                        {/* ── 3. 一夜漬け度 ────────────────────────────── */}
+                        <AnalyticsCard
                             icon={ANALYTICS_PANEL.cramming.icon}
                             title={ANALYTICS_PANEL.cramming.title}
                             description={ANALYTICS_PANEL.cramming.description}
                         >
                             {cramming.taskCount === 0 ? (
-                                <div className="bg-slate-50 border border-slate-200/60 p-4 rounded-2xl text-center">
-                                    <p className="text-xs font-bold text-slate-500">{ANALYTICS_PANEL.cramming.empty}</p>
+                                <div className="bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-750 p-4 rounded-xl text-center">
+                                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400">{ANALYTICS_PANEL.cramming.empty}</p>
                                 </div>
                             ) : (
                                 <div className="space-y-3">
                                     {/* 全体ゲージ */}
-                                    <div className="bg-slate-50 border border-slate-200/60 p-4 rounded-2xl">
+                                    <div className="bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-750 p-4 rounded-xl">
                                         <div className="flex items-baseline justify-between mb-2">
-                                            <span className="text-xs font-bold text-slate-500">{ANALYTICS_PANEL.cramming.overallLabel}</span>
-                                            <span className="text-2xl font-black text-slate-800">
+                                            <span className="text-xs font-bold text-slate-500 dark:text-slate-400">{ANALYTICS_PANEL.cramming.overallLabel}</span>
+                                            <span className="text-2xl font-black text-slate-800 dark:text-slate-100">
                                                 {Math.round(cramming.overallRatio * 100)}<span className="text-sm">%</span>
                                             </span>
                                         </div>
-                                        <div className="h-2.5 w-full bg-slate-200 rounded-full overflow-hidden">
+                                        <div className="h-2.5 w-full bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
                                             <div
                                                 className="h-full bg-gradient-to-r from-amber-400 to-rose-500 rounded-full transition-all"
                                                 style={{ width: `${Math.round(cramming.overallRatio * 100)}%` }}
                                             />
                                         </div>
-                                        <p className="text-[10px] text-slate-400 font-semibold mt-2">
+                                        <p className="text-[10px] text-slate-400 dark:text-slate-500 font-semibold mt-2">
                                             {ANALYTICS_PANEL.cramming.summaryLabel(cramming.taskCount, cramming.crammedTaskCount)}
                                         </p>
                                     </div>
@@ -275,12 +277,12 @@ export function AnalyticsPanel({ isOpen, onClose, tasks = [], timeLogs = [] }) {
                                         {cramming.bySize.map((item) => {
                                             const colors = getSizeColor(item.sizeLabel);
                                             return (
-                                                <div key={item.sizeLabel} className={`border ${colors.border} ${colors.lightBg} p-2.5 rounded-2xl text-center shadow-sm`}>
-                                                    <span className={`text-sm font-black ${colors.text}`}>{item.sizeLabel}</span>
-                                                    <p className="text-base font-black text-gray-800 leading-tight mt-0.5">
+                                                <div key={item.sizeLabel} className={`border ${colors.border} ${colors.lightBg} p-2.5 rounded-xl text-center shadow-2xs`}>
+                                                    <span className={`text-xs font-black ${colors.text}`}>{item.sizeLabel}</span>
+                                                    <p className="text-sm font-black text-slate-800 dark:text-slate-100 leading-tight mt-0.5">
                                                         {item.ratio === null ? '—' : `${Math.round(item.ratio * 100)}%`}
                                                     </p>
-                                                    <p className="text-[9px] text-gray-400 font-semibold">{item.count}件</p>
+                                                    <p className="text-[9px] text-slate-400 dark:text-slate-500 font-semibold">{item.count}件</p>
                                                 </div>
                                             );
                                         })}
@@ -288,11 +290,11 @@ export function AnalyticsPanel({ isOpen, onClose, tasks = [], timeLogs = [] }) {
 
                                     {/* 一夜漬け上位 */}
                                     {cramming.topTasks.filter(t => t.ratio > 0).length > 0 && (
-                                        <div className="space-y-1.5">
-                                            <p className="text-[11px] font-bold text-gray-400">{ANALYTICS_PANEL.cramming.topTasksLabel}</p>
+                                        <div className="space-y-1.5 pt-1">
+                                            <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400">{ANALYTICS_PANEL.cramming.topTasksLabel}</p>
                                             {cramming.topTasks.filter(t => t.ratio > 0).map((t) => (
-                                                <div key={t.taskId} className="flex items-center justify-between gap-2 bg-white border border-gray-100 rounded-xl px-3 py-2">
-                                                    <span className="text-xs font-bold text-gray-700 truncate">{t.title}</span>
+                                                <div key={t.taskId} className="flex items-center justify-between gap-2 bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-750 rounded-xl px-3 py-2">
+                                                    <span className="text-xs font-bold text-slate-700 dark:text-slate-200 truncate">{t.title}</span>
                                                     <span className="text-xs font-black text-rose-500 flex-shrink-0">{Math.round(t.ratio * 100)}%</span>
                                                 </div>
                                             ))}
@@ -300,19 +302,17 @@ export function AnalyticsPanel({ isOpen, onClose, tasks = [], timeLogs = [] }) {
                                     )}
                                 </div>
                             )}
-                        </Section>
+                        </AnalyticsCard>
 
-                        <hr className="border-gray-100" />
-
-                        {/* ── 3. よく作業する時間帯 ───────────────────── */}
-                        <Section
+                        {/* ── 4. よく作業する時間帯 ───────────────────── */}
+                        <AnalyticsCard
                             icon={ANALYTICS_PANEL.timeOfDay.icon}
                             title={ANALYTICS_PANEL.timeOfDay.title}
                             description={ANALYTICS_PANEL.timeOfDay.description}
                         >
                             {workByTime.every(b => b.total === 0) ? (
-                                <div className="bg-slate-50 border border-slate-200/60 p-4 rounded-2xl text-center">
-                                    <p className="text-xs font-bold text-slate-500">{ANALYTICS_PANEL.timeOfDay.empty}</p>
+                                <div className="bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-750 p-4 rounded-xl text-center">
+                                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400">{ANALYTICS_PANEL.timeOfDay.empty}</p>
                                 </div>
                             ) : (
                                 <div className="space-y-2.5">
@@ -321,23 +321,23 @@ export function AnalyticsPanel({ isOpen, onClose, tasks = [], timeLogs = [] }) {
                                         return (
                                             <div key={band.key} className="flex items-center gap-3">
                                                 <div className="w-14 flex-shrink-0 text-right">
-                                                    <p className="text-xs font-black text-gray-700">{band.label}</p>
-                                                    <p className="text-[9px] text-gray-400 font-semibold">{band.range}</p>
+                                                    <p className="text-xs font-bold text-slate-700 dark:text-slate-200">{band.label}</p>
+                                                    <p className="text-[9px] text-slate-400 dark:text-slate-500 font-semibold">{band.range}</p>
                                                 </div>
                                                 <div className="flex-1">
                                                     <div
-                                                        className="h-6 rounded-lg overflow-hidden bg-gray-100"
+                                                        className="h-5 rounded-lg overflow-hidden bg-slate-200 dark:bg-slate-750"
                                                         title={`${band.label}: ${formatMinutes(band.total)}`}
                                                     >
                                                         {hasData && (
                                                             <div
-                                                                className="h-full bg-emerald-400 rounded-lg transition-all"
+                                                                className="h-full bg-emerald-500 dark:bg-emerald-400 rounded-lg transition-all"
                                                                 style={{ width: `${Math.max(8, (band.total / maxBandTotal) * 100)}%` }}
                                                             />
                                                         )}
                                                     </div>
                                                 </div>
-                                                <span className="w-16 flex-shrink-0 text-right text-[10px] font-bold text-gray-400">
+                                                <span className="w-16 flex-shrink-0 text-right text-[11px] font-bold text-slate-500 dark:text-slate-400">
                                                     {hasData ? formatMinutes(band.total) : '—'}
                                                 </span>
                                             </div>
@@ -345,55 +345,54 @@ export function AnalyticsPanel({ isOpen, onClose, tasks = [], timeLogs = [] }) {
                                     })}
                                 </div>
                             )}
-                        </Section>
+                        </AnalyticsCard>
 
-                        <hr className="border-gray-100" />
-
-                        {/* ── 4. 放置タスク検出 ────────────────────────── */}
-                        <Section
+                        {/* ── 5. 放置タスク検出 ────────────────────────── */}
+                        <AnalyticsCard
                             icon={ANALYTICS_PANEL.stalled.icon}
                             title={ANALYTICS_PANEL.stalled.title}
                             description={ANALYTICS_PANEL.stalled.description}
                         >
                             {stalledTasks.length === 0 ? (
-                                <div className="bg-emerald-50 border border-emerald-200/60 p-4 rounded-2xl text-center">
-                                    <p className="text-xs font-bold text-emerald-700">{ANALYTICS_PANEL.stalled.empty}</p>
+                                <div className="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-800 p-4 rounded-xl text-center">
+                                    <p className="text-xs font-bold text-emerald-700 dark:text-emerald-300">{ANALYTICS_PANEL.stalled.empty}</p>
                                 </div>
                             ) : (
                                 <div className="space-y-2">
                                     {stalledTasks.map((t) => {
                                         const colors = getSizeColor(t.sizeLabel);
                                         return (
-                                            <div key={t.taskId} className="flex items-center justify-between gap-2 bg-white border border-gray-200 rounded-xl px-3 py-2.5 shadow-sm">
-                                                <div className="flex items-center gap-2 min-w-0">
+                                            <div key={t.taskId} className="flex items-center justify-between gap-2 bg-white dark:bg-slate-800 border border-slate-200/80 dark:border-slate-750 rounded-xl px-3 py-2.5 shadow-xs">
+                                                <div className="flex items-center gap-2.5 min-w-0">
                                                     {t.sizeLabel && (
-                                                        <span className={`text-xs font-black ${colors.text} bg-white border ${colors.border} w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0`}>
+                                                        <span className={`text-xs font-black ${colors.text} bg-white dark:bg-slate-850 border ${colors.border} w-6 h-6 rounded-full flex items-center justify-center shrink-0`}>
                                                             {t.sizeLabel}
                                                         </span>
                                                     )}
                                                     <div className="min-w-0">
-                                                        <p className="text-xs font-bold text-gray-700 truncate">{t.title}</p>
+                                                        <p className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">{t.title}</p>
                                                         {t.isOverdue && (
-                                                            <span className="text-[9px] font-bold text-red-500">{ANALYTICS_PANEL.stalled.overdueLabel}</span>
+                                                            <span className="text-[10px] font-bold text-red-500">{ANALYTICS_PANEL.stalled.overdueLabel}</span>
                                                         )}
                                                     </div>
                                                 </div>
-                                                <span className="text-xs font-black text-amber-600 flex-shrink-0">
-                                                    {Math.floor(t.stalledDays)}日<span className="text-[10px] font-bold text-gray-400">{ANALYTICS_PANEL.stalled.stalledSuffix}</span>
+                                                <span className="text-xs font-black text-amber-600 dark:text-amber-400 shrink-0">
+                                                    {Math.floor(t.stalledDays)}日<span className="text-[10px] font-bold text-slate-400 dark:text-slate-500">{ANALYTICS_PANEL.stalled.stalledSuffix}</span>
                                                 </span>
                                             </div>
                                         );
                                     })}
                                 </div>
                             )}
-                        </Section>
+                        </AnalyticsCard>
                     </div>
 
                     {/* 下部アクション */}
-                    <div className="border-t border-gray-200 pt-4 mt-6 flex justify-end">
+                    <div className="border-t border-slate-200 dark:border-slate-800 pt-4 mt-6 flex justify-end">
                         <button
+                            type="button"
                             onClick={onClose}
-                            className="py-2.5 px-6 bg-gray-800 hover:bg-gray-700 text-white font-bold rounded-xl text-center text-sm transition duration-200 shadow-sm active:scale-95 pointer-events-auto"
+                            className="py-2.5 px-6 bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-slate-200 text-white dark:text-slate-900 font-bold rounded-xl text-center text-xs sm:text-sm transition duration-200 shadow-xs active:scale-95 pointer-events-auto"
                         >
                             {ANALYTICS_PANEL.closeButton}
                         </button>
